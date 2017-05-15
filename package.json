@@ -1,0 +1,32 @@
+{
+  "name": "perfect-schema",
+  "version": "0.0.1",
+  "description": "Model and schema validation done perfectly.",
+  "author": "Yanick Rochon <yanick.rochon@gmail.com>",
+  "license": "ISC",
+  "main": "dist/perfect-schema.js",
+  "scripts": {
+    "test": "jest --forceExit",
+    "test-cov": "npm run test -- --coverage",
+    "lint": "eslint benchmarks lib test --fix"
+  },
+  "keywords": [
+    "model",
+    "validation",
+    "schema"
+  ],
+  "devDependencies": {
+    "babel-eslint": "^7.2.3",
+    "babel-preset-es2015": "^6.24.1",
+    "babelify": "^7.3.0",
+    "eslint": "^3.19.0",
+    "eslint-config-standard": "^10.2.1",
+    "eslint-plugin-promise": "^3.5.0",
+    "eslint-plugin-standard": "^3.0.1",
+    "grunt": "^1.0.1",
+    "grunt-browserify": "^5.0.0",
+    "grunt-contrib-watch": "^1.0.0",
+    "istanbul": "^0.4.5",
+    "jest": "^20.0.1"
+  }
+}
