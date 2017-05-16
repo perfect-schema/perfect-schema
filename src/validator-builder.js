@@ -1,16 +1,21 @@
 const validators = require('./validators');
 
 
-module.export = function validatorBuilder(fields) {
-  const fieldNames = Object.keys(fields);
+module.exports = function validatorBuilder(fields) {
+  const fieldNames = Object.keys(fields || {});
   const validators = {};
+  var specs;
+  var validator;
 
-  for (let fieldName of fieldNames) {
-    let specs = fields[fieldName];
-    let validator = buildValidator(specs);
+  for (var fieldName of fieldNames) {
+    specs = fields[fieldName];
+    validator = buildValidator(specs);
 
     if (specs.required) {
       validator = requiredValidator(validator);
+    }
+    if (specs.nullable) {
+      validator = nullableValidator(validator);
     }
 
     validators[fieldName] = validator;
@@ -25,7 +30,7 @@ function buildValidator(specs) {
   } else if (specs.$any) {
     return anyValidator(specs);
   } else {
-    let isArray = false;
+    var isArray = false;
 
     if (isType(specs)) {
       specs = { type: specs };
@@ -38,11 +43,11 @@ function buildValidator(specs) {
 
       specs = Object.assign({} , specs, { type: specs.type[0] });
       isArray = true;
-    } else if (!isType(specs.type)) {
-      throw new TypeError('Unknown or unspecified field type : ' + String(specs.type));
     }
 
-    if (isArray) {
+    if (!isType(specs.type)) {
+      throw new TypeError('Unknown or unspecified field type : ' + String(specs.type));
+    } else if (isArray) {
       return arrayValidator(specs);
     } else {
       return validators[specs.type](specs);
@@ -50,6 +55,11 @@ function buildValidator(specs) {
   }
 }
 
+
+
+function isType(type) {
+  return type in validators;
+}
 
 function noop() {}
 
@@ -64,16 +74,24 @@ function requiredValidator(validator) {
   };
 }
 
+function nullableValidator(validator) {
+  return function nullable(value) {
+    if (value !== null) {
+      return validator(value);
+    }
+  };
+}
+
 
 function arrayValidator(specs) {
   const isArray = validators['array'](specs);
   const valueValidator = validators[specs.type](specs)
 
   return function validator(value) {
-    let error = isArray(value);
+    var error = isArray(value);
 
     if (!error) {
-      for (let val of value) {
+      for (var val of value) {
         ereror = valueValidator(val);
 
         if (error) {
@@ -93,14 +111,14 @@ function anyValidator(anySpecs) {
   } else {
     const validators = [];
 
-    for (let specs of anySpecs) {
+    for (var specs of anySpecs) {
       validators.push(buildValidator(specs));
     }
 
     return function validator(value) {
-      let error;
+      var error;
 
-      for (let validator of validators) {
+      for (var validator of validators) {
         error = validator(value);
 
         if (error) {

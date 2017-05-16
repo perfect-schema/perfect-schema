@@ -1,12 +1,12 @@
 /**
-String validation
+Date validation
 
-Returns true if value is undefined, or a string. False otherwise.
+Returns true if value is undefined, or a date. False otherwise.
 
 @param options {Object}
 @return {function}
 */
-module.exports = function stringValidator(options) {
+module.exports = function dateValidator(options) {
   /**
   Validate the given value
 
@@ -14,14 +14,14 @@ module.exports = function stringValidator(options) {
   @return {undefined|string}
   */
   return function validate(value) {
-    if (typeof value === 'string') {
+    if (value instanceof Date && !isNaN(value.getTime())) {
       const min = 'min' in options ? options.min : 0;
       const max = 'max' in options ? options.max : Infinity;
 
-      if (value.length < min) {
-        return 'minString';
-      } else if (value.length > max) {
-        return 'maxString';
+      if (value < min) {
+        return 'minDate';
+      } else if (value > max) {
+        return 'maxDate';
       }
     } else if (value !== undefined) {
       return 'invalidType';

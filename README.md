@@ -11,7 +11,7 @@ npm i -S perfect-schema
 ## Usage
 
 ```
-import PerfectSchema from 'perfect-schema';
+const PerfectSchema = require('perfect-schema');
 
 const itemSchema = new PerfectSchema({
   _id: String,

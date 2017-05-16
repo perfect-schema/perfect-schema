@@ -5,6 +5,9 @@
   "author": "Yanick Rochon <yanick.rochon@gmail.com>",
   "license": "ISC",
   "main": "dist/perfect-schema.js",
+  "engines": {
+    "node": ">= 4.2.2"
+  },
   "scripts": {
     "test": "jest --forceExit",
     "test-cov": "npm run test -- --coverage",

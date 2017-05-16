@@ -5,7 +5,7 @@ be invalid, as long as they are optional.
 
 @return {Array}
 */
-module.export = function any() {
+module.exports = function any() {
   const types = Array.prototype.slice.call(arguments);
 
   types.$any = true;

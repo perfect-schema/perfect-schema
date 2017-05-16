@@ -1,4 +1,5 @@
 const validatorBuilder = require('./validator-builder');
+const IntegerType = require('./validators/integer').Type;
 const any = require('./any');
 
 
@@ -25,6 +26,7 @@ class PerfectSchema {
 }
 
 PerfectSchema.any = any;
+PerfectSchema.Integer = IntegerType;
 
 
 module.export = PerfectSchema;
