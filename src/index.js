@@ -1,5 +1,5 @@
-import validatorBuilder from './validator-builder';
-import any from './any';
+const validatorBuilder = require('./validator-builder');
+const any = require('./any');
 
 
 class PerfectSchema {
@@ -27,4 +27,4 @@ class PerfectSchema {
 PerfectSchema.any = any;
 
 
-export default PerfectSchema;
+module.export = PerfectSchema;

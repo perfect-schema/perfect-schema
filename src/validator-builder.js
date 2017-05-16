@@ -1,12 +1,19 @@
-import validators, { isType } from './validators';
+const validators = require('./validators');
 
 
-export default function validatorBuilder(fields) {
+module.export = function validatorBuilder(fields) {
   const fieldNames = Object.keys(fields);
   const validators = {};
 
   for (let fieldName of fieldNames) {
-    validators[fieldName] = buildValidator(fields[fieldName]);
+    let specs = fields[fieldName];
+    let validator = buildValidator(specs);
+
+    if (specs.required) {
+      validator = requiredValidator(validator);
+    }
+
+    validators[fieldName] = validator;
   }
 
   return validators;
@@ -24,7 +31,7 @@ function buildValidator(specs) {
       specs = { type: specs };
     }
 
-    if (specs.type instanceOf Array) {
+    if (specs.type instanceof Array) {
       if (type.length !== 1) {
         throw new TypeError('Invalid array type');
       }
@@ -47,6 +54,17 @@ function buildValidator(specs) {
 function noop() {}
 
 
+function requiredValidator(validator) {
+  return function required(value) {
+    if (value === undefined) {
+      return 'required';
+    } else {
+      return validator(value);
+    }
+  };
+}
+
+
 function arrayValidator(specs) {
   const isArray = validators['array'](specs);
   const valueValidator = validators[specs.type](specs)
@@ -56,7 +74,7 @@ function arrayValidator(specs) {
 
     if (!error) {
       for (let val of value) {
-        ereror = valueValidator(val):
+        ereror = valueValidator(val);
 
         if (error) {
           break;
@@ -81,7 +99,7 @@ function anyValidator(anySpecs) {
 
     return function validator(value) {
       let error;
-      
+
       for (let validator of validators) {
         error = validator(value);
 

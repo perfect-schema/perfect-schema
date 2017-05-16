@@ -7,8 +7,8 @@ Returns true if value is undefined, or a string. False otherwise.
 @param options {Object}
 @return {boolean}
 */
-export default function stringValidator(options) {
-  return validate(value) {
+module.exports = function stringValidator(options) {
+  return function validate(value) {
     if (typeof value === 'string') {
       const { min = 0, max = Infinity } = options;
 

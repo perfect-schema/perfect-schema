@@ -14,26 +14,19 @@ npm i -S perfect-schema
 import PerfectSchema from 'perfect-schema';
 
 const itemSchema = new PerfectSchema({
-  _id: {
-    type: String,
-    optional: true
-  },
+  _id: String,
   name: {
     type: String,
+    required: true,
     min: 3
-  },
-  description: {
-    type: String,
-    optional: true
   },
   qty: {
     type: PerfectSchema.Integer,
     defaultValue: 0
   },
-  attributes: {
-    type: Object,
-    blackbox: true
-  }
+  price: Number,
+  tags: [String],
+  attributes: Object
 });
 
 const data = {
