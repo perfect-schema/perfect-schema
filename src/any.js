@@ -8,7 +8,12 @@ be invalid, as long as they are optional.
 module.exports = function any() {
   const types = Array.prototype.slice.call(arguments);
 
-  types.$any = true;
+  Object.defineProperty(types, '$any', {
+    configurable: false,
+    enumerable: false,
+    writable: false,
+    value: true
+  });
 
   return types;
 };

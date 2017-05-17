@@ -3,6 +3,10 @@ Date validation
 
 Returns true if value is undefined, or a date. False otherwise.
 
+Options:
+ - min {Numeric}       min date (inclusive)
+ - max {Numeric}       max date (inclusive)
+
 @param options {Object}
 @return {function}
 */

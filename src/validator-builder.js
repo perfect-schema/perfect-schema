@@ -17,6 +17,9 @@ module.exports = function validatorBuilder(fields) {
     if (specs.nullable) {
       validator = nullableValidator(validator);
     }
+    if (typeof specs.custom === 'function') {
+      validator = customValidator(validator, specs);
+    }
 
     validators[fieldName] = validator;
   }
@@ -30,25 +33,33 @@ function buildValidator(specs) {
   } else if (specs.$any) {
     return anyValidator(specs);
   } else {
+    var type;
     var isArray = false;
 
     if (isType(specs)) {
-      specs = { type: specs };
+      type = specs;
+      specs = { type: type };
+    } else {
+      type = specs.type;
     }
 
-    if (specs.type instanceof Array) {
+    if (type instanceof Array) {
       if (type.length !== 1) {
         throw new TypeError('Invalid array type');
       }
 
-      specs = Object.assign({} , specs, { type: specs.type[0] });
+      type = type[0];
       isArray = true;
     }
 
-    if (!isType(specs.type)) {
-      throw new TypeError('Unknown or unspecified field type : ' + String(specs.type));
-    } else if (isArray) {
-      return arrayValidator(specs);
+    if (!isType(type)) {
+      throw new TypeError('Unknown or unspecified field type : ' + JSON.stringify(type));
+    }
+
+    if (isArray) {
+      return arrayValidator(type, specs);
+    } else if (typeof type.validate === 'function') {
+      return schemaValidator(type);
     } else {
       return validators[specs.type](specs);
     }
@@ -58,7 +69,7 @@ function buildValidator(specs) {
 
 
 function isType(type) {
-  return type in validators;
+  return type && ((type in validators) || (typeof type.validate === 'function'));
 }
 
 function noop() {}
@@ -82,17 +93,25 @@ function nullableValidator(validator) {
   };
 }
 
+function customValidator(validator, specs) {
+  const custom = specs.custom.bind(specs);
 
-function arrayValidator(specs) {
-  const isArray = validators['array'](specs);
-  const valueValidator = validators[specs.type](specs)
+  return function validator(value) {
+    return custom(value) || validator(value);
+  };
+}
+
+
+function arrayValidator(type, specs) {
+  const isArray = validators['array'](specs.arrayOptions || {});
+  const valueValidator = validators[type](specs)
 
   return function validator(value) {
     var error = isArray(value);
 
     if (!error) {
       for (var val of value) {
-        ereror = valueValidator(val);
+        error = valueValidator(val);
 
         if (error) {
           break;
@@ -119,14 +138,24 @@ function anyValidator(anySpecs) {
       var error;
 
       for (var validator of validators) {
-        error = validator(value);
+        var err = validator(value);
 
-        if (error) {
+        if (!err) {
+          error = undefined;
           break;
+        } else {
+          error = err;
         }
       }
 
       return error;
-    }
+    };
   }
+}
+
+
+function schemaValidator(schema) {
+  return function validator(value) {
+    return schema.validate(value);
+  };
 }

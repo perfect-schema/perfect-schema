@@ -3,6 +3,10 @@ Integer validation
 
 Returns true if value is undefined, or an integer. False otherwise.
 
+Options:
+ - min {Numeric}       min value (inclusive)
+ - max {Numeric}       max value (exclusive)
+
 @param options {Object}
 @return {function}
 */

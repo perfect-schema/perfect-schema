@@ -3,6 +3,10 @@ String validation
 
 Returns true if value is undefined, or a string. False otherwise.
 
+Options:
+ - min {Numeric}       string min length (inclusive)
+ - max {Numeric}       string max length (inclusive)
+
 @param options {Object}
 @return {function}
 */
@@ -15,7 +19,7 @@ module.exports = function stringValidator(options) {
   */
   return function validate(value) {
     if (typeof value === 'string') {
-      const min = 'min' in options ? options.min : 0;
+      const min = 'min' in options ? options.min : -Infinity;
       const max = 'max' in options ? options.max : Infinity;
 
       if (value.length < min) {

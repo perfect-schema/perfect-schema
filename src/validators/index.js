@@ -4,6 +4,7 @@ const integerValidator = require('./integer');
 const numberValidator = require('./number');
 const dateValidator = require('./date');
 const objectValidator = require('./object');
+const arrayValidator = require('./array');
 
 module.exports = {
   [Boolean]: booleanValidator,
@@ -17,5 +18,7 @@ module.exports = {
   [Date]: dateValidator,
   'date': dateValidator,
   [Object]: objectValidator,
-  'object': objectValidator
+  'object': objectValidator,
+  [Array]: arrayValidator,
+  'array': arrayValidator
 };
