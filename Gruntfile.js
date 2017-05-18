@@ -13,30 +13,9 @@ module.exports = function (grunt) {
           ]
         },
         files: {
-          // if the source file has an extension of es6 then
-          // we change the name of the source file accordingly.
-          // The result file's extension is always .js
-          "./dist/perfect-schema.js": ["./src/index.js"]
+          "./dist/perfect-schema.js": ["./src/perfect-schema.js"]
         }
       },
-      distMin: {
-        options: {
-          transform: [
-            ["babelify", {
-              presets: ["es2015"],
-              comments: false,
-              minified: true,
-              sourceType: "module"
-            }]
-          ]
-        },
-        files: {
-          // if the source file has an extension of es6 then
-          // we change the name of the source file accordingly.
-          // The result file's extension is always .js
-          "./dist/perfect-schema.min.js": ["./src/index.js"]
-        }
-      }
     },
     watch: {
       scripts: {

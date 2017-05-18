@@ -16,6 +16,7 @@ describe('Testing validator builder', () => {
     ].forEach(fields => assert.deepEqual(validatorBuilder(fields), {}, 'Failed with no argument : ' + JSON.stringify(fields)));
   });
 
+
   it('should build with primitives', () => {
     [
       [Boolean, true, 'true'], ['boolean', true, 'true'],
@@ -35,6 +36,7 @@ describe('Testing validator builder', () => {
     });
   });
 
+
   it('should build with "any" (wildcard)', () => {
     const fields = {
       foo: any()
@@ -50,6 +52,7 @@ describe('Testing validator builder', () => {
       assert.strictEqual(fieldValidators.foo(value), undefined, 'Failed validation');
     });
   });
+
 
   it('should build with "any" given types', () => {
     const fields = {
@@ -83,6 +86,7 @@ describe('Testing validator builder', () => {
     });
   });
 
+
   it('should build with arrays (shorthand)', () => {
     const fields = {
       foo: [String]
@@ -105,6 +109,7 @@ describe('Testing validator builder', () => {
       assert.strictEqual(fieldValidators.foo(value), 'invalidType', 'Failed validation : ' + JSON.stringify(value));
     });
   });
+
 
   it('should build with arrays (arrayOptions)', () => {
     const fields = {
@@ -137,7 +142,113 @@ describe('Testing validator builder', () => {
   });
 
 
-  it('should build with schema instances');
+  it('should fail with invalid array type', () => {
+    [
+      [], [null, null]
+    ].forEach(type => {
+      assert.throws(() => validatorBuilder({ foo: type }));
+      assert.throws(() => validatorBuilder({ foo: { type: type } }));
+    });
+  });
 
+
+  it('should fail with invalid type', () => {
+    [
+      [[]],
+      [null], null,
+      [undefined], undefined
+    ].forEach(type => {
+      assert.throws(() => validatorBuilder({ foo: type }));
+      assert.throws(() => validatorBuilder({ foo: { type: type } }));
+    });
+  });
+
+
+  it('should build with schema instances', () => {
+    const subFields = {
+      validate(value) {
+        return value.bar === true || 'Failed';
+      }
+    };
+    const fields = {
+      foo: subFields
+    };
+    const fieldValidators = validatorBuilder(fields);
+
+    assert.strictEqual(fieldValidators.foo({ bar: true }), undefined, 'Failed validation with valid value');
+    assert.notStrictEqual(fieldValidators.foo({ bar: false }), undefined, 'Failed validation with invalid value');
+  });
+
+
+  it('should build required field validator', () => {
+    const optionalFields = {
+      foo: {
+        type: String,
+        required: false
+      }
+    };
+    const optionalValidator = validatorBuilder(optionalFields);
+    const requiredFields = {
+      foo: {
+        type: String,
+        required: true
+      }
+    };
+    const requiredValidator = validatorBuilder(requiredFields);
+
+    assert.strictEqual(optionalValidator.foo(), undefined, 'Failed optional validator');
+    assert.strictEqual(optionalValidator.foo(undefined), undefined, 'Failed optional validator');
+    assert.strictEqual(optionalValidator.foo(null), 'invalidType', 'Failed optional validator');  // non nullable is not the same as optional
+    assert.strictEqual(optionalValidator.foo('test'), undefined, 'Failed optional validator');
+    assert.strictEqual(requiredValidator.foo(), 'required', 'Failed required validator');
+    assert.strictEqual(requiredValidator.foo(undefined), 'required', 'Failed required validator');
+    assert.strictEqual(requiredValidator.foo(null), 'invalidType', 'Failed optional validator');  // required is not nullable
+    assert.strictEqual(requiredValidator.foo('test'), undefined, 'Failed required validator');
+  });
+
+
+  it('should build nullable field validator', () => {
+    const optionalFields = {
+      foo: {
+        type: String,
+        required: false,
+        nullable: true
+      }
+    };
+    const optionalValidator = validatorBuilder(optionalFields);
+    const requiredFields = {
+      foo: {
+        type: String,
+        required: true,
+        nullable: true
+      }
+    };
+    const requiredValidator = validatorBuilder(requiredFields);
+
+    assert.strictEqual(optionalValidator.foo(), undefined, 'Failed optional validator');
+    assert.strictEqual(optionalValidator.foo(undefined), undefined, 'Failed optional validator');
+    assert.strictEqual(optionalValidator.foo(null), undefined, 'Failed optional validator');
+    assert.strictEqual(optionalValidator.foo('test'), undefined, 'Failed optional validator');
+    assert.strictEqual(requiredValidator.foo(), 'required', 'Failed required validator');
+    assert.strictEqual(requiredValidator.foo(undefined), 'required', 'Failed required validator');
+    assert.strictEqual(requiredValidator.foo(null), undefined, 'Failed optional validator');
+    assert.strictEqual(requiredValidator.foo('test'), undefined, 'Failed required validator');
+  });
+
+
+  it('should build custom field validation', () => {
+    const fields = {
+      foo: {
+        type: String,
+        custom(value) {
+          return value === 'bar' || 'invalid';
+        }
+      }
+    };
+    const fieldValidators = validatorBuilder(fields);
+
+    assert.strictEqual(fieldValidators.foo('bar'), undefined, 'Failed custom valid value');
+    assert.strictEqual(fieldValidators.foo('err'), 'invalid', 'Failed custom invalid value');
+  });
 
 });

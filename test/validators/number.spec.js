@@ -4,7 +4,6 @@ describe('Number validation', () => {
 
   const numberValidator = require('../../src/validators/number');
 
-
   it('should validate if undefined', function () {
     const validator = numberValidator({});
 

@@ -1,3 +1,5 @@
+'use strict';
+
 const validatorBuilder = require('./validator-builder');
 const IntegerType = require('./validators/integer').Type;
 const any = require('./any');
@@ -14,6 +16,9 @@ class PerfectSchema {
     if (typeof fields !== 'object') { throw new TypeError('Fields must be an object'); }
 
     this._fieldNames = Object.keys(fields);
+
+    if (!this._fieldNames.length) { throw new TypeError('No fields specified'); }
+
     this._fields = fields;
     this._validators = validatorBuilder(fields);
   }
@@ -32,6 +37,7 @@ class PerfectSchema {
     }
 
     this._validators = Object.assign(this._validators || {}, validatorBuilder(fields));
+    this._fieldNames = Object.keys(this._fields);
   }
 
 
@@ -101,4 +107,4 @@ PerfectSchema.Integer = IntegerType;
 
 
 
-module.export = PerfectSchema;
+module.exports = PerfectSchema;

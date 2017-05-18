@@ -96,30 +96,43 @@ function nullableValidator(validator) {
 function customValidator(validator, specs) {
   const custom = specs.custom.bind(specs);
 
-  return function validator(value) {
-    return custom(value) || validator(value);
+  return function customValidator(value) {
+    const customResult = custom(value);
+
+    if (typeof customResult === 'string') {
+      return customResult;
+    } else {
+      return validator(value);
+    }
   };
 }
 
 
 function arrayValidator(type, specs) {
   const isArray = validators['array'](specs.arrayOptions || {});
-  const valueValidator = validators[type](specs)
+  const elementSpecs = Object.assign({}, specs, { type: type });
+  const valueValidator = buildValidator(elementSpecs);
 
   return function validator(value) {
     var error = isArray(value);
 
-    if (!error) {
+    if (typeof error !== 'string') {
+      var hasError = false;
+
       for (var val of value) {
         error = valueValidator(val);
 
-        if (error) {
+        if (typeof error === 'string') {
+          hasError = true;
           break;
         }
       }
+
+      return hasError ? error : undefined;
+    } else {
+      return error;
     }
 
-    return error;
   };
 }
 
@@ -140,11 +153,11 @@ function anyValidator(anySpecs) {
       for (var validator of validators) {
         var err = validator(value);
 
-        if (!err) {
+        if (typeof err === 'string') {
+          error = err;
+        } else {
           error = undefined;
           break;
-        } else {
-          error = err;
         }
       }
 
@@ -156,6 +169,8 @@ function anyValidator(anySpecs) {
 
 function schemaValidator(schema) {
   return function validator(value) {
-    return schema.validate(value);
+    const result = schema.validate(value);
+
+    return typeof result === 'string' ? result : undefined;
   };
 }
