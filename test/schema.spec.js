@@ -1,16 +1,16 @@
 
 
-describe('Testing Perfect-Schema', () => {
+describe('Testing Schema', () => {
   const assert = require('assert');
 
-  const PerfectSchema = require('../src/perfect-schema');
+  const Schema = require('../src/schema');
 
   it('should not create without fields', () => {
-    assert.throws(() => { new PerfectSchema(); }, TypeError);
+    assert.throws(() => { new Schema(); }, TypeError);
 
     [
       undefined, null, true, false, NaN, {}
-    ].forEach(fields => assert.throws(() => { new PerfectSchema(fields); }, TypeError));
+    ].forEach(fields => assert.throws(() => { new Schema(fields); }, TypeError));
   });
 
 
@@ -19,7 +19,7 @@ describe('Testing Perfect-Schema', () => {
       foo: String
     };
 
-    const schema = new PerfectSchema(fields);
+    const schema = new Schema(fields);
 
     assert.deepStrictEqual(schema._fields, fields, 'Fields mismatch');
     assert.deepStrictEqual(Object.keys(fields), Object.keys(schema._validators), 'Field validator mismatch');
@@ -38,7 +38,7 @@ describe('Testing Perfect-Schema', () => {
       bar: Object
     };
 
-    const schema = new PerfectSchema(baseFields);
+    const schema = new Schema(baseFields);
 
     assert.strictEqual(schema._fieldNames.length, 1, 'Mismatch field names');
 

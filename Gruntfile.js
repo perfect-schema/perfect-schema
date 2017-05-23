@@ -13,7 +13,7 @@ module.exports = function (grunt) {
           ]
         },
         files: {
-          "./dist/perfect-schema.js": ["./src/perfect-schema.js"]
+          "./dist/perfect-schema.js": ["./src/schema.js"]
         }
       },
     },

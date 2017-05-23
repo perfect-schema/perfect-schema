@@ -4,7 +4,7 @@
   "description": "Model and schema validation done perfectly.",
   "author": "Yanick Rochon <yanick.rochon@gmail.com>",
   "license": "ISC",
-  "main": "src/perfect-schema.js",
+  "main": "src/schema.js",
   "browser": "dist/perfect-schema.js",
   "engines": {
     "node": ">= 4.2.2"

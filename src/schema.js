@@ -1,8 +1,10 @@
 'use strict';
 
 const validatorBuilder = require('./validator-builder');
+const normalizeFields = require('./normalize-fields').normalizeFields;
 const IntegerType = require('./validators/integer').Type;
 const any = require('./any');
+const PerfectModel = require('./model');
 
 
 class PerfectSchema {
@@ -12,15 +14,16 @@ class PerfectSchema {
 
   @param fields {Object}
   */
-  constructor(fields) {
+  constructor(fields, options) {
     if (typeof fields !== 'object') { throw new TypeError('Fields must be an object'); }
 
     this._fieldNames = Object.keys(fields);
 
     if (!this._fieldNames.length) { throw new TypeError('No fields specified'); }
 
-    this._fields = fields;
+    this._fields = normalizeFields(fields);
     this._validators = validatorBuilder(fields);
+    this._options = options || {};
   }
 
 
@@ -32,12 +35,24 @@ class PerfectSchema {
   extends(fields) {
     const fieldNames = Object.keys(fields);
 
+    fields = normalizeFields(fields);
+
     for (var fieldName of fieldNames) {
       fields[fieldName] = this._fields[fieldName] = Object.assign(this._fields[fieldName] || {}, fields[fieldName]);
     }
 
     this._validators = Object.assign(this._validators || {}, validatorBuilder(fields));
     this._fieldNames = Object.keys(this._fields);
+  }
+
+
+  /**
+  Create a new model instance for this schema
+
+  @return {PerfectModel}
+  */
+  createModel() {
+    return new PerfectModel(this);
   }
 
 

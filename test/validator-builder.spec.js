@@ -165,11 +165,11 @@ describe('Testing validator builder', () => {
 
 
   it('should build with schema instances', () => {
-    const subFields = {
-      validate(value) {
+    const subFields = new (function PerfectSchema() {
+      this.validate = function (value) {
         return value.bar === true || 'Failed';
-      }
-    };
+      };
+    })();
     const fields = {
       foo: subFields
     };
