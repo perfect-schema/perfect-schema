@@ -19,13 +19,13 @@ describe('Testing validator builder', () => {
 
   it('should build with primitives', () => {
     [
-      [Boolean, true, 'true'], ['boolean', true, 'true'],
-      [String, 'abc', 123], ['string', 'abc', 123],
-      [Object, {}, []], ['object', {}, []],
-      [Array, [], 'abc'], ['array', [], 'abc'],
-      [Date, new Date(), 'abc'], ['date', new Date(), 'abc'],
-      [Number, 123.456, 'abc'], ['number', 123.456, 'abc'],
-      [validators['integer'].Type, 123, 123.456], ['integer', 123, 123.456],
+      [Boolean, true, 'true'],
+      [String, 'abc', 123],
+      [Object, {}, []],
+      [Array, [], 'abc'],
+      [Date, new Date(), 'abc'],
+      [Number, 123.456, 'abc'],
+      [validators['integer'].Type, 123, 123.456]
     ].forEach(options => {
       const fields = { foo: options[0] };
       const fieldValidators = validatorBuilder(fields);
@@ -249,6 +249,33 @@ describe('Testing validator builder', () => {
 
     assert.strictEqual(fieldValidators.foo('bar'), undefined, 'Failed custom valid value');
     assert.strictEqual(fieldValidators.foo('err'), 'invalid', 'Failed custom invalid value');
+  });
+
+
+  it('should map from string to type', () => {
+    assert.strictEqual(validators.getType('boolean'), Boolean, 'Mismatch "boolean" > [Boolean]');
+    assert.strictEqual(validators.getType('date'), Date, 'Mismatch "date" > [Date]');
+    assert.strictEqual(validators.getType('number'), Number, 'Mismatch "number" > [Number]');
+    assert.strictEqual(validators.getType('string'), String, 'Mismatch "string" > [String]');
+  });
+
+
+  it('should map identity type if not string', () => {
+    [
+      true, false, null,
+      Infinity,
+      new Date(), {}, () => {}, /./,
+      [], [""]
+    ].forEach(type => {
+      assert.strictEqual(validators.getType(type), type, 'Mismatch non string type : ' + JSON.stringify(type));
+    });
+  });
+
+
+  it('should not map invalid string type', () => {
+    assert.throws(() => {
+      validators.getType('invalidType');
+    }, 'Failed to throw');
   });
 
 });

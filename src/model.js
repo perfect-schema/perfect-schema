@@ -35,22 +35,26 @@ class PerfectModel {
 
     var start = 0;
     var pos = field.indexOf('.', start);
-    var fieldName;
-    var value = this._data;
+    var fieldName = pos > start ? field.substr(0, pos) : '';
+    var fieldSpec = schema._fields[fieldName];
 
-    while (pos !== -1) {
-      fieldName = field.substr(start, pos);
-      value = value[fieldName];
+    if (!fieldSpec) {
+      throw new Error('Field not in schema : ' + fieldName + ' (' + field + ')');
+    } else if (fieldName.length < field.length) {   // has more keys...
+      // TODO : check if fieldSpec is an object
 
-      if (typeof value.get === 'function') {
-        value = value.get(field.substr(start));
-        break;
+      var value = this._data[fieldName];
+
+      while (value && (pos = field.indexOf('.', start = pos + 1)) >= start) {
+        fieldName = field.substr(start, pos);
+
+        value = value[fieldName];
       }
 
-      pos = field.indexOf('.', start = pos + 1);
+      return value;
+    } else {
+      return this._data[fieldName];
     }
-
-    return value;
   }
 
   /**

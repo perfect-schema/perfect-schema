@@ -6,19 +6,43 @@ const dateValidator = require('./date');
 const objectValidator = require('./object');
 const arrayValidator = require('./array');
 
-module.exports = {
+const validators = {
   [Boolean]: booleanValidator,
-  'boolean': booleanValidator,
   [String]: stringValidator,
-  'string': stringValidator,
   [integerValidator.Type]: integerValidator,
-  'integer': integerValidator,
   [Number]: numberValidator,
-  'number': numberValidator,
   [Date]: dateValidator,
-  'date': dateValidator,
   [Object]: objectValidator,
-  'object': objectValidator,
-  [Array]: arrayValidator,
-  'array': arrayValidator
+  [Array]: arrayValidator
 };
+const typeMap = {
+  'boolean': Boolean,
+  'string': String,
+  'integer': integerValidator.Type,
+  'number': Number,
+  'date': Date,
+  'object': Object,
+  'array': Array
+};
+
+validators.getType = function getType(type) {
+  if (typeof type === 'string') {
+    const typeKey = type.toLowerCase();
+
+    if (typeKey in typeMap) {
+      return typeMap[typeKey];
+    } else {
+      throw new TypeError('Unknown type name : ' + type);
+    }
+  }
+
+  return type;
+}
+
+
+validators.isType = function isType(type) {
+  return type && ((type in validators) || ((typeof type === 'string') && (type.toLowerCase() in typeMap)));
+}
+
+
+module.exports = validators;

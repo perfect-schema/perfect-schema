@@ -14,7 +14,9 @@ describe('Testing Model', () => {
 
 
   it('should create new model', () => {
-    const Foo = new Model(new PerfectSchema());
+    const foo = new Model(new PerfectSchema());
+
+    console.log(foo);
 
   });
 

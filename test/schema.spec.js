@@ -44,7 +44,7 @@ describe('Testing Schema', () => {
 
     schema.extends(extendedFields);
 
-    //assert.strictEqual(schema._fieldNames.length, 2, 'Mismatch field names');
+    assert.strictEqual(schema._fieldNames.length, 2, 'Mismatch field names');
 
   });
 

@@ -1,7 +1,7 @@
 const validators = require('./validators');
 const normalizeFields = require('./normalize-fields');
 
-const isType = normalizeFields.isType;
+const isType = validators.isType;
 const isSchema = normalizeFields.isSchema;
 
 
@@ -109,7 +109,7 @@ function customValidator(validator, specs) {
 
 
 function arrayValidator(type, specs) {
-  const isArray = validators['array'](specs.arrayOptions || {});
+  const isArray = validators[Array](specs.arrayOptions || {});
   const elementSpecs = Object.assign({}, specs, { type: type });
   const valueValidator = buildValidator(elementSpecs);
 
