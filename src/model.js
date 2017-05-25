@@ -11,7 +11,7 @@ class PerfectModel {
 
   constructor(schema) {
     if (!isSchema(schema)) {
-      throw new TypeError('Unspecified schema');
+      throw new TypeError('Unspecified or invalid schema');
     }
     const ReactiveVar = schema._options.ReactiveVar || FakeReactiveVar;
 
@@ -35,26 +35,38 @@ class PerfectModel {
 
     var start = 0;
     var pos = field.indexOf('.', start);
-    var fieldName = pos > start ? field.substr(0, pos) : '';
-    var fieldSpec = schema._fields[fieldName];
+    var fieldName = pos > start ? field.substr(0, pos) : field;
+    var fieldSpec = this._schema._fields[fieldName];
+    var fieldValue;
 
     if (!fieldSpec) {
-      throw new Error('Field not in schema : ' + fieldName + ' (' + field + ')');
+      throw new Error('Field not in schema : ' + fieldName);
     } else if (fieldName.length < field.length) {   // has more keys...
-      // TODO : check if fieldSpec is an object
+      fieldValue = this._data[fieldName];
 
-      var value = this._data[fieldName];
+      if (isSchema(fieldSpec.type)) {
+        fieldValue = fieldValue && fieldValue.get(field.substr(pos + 1));
+      } else if (isObject(fieldSpec.type)) {
+        var _fieldName = fieldName;
 
-      while (value && (pos = field.indexOf('.', start = pos + 1)) >= start) {
-        fieldName = field.substr(start, pos);
+        start = pos + 1;
 
-        value = value[fieldName];
+        while (fieldValue && (pos = field.indexOf('.', start)) >= start) {
+          _fieldName = field.substr(start, pos - start);
+          fieldValue = fieldValue[_fieldName];
+          start = pos + 1;
+        }
+
+        // when pos = -1, then we got all field parts, and start is the offset of the last field names
+        fieldValue = pos === -1 ? fieldValue && fieldValue[field.substr(start)] : undefined;
+      } else {
+        throw new TypeError('Invalid type for field : ' + fieldName);
       }
-
-      return value;
     } else {
-      return this._data[fieldName];
+      fieldValue = this._data[fieldName];
     }
+
+    return fieldValue;
   }
 
   /**
@@ -69,22 +81,45 @@ class PerfectModel {
 
     var start = 0;
     var pos = field.indexOf('.', start);
-    var fieldName;
-    var value = this._data;
+    var fieldName = pos > start ? field.substr(0, pos) : field;
+    var fieldSpec = this._schema._fields[fieldName];
+    var fieldValue;
 
-    while (pos !== -1) {
-      fieldName = field.substr(start, pos);
-      value = value[fieldName];
+    if (!fieldSpec) {
+      throw new Error('Field not in schema : ' + fieldName);
+    } else if (fieldName.length < field.length) {   // has more keys...
 
-      if (typeof value.get === 'function') {
-        value = value.get(field.substr(start));
-        break;
+      if (isSchema(fieldSpec.type)) {
+        if (!(fieldName in this._data)) {
+          fieldValue = this._data[fieldName] = fieldSpec.type.createModel();
+        } else {
+          fieldValue = this._data[fieldName];
+        }
+
+        fieldValue.set(field.substr(pos + 1), value);
+      } else if (isObject(fieldSpec.type)) {
+        var _fieldName = fieldName;
+        var _fieldValue = fieldValue = this._data[fieldName] || (this._data[fieldName] = {});
+
+        start = pos + 1;
+
+        while ((pos = field.indexOf('.', start)) >= start) {
+          _fieldName = field.substr(start, pos - start);
+          _fieldValue = _fieldValue[_fieldName] || (_fieldValue[_fieldName] = {});
+          start = pos + 1;
+        }
+
+        _fieldValue[field.substr(start)] = value;
+
+        validate(this, fieldName);
+      } else {
+        throw new TypeError('Invalid type for field : ' + fieldName);
       }
+    } else {
+      fieldValue = this._data[fieldName] = value;
 
-      pos = field.indexOf('.', start = pos + 1);
+      validate(this, fieldName);
     }
-
-
   }
 
   /**
@@ -110,14 +145,34 @@ class PerfectModel {
 }
 
 
+
+function isObject(type) {
+  return type === Object;
+}
+
+
 function checkField(field) {
   if (typeof field !== 'string') {
     throw new TypeError('Invalid field type: expected string, received ' + typeof field);
   }
 }
 
-function validate(value, validator, model) {
+function validate(model, field) {
+  const fields = Array.prototype.slice.call(arguments, 1);
+  const schema = model._schema;
+  const data = {};
 
+  for (var i = 0, len = fields.length; i < len; ++i) {
+    field = fields[i];
+
+    data[field] = model._data[field];
+  }
+
+  schema.validate(data).then(messages => {
+
+    /* TODO : update messages and invalidate model ReactiveVar */
+
+  });
 }
 
 
