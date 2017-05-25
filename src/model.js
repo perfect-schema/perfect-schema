@@ -19,7 +19,7 @@ class PerfectModel {
 
     this._id = ++idCounter;
     this._data = {};
-    this._valid = new ReactiveVar(false);
+    this._valid = new ReactiveVar(true);
     this._errorMessages = {};
   }
 

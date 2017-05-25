@@ -5,7 +5,6 @@
   "author": "Yanick Rochon <yanick.rochon@gmail.com>",
   "license": "ISC",
   "main": "src/schema.js",
-  "browser": "dist/perfect-schema.js",
   "engines": {
     "node": ">= 4.2.2"
   },

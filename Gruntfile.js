@@ -16,6 +16,21 @@ module.exports = function (grunt) {
           "./dist/perfect-schema.js": ["./src/schema.js"]
         }
       },
+      distMin: {
+        options: {
+          transform: [
+            ["babelify", {
+              presets: ["es2015"],
+              comments: false,
+              minified: true,
+              sourceType: "module"
+            }]
+          ]
+        },
+        files: {
+          "./dist/perfect-schema.min.js": ["./src/schema.js"]
+        }
+      },
     },
     watch: {
       scripts: {
