@@ -77,50 +77,72 @@ class PerfectModel {
   @param value {mixed}
   */
   set(field, value) {
-    checkField(field);
+    const schema = this._schema;
+    const data = this._data;
 
-    var start = 0;
-    var pos = field.indexOf('.', start);
-    var fieldName = pos > start ? field.substr(0, pos) : field;
-    var fieldSpec = this._schema._fields[fieldName];
-    var fieldValue;
+    function setField(field, value) {
+      checkField(field);
 
-    if (!fieldSpec) {
-      throw new Error('Field not in schema : ' + fieldName);
-    } else if (fieldName.length < field.length) {   // has more keys...
+      var start = 0;
+      var pos = field.indexOf('.', start);
+      var fieldName = pos > start ? field.substr(0, pos) : field;
+      var fieldSpec = schema._fields[fieldName];
+      var fieldValue;
 
-      if (isSchema(fieldSpec.type)) {
-        if (!(fieldName in this._data)) {
-          fieldValue = this._data[fieldName] = fieldSpec.type.createModel();
-        } else {
-          fieldValue = this._data[fieldName];
-        }
+      if (!fieldSpec) {
+        throw new Error('Field not in schema : ' + fieldName);
+      } else if (fieldName.length < field.length) {   // has more keys...
 
-        fieldValue.set(field.substr(pos + 1), value);
-      } else if (isObject(fieldSpec.type)) {
-        var _fieldName = fieldName;
-        var _fieldValue = fieldValue = this._data[fieldName] || (this._data[fieldName] = {});
+        if (isSchema(fieldSpec.type)) {
+          if (!(fieldName in data)) {
+            fieldValue = data[fieldName] = fieldSpec.type.createModel();
+          } else {
+            fieldValue = data[fieldName];
+          }
 
-        start = pos + 1;
+          return fieldValue.set(field.substr(pos + 1), value).then(() => {
+            return fieldName;
+          });
+        } else if (isObject(fieldSpec.type)) {
+          var _fieldName = fieldName;
+          var _fieldValue = fieldValue = data[fieldName] || (data[fieldName] = {});
 
-        while ((pos = field.indexOf('.', start)) >= start) {
-          _fieldName = field.substr(start, pos - start);
-          _fieldValue = _fieldValue[_fieldName] || (_fieldValue[_fieldName] = {});
           start = pos + 1;
+
+          while ((pos = field.indexOf('.', start)) >= start) {
+            _fieldName = field.substr(start, pos - start);
+            _fieldValue = _fieldValue[_fieldName] || (_fieldValue[_fieldName] = {});
+            start = pos + 1;
+          }
+
+          _fieldValue[field.substr(start)] = value;
+
+          //return validate(this, fieldName);
+        } else {
+          throw new TypeError('Invalid type for field : ' + fieldName);
         }
-
-        _fieldValue[field.substr(start)] = value;
-
-        validate(this, fieldName);
       } else {
-        throw new TypeError('Invalid type for field : ' + fieldName);
-      }
-    } else {
-      fieldValue = this._data[fieldName] = value;
+        fieldValue = data[fieldName] = value;
 
-      validate(this, fieldName);
+        //return validate(this, fieldName);
+      }
+
+      return Promise.resolve(fieldName);
+    }
+
+    if (arguments.length === 1 && (Object.prototype.toString.call(field) === '[object Object]')) {
+      return Promise.all(Object.keys(field || {}).map(fieldName => {
+        return setField(fieldName, field[fieldName]);
+      })).then(fieldNames => {
+        return validate(this, fieldNames);
+      });
+    } else {
+      return setField(field, value).then(fieldName => {
+        return validate(this, [fieldName]);
+      });
     }
   }
+
 
   /**
   Returns true if this model is valid
@@ -157,18 +179,19 @@ function checkField(field) {
   }
 }
 
-function validate(model, field) {
-  const fields = Array.prototype.slice.call(arguments, 1);
+function validate(model, fieldNames) {
   const schema = model._schema;
-  const data = {};
+  const data = model._data;
+  const validationData = {};
+  var fieldName;
 
-  for (var i = 0, len = fields.length; i < len; ++i) {
-    field = fields[i];
+  for (var i = 0, len = fieldNames.length; i < len; ++i) {
+    fieldName = fieldNames[i];
 
-    data[field] = model._data[field];
+    validationData[fieldName] = data[fieldName];
   }
 
-  schema.validate(data).then(messages => {
+  return schema.validate(validationData).then(messages => {
 
     /* TODO : update messages and invalidate model ReactiveVar */
 

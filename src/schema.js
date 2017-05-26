@@ -70,7 +70,7 @@ class PerfectSchema {
     const messages = [];
     var done = false;
 
-    const promise = new Promise((resolve, reject) => {
+    const promise = Promise.resolve(() => {
       const validationResults = [];
 
       function validateField(fieldName, value) {
@@ -85,13 +85,11 @@ class PerfectSchema {
 
       for (var fieldName of dataFields) {
         if (!(fieldName in fields)) {
-          return 'keyNotInSchema';
+          messages.push({ fieldName: fieldName, message: 'keyNotInSchema' });
+        } else {
+          validationResults.push(validateField(fieldName, data[fieldName]));
         }
       }
-
-      for (var fieldName of fieldNames) {
-       validationResults.push(validateField(fieldName, data[fieldName]));
-     }
 
       return Promise.all(validationResults);
     }).then(() => {

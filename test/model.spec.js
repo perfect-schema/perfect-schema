@@ -242,6 +242,27 @@ describe('Testing Model', () => {
       assert.throws(() => model.set('foo.bar.buz', value), 'Failed to throw setting invalid field');
     });
 
+
+    it('should set multiple values', () => {
+      const schema = new PerfectSchema({
+        foo: { type: Object },
+        bar: { type: Object }
+      });
+      const model = new Model(schema);
+      const value = {
+        foo: { test: 'hello' },
+        'bar.test': 'world'
+      };
+      const expected = {
+        foo: { test: 'hello' },
+        bar: { test: 'world' }
+      };
+
+      model.set(value);
+
+      assert.deepStrictEqual(model._data, expected, 'Failed to set multiple values');
+    });
+
   });
 
 });

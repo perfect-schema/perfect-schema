@@ -18,7 +18,6 @@ describe('Testing Schema', () => {
     const fields = {
       foo: String
     };
-
     const schema = new Schema(fields);
 
     assert.deepStrictEqual(schema._fields, fields, 'Fields mismatch');
@@ -45,8 +44,29 @@ describe('Testing Schema', () => {
     schema.extends(extendedFields);
 
     assert.strictEqual(schema._fieldNames.length, 2, 'Mismatch field names');
-
   });
 
+
+  describe('Testing validation', () => {
+
+    it('should validate simple data set', (done) => {
+      const fields = {
+        foo: String
+      };
+      const schema = new Schema(fields);
+
+      const validator = schema.validate({ foo: 'hello' });
+
+      console.log(validator);
+
+      validator.validationPromise().then(messages => {
+        console.log(messages);
+
+        done();
+      });
+
+    });
+
+  });
 
 });
