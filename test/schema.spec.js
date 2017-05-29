@@ -49,7 +49,7 @@ describe('Testing Schema', () => {
 
   describe('Testing validation', () => {
 
-    it('should validate simple data set', (done) => {
+    it('should validate simple data', () => {
       const fields = {
         foo: String
       };
@@ -57,14 +57,56 @@ describe('Testing Schema', () => {
 
       const validator = schema.validate({ foo: 'hello' });
 
-      console.log(validator);
-
-      validator.validationPromise().then(messages => {
-        console.log(messages);
-
-        done();
+      validator.then(messages => {
+        assert.deepStrictEqual(messages, [], 'Failed to validate model');
       });
+    });
 
+    it('should invalidate simple data', () => {
+      const fields = {
+        foo: String
+      };
+      const schema = new Schema(fields);
+
+      const validator = schema.validate({ foo: 123 });
+
+      return validator.then(messages => {
+        assert.deepStrictEqual(messages, [ { fieldName: 'foo', message: 'invalidType', value: 123 } ], 'Failed to find error in validation');
+      });
+    });
+
+    it('should validate nested data', () => {
+      const barFields = {
+        bar: String
+      };
+      const barSchema = new Schema(barFields);
+      const fooFields = {
+        foo: barSchema
+      };
+      const fooSchema = new Schema(fooFields);
+
+      const validator = fooSchema.validate({ foo: { bar: 'hello' } });
+
+      return validator.then(messages => {
+        assert.deepStrictEqual(messages, [], 'Failed to validate model');
+      });
+    });
+
+    it('should invalidate nested data', () => {
+      const barFields = {
+        bar: String
+      };
+      const barSchema = new Schema(barFields);
+      const fooFields = {
+        foo: barSchema
+      };
+      const fooSchema = new Schema(fooFields);
+
+      const validator = fooSchema.validate({ foo: { bar: 123 } });
+
+      return validator.then(messages => {
+        assert.deepStrictEqual(messages, [ { fieldName: 'foo.bar', message: 'invalidType', value: 123 } ], 'Failed to find error in validation');
+      });
     });
 
   });

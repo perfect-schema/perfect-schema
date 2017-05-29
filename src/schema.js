@@ -68,49 +68,52 @@ class PerfectSchema {
     const fieldNames = this._fieldNames;
     const validators = this._validators;
     const messages = [];
-    var done = false;
 
-    const promise = Promise.resolve(() => {
-      const validationResults = [];
+    // Set initial state
+    var isPending = true;
+    var isRejected = false;
+    var isFulfilled = false;
+    const validationResults = [];
 
-      function validateField(fieldName, value) {
-        const validator = validators[fieldName];
+    function validateField(fieldName, value) {
+      const validator = validators[fieldName];
 
-        return Promise.resolve(validator(value)).then(message => {
-          if (message) {
-            messages.push({ fieldName: fieldName, message: message, value: value });
+      return Promise.resolve(validator(value)).then(message => {
+        if (typeof message === 'string') {
+          messages.push({ fieldName: fieldName, message: message, value: value });
+        } else if (message && (Object.prototype.toString.call(message) !== '[object Object]')) {
+          for (var msg of message) {
+            msg.fieldName = fieldName + '.' + msg.fieldName;
+            messages.push(msg);
           }
-        });
-      }
-
-      for (var fieldName of dataFields) {
-        if (!(fieldName in fields)) {
-          messages.push({ fieldName: fieldName, message: 'keyNotInSchema' });
-        } else {
-          validationResults.push(validateField(fieldName, data[fieldName]));
         }
-      }
+      });
+    }
 
-      return Promise.all(validationResults);
-    }).then(() => {
-      done = true;
+    for (var fieldName of dataFields) {
+      if (!(fieldName in fields)) {
+        messages.push({ fieldName: fieldName, message: 'keyNotInSchema' });
+      } else {
+        validationResults.push(validateField(fieldName, data[fieldName]));
+      }
+    }
+
+    const promise = Promise.all(validationResults).then(() => {
+      isFulfilled = true;
+      isPending = false;
       return messages;
+    }, (error) => {
+      isRejected = true;
+      isPending = false;
+      throw error;
     });
 
-    return {
-      isDone() {
-        return done;
-      },
-      isValid() {
-        return done ? !errors.length : false;
-      },
-      errorMessages() {
-        return messages;
-      },
-      validationPromise() {
-        return promise;
-      }
-    };
+    promise.isFulfilled = function isFulfilled() { return isFulfilled; };
+    promise.isPending = function isPending() { return isPending; };
+    promise.isRejected = function isRejected() { return isRejected; };
+    promise.getMessages = function getMessages() { return messages; };
+
+    return promise;
   }
 
 }

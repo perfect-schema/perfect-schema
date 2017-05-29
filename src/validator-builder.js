@@ -171,7 +171,7 @@ function schemaValidator(schema) {
   return function validator(value) {
     const result = schema.validate(value);
 
-    return typeof result === 'string' ? result : undefined;
+    return (result instanceof Promise) || (typeof result === 'string') ? result : undefined;
   };
 }
 
