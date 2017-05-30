@@ -1,4 +1,5 @@
 'use strict';
+const present = require('present');
 const normalizeFields = require('./normalize-fields');
 
 const isSchema = normalizeFields.isSchema;
@@ -19,8 +20,9 @@ class PerfectModel {
 
     this._id = ++idCounter;
     this._data = {};
+    this._dataTS = {};
     this._valid = new ReactiveVar(true);
-    this._errorMessages = {};
+    this._messages = [];
   }
 
   /**
@@ -79,6 +81,7 @@ class PerfectModel {
   set(field, value) {
     const schema = this._schema;
     const data = this._data;
+    const dataTS = this._dataTS;
 
     function setField(field, value) {
       checkField(field);
@@ -100,38 +103,38 @@ class PerfectModel {
             fieldValue = data[fieldName];
           }
 
+          dataTS[fieldName] = present();
           return fieldValue.set(field.substr(pos + 1), value).then(() => {
             return fieldName;
           });
         } else if (isObject(fieldSpec.type)) {
           var _fieldName = fieldName;
-          var _fieldValue = fieldValue = data[fieldName] || (data[fieldName] = {});
+
+          fieldValue = data[fieldName] || (data[fieldName] = {});
 
           start = pos + 1;
 
           while ((pos = field.indexOf('.', start)) >= start) {
             _fieldName = field.substr(start, pos - start);
-            _fieldValue = _fieldValue[_fieldName] || (_fieldValue[_fieldName] = {});
+            fieldValue = fieldValue[_fieldName] || (fieldValue[_fieldName] = {});
             start = pos + 1;
           }
 
-          _fieldValue[field.substr(start)] = value;
-
-          //return validate(this, fieldName);
+          dataTS[fieldName] = present();
+          fieldValue[field.substr(start)] = value;
         } else {
           throw new TypeError('Invalid type for field : ' + fieldName);
         }
       } else {
-        fieldValue = data[fieldName] = value;
-
-        //return validate(this, fieldName);
+        dataTS[fieldName] = present();
+        data[fieldName] = value;
       }
 
       return Promise.resolve(fieldName);
     }
 
     if (arguments.length === 1 && (Object.prototype.toString.call(field) === '[object Object]')) {
-      return Promise.all(Object.keys(field || {}).map(fieldName => {
+      return Promise.all(Object.keys(field).map(fieldName => {
         return setField(fieldName, field[fieldName]);
       })).then(fieldNames => {
         return validate(this, fieldNames);
@@ -154,14 +157,25 @@ class PerfectModel {
   }
 
   /**
-  Return the error message for the specified field. The field
+  Return the error messages for the specified field. The field
   may be a dot-separated path of field names for recursive models.
 
   @param field {string}
   @return {string}
   */
-  getMessage(field) {
-    return false;
+  getMessages(field) {
+    const fieldMessages = [];
+    var message;
+
+    for (var i = 0, iLen = this._messages && this._messages.length || 0; i < iLen; ++i) {
+      message = this._messages[i];
+
+      if (message.fieldName === field) {
+        fieldMessages.push(message);
+      }
+    }
+
+    return fieldMessages.length ? fieldMessages : null;
   }
 
 }
@@ -180,21 +194,66 @@ function checkField(field) {
 }
 
 function validate(model, fieldNames) {
+  const ts = present();
   const schema = model._schema;
   const data = model._data;
+  const dataTS = model._dataTS;
+  const messages = model._messages;
   const validationData = {};
+  const fieldNamesLen = fieldNames && fieldNames.length || 0;
   var fieldName;
 
-  for (var i = 0, len = fieldNames.length; i < len; ++i) {
+  for (var i = 0; i < fieldNamesLen; ++i) {
     fieldName = fieldNames[i];
 
     validationData[fieldName] = data[fieldName];
   }
 
-  return schema.validate(validationData).then(messages => {
+  return schema.validate(validationData).then(validationMessages => {
+    const validationMsgLen = validationMessages && validationMessages.length || 0;
+    var messagesLen = messages.length || 0;
+    var duplicate, i, j, msg;
 
-    /* TODO : update messages and invalidate model ReactiveVar */
+    for (i = 0; i < fieldNamesLen; ++i) {
+      fieldName = fieldNames[i];
 
+      for (j = messagesLen - 1; j >= 0; --j) {
+        msg = messages[j];
+
+        if ((msg.fieldName === fieldName) && (dataTS[fieldName] < ts)) {
+          messages.splice(j, 1);
+          --messagesLen;
+        }
+      }
+    }
+
+    for (i = 0; i < validationMsgLen; ++i) {
+      msg = validationMessages[i];
+
+      if (dataTS[msg.fieldName] <= ts) {
+        // try to find we the same message was already set
+        duplicate = false;
+        msg.ts = ts;
+
+        for (j = 0; j < messagesLen; ++j) {
+          if ((messages[j].fieldName === msg.fieldName) && (messages[j].message === msg.message)) {
+            duplicate = true;
+
+            messages[j] = msg;
+            break;
+          }
+        }
+
+        if (!duplicate) {
+          messages.push(msg);
+          ++messagesLen;
+        }
+      }
+    }
+
+    model._valid.set(!messages.length);
+
+    return model._messages = messages;
   });
 }
 

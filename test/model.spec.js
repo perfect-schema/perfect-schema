@@ -263,6 +263,176 @@ describe('Testing Model', () => {
       assert.deepStrictEqual(model._data, expected, 'Failed to set multiple values');
     });
 
+
+    it('should set multiple values from empty object', () => {
+      const schema = new PerfectSchema({
+        foo: { type: Object },
+        bar: { type: Object }
+      });
+      const model = new Model(schema);
+      const value = {};
+      const expected = {};
+
+      model.set(value);
+      assert.deepStrictEqual(model._data, expected, 'Failed to set empty values');
+    });
+
+  });
+
+
+  describe('Testing validation', () => {
+
+    it('should validate simple model', () => {
+      const schema = new PerfectSchema({
+        foo: { type: String }
+      });
+      const model = schema.createModel();
+      const value = 'Hello';
+      const validationMessages = [ { fieldName: 'foo', message: 'Validation Test', value: value } ];
+
+      schema.validate = function (data) {
+        assert.deepStrictEqual(data, { foo: value }, 'Failed to pass data to validate function');
+
+        return Promise.resolve(validationMessages);
+      };
+
+      assert.strictEqual(model.isValid(), true, 'Model is initially invalid');
+
+      const validator = model.set('foo', value);
+
+      return validator.then(messages => {
+        assert.deepStrictEqual(messages, validationMessages, 'Failed to return validation messages');
+
+        assert.strictEqual(model.isValid(), false, 'Failed to set invalid with error messages set');
+      });
+    });
+
+    it('should cleanup invalidated error messages', () => {
+      const schema = new PerfectSchema({
+        foo: { type: String }
+      });
+      const model = schema.createModel();
+      const value1 = 'Hello';
+      const validationMessages1 = [ { fieldName: 'foo', message: 'Validation Test 1', value: value1 } ];
+
+      schema.validate = function (data) {
+        return Promise.resolve(validationMessages1);
+      };
+
+      const validator1 = model.set('foo', value1);
+
+      return validator1.then(messages1 => {
+        const value2 = 'World';
+        const validationMessages2 = [ { fieldName: 'foo', message: 'Validation Test 2', value: value2 } ];
+
+        assert.strictEqual(model.isValid(), false, 'Failed to set invalid with error messages set 1');
+        assert.deepStrictEqual(messages1, validationMessages1, 'Failed to return validation messages 1');
+
+        schema.validate = function (data) {
+          return Promise.resolve(validationMessages2);
+        };
+
+        const validator2 = model.set('foo', value2);
+
+        return validator2.then(messages2 => {
+          assert.strictEqual(model.isValid(), false, 'Failed to set invalid with error messages set 2');
+          assert.deepStrictEqual(messages2, validationMessages2, 'Failed to return validation messages 2');
+
+          schema.validate = function (data) {
+            return Promise.resolve([]);
+          };
+
+          const validator3 = model.set('foo', 'something');
+
+          return validator3.then(messages3 => {
+            assert.strictEqual(model.isValid(), true, 'Failed to set valid with no error messages set 3');
+            assert.deepStrictEqual(messages3, [], 'Failed to return validation messages 3');
+          });
+        });
+      });
+    });
+
+    it('should validate two fields independently', () => {
+      const schema = new PerfectSchema({
+        foo: { type: String },
+        bar: { type: Number }
+      });
+      const model = schema.createModel();
+
+      const valueFoo = 'Hello';
+      const valueBar = 123;
+      const validationMessages = [
+        { fieldName: 'foo', message: 'Validation Test Foo', value: valueFoo },
+        { fieldName: 'bar', message: 'Validation Test Bar', value: valueBar }
+      ];
+
+      schema.validate = function (data) {
+        return Promise.resolve(validationMessages);
+      };
+
+      const validator = Promise.all([ model.set('foo', valueFoo), model.set('bar', valueBar) ]);
+
+      return validator.then(allMessages => {
+        assert.strictEqual(model._messages.length, 2, 'Failed to set error message correctly');
+        assert.strictEqual(model.isValid(), false, 'Failed to set invalid with error messages set');
+      });
+    });
+
+    it('should validate multiple fields', () => {
+      const schema = new PerfectSchema({
+        foo: { type: String },
+        bar: { type: Number }
+      });
+      const model = schema.createModel();
+
+      const valueFoo = 'Hello';
+      const valueBar = 123;
+      const validationMessages = [
+        { fieldName: 'foo', message: 'Validation Test Foo', value: valueFoo },
+        { fieldName: 'bar', message: 'Validation Test Bar', value: valueBar }
+      ];
+
+      schema.validate = function (data) {
+        return Promise.resolve(validationMessages);
+      };
+
+      const validator = model.set({ 'foo': valueFoo, 'bar': valueBar });
+
+      return validator.then(allMessages => {
+        assert.strictEqual(model._messages.length, 2, 'Failed to set error message correctly');
+        assert.strictEqual(model.isValid(), false, 'Failed to set invalid with error messages set');
+      });
+    });
+
+
+    it('should fetch field messages', () => {
+      const schema = new PerfectSchema({
+        foo: { type: String },
+        bar: { type: Number }
+      });
+      const model = schema.createModel();
+
+      const valueFoo = 'Hello';
+      const valueBar = 123;
+      const validationMessages = [
+        { fieldName: 'foo', message: 'Validation Test Foo', value: valueFoo },
+        { fieldName: 'bar', message: 'Validation Test Bar', value: valueBar }
+      ];
+
+      schema.validate = function (data) {
+        return Promise.resolve(validationMessages);
+      };
+
+      assert.deepStrictEqual(model.getMessages('foo'), null, 'Failed to fetch null');
+      assert.deepStrictEqual(model.getMessages('bar'), null, 'Failed to fetch null');
+
+      const validator = model.set({ 'foo': valueFoo, 'bar': valueBar });
+
+      return validator.then(allMessages => {
+        assert.deepStrictEqual(model.getMessages('foo'), [validationMessages[0]], 'Failed to fetch messages for foo');
+        assert.deepStrictEqual(model.getMessages('bar'), [validationMessages[1]], 'Failed to fetch messages for bar');
+      });
+    });
   });
 
 });
