@@ -3,6 +3,7 @@
 describe('Testing Model', () => {
   const assert = require('assert');
 
+  const Schema = require('../src/schema');
   const Model = require('../src/model');
   const stringValidator = require('../src/validators/string');
   const objectValidator = require('../src/validators/object');
@@ -433,6 +434,37 @@ describe('Testing Model', () => {
         assert.deepStrictEqual(model.getMessages('bar'), [validationMessages[1]], 'Failed to fetch messages for bar');
       });
     });
+
+  });
+
+
+  describe('Testing integration with Schema', () => {
+
+    it('should invalidate nested models', () => {
+      const barFields = {
+        bar: String
+      };
+      const barSchema = new Schema(barFields);
+      const fooFields = {
+        foo: barSchema,
+        bob: String
+      };
+      const fooSchema = new Schema(fooFields);
+
+      const fooModel = fooSchema.createModel();
+
+      return fooModel.set({ foo: { bar: 123 }, bob: 456 }).then(messages => {
+        console.log(messages);
+
+        assert.strictEqual(fooModel._data['foo']._data['bar'], 123, 'Failed to create sub model');
+
+        assert.deepStrictEqual(messages, [
+          { fieldName: 'bob', message: 'invalidType', value: 456 },
+          { fieldName: 'foo.bar', message: 'invalidType', value: 123 }
+        ], 'Failed to find error in validation');
+      });
+    });
+
   });
 
 });

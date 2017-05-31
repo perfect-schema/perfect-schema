@@ -1,4 +1,7 @@
 const validators = require('./validators');
+const PerfectSchema = require('./schema');
+
+const isSchema = PerfectSchema.isSchema;
 const isType = validators.isType;
 
 
@@ -11,7 +14,7 @@ function normalizeFields(fields) {
 
     if (Array.isArray(specs)) {
       fields[fieldName] = { type: [validators.getType(specs[0])] };
-    } else if (isType(specs)) {
+    } else if (isType(specs) || isSchema(specs)) {
       fields[fieldName] = { type: validators.getType(specs) };
     } else if ('type' in specs) {
       if (Array.isArray(specs.type)) {
@@ -25,13 +28,5 @@ function normalizeFields(fields) {
   return fields;
 };
 
-
-function isSchema(type) {
-  return type && type.__proto__ && type.__proto__.constructor && (type.__proto__.constructor.name === 'PerfectSchema');
-}
-
-
-normalizeFields.normalizeFields = normalizeFields;
-normalizeFields.isSchema = isSchema;
 
 module.exports = normalizeFields;

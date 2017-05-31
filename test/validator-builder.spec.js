@@ -241,7 +241,7 @@ describe('Testing validator builder', () => {
       foo: {
         type: String,
         custom(value) {
-          return value === 'bar' || 'invalid';
+          return (typeof value !== 'string') || (value === 'bar') || 'invalid';
         }
       }
     };
@@ -249,6 +249,32 @@ describe('Testing validator builder', () => {
 
     assert.strictEqual(fieldValidators.foo('bar'), undefined, 'Failed custom valid value');
     assert.strictEqual(fieldValidators.foo('err'), 'invalid', 'Failed custom invalid value');
+    assert.strictEqual(fieldValidators.foo(123), 'invalidType', 'Failed custom invalid type');
+  });
+
+
+  it('should build custom asynchronous validation', () => {
+    const fields = {
+      foo: {
+        type: String,
+        custom(value) {
+          return Promise.resolve().then(() => (typeof value !== 'string') || (value === 'bar') || 'invalid');
+        }
+      }
+    };
+    const fieldValidators = validatorBuilder(fields);
+
+    return Promise.all([
+      fieldValidators.foo('bar').then(result => {
+        assert.strictEqual(result, undefined, 'Failed custom async valid value');
+      }),
+      fieldValidators.foo('err').then(result => {
+        assert.strictEqual(result, 'invalid', 'Failed custom async invalid value');
+      }),
+      fieldValidators.foo(123).then(result => {
+        assert.strictEqual(result, 'invalidType', 'Failed custom async invalid type');
+      }),
+    ]);
   });
 
 

@@ -1,8 +1,9 @@
+'use strict';
 const validators = require('./validators');
 const normalizeFields = require('./normalize-fields');
-
+const PerfectSchema = require('./schema');
 const isType = validators.isType;
-const isSchema = normalizeFields.isSchema;
+
 
 
 function validatorBuilder(fields) {
@@ -40,7 +41,7 @@ function buildValidator(specs) {
     var type;
     var isArray = false;
 
-    if (isType(specs) || isSchema(specs)) {
+    if (isType(specs) || PerfectSchema.isSchema(specs)) {
       type = specs;
       specs = { type: type };
     } else {
@@ -56,13 +57,13 @@ function buildValidator(specs) {
       isArray = true;
     }
 
-    if (!isType(type) && !isSchema(type)) {
+    if (!isType(type) && !PerfectSchema.isSchema(type)) {
       throw new TypeError('Unknown or unspecified field type : ' + JSON.stringify(type));
     }
 
     if (isArray) {
       return arrayValidator(type, specs);
-    } else if (isSchema(type)) {
+    } else if (PerfectSchema.isSchema(type)) {
       return schemaValidator(type);
     } else {
       return validators[specs.type](specs);
@@ -101,6 +102,8 @@ function customValidator(validator, specs) {
 
     if (typeof customResult === 'string') {
       return customResult;
+    } else if (customResult instanceof Promise) {
+      return customResult.then(error => typeof error === 'string' ? error : validator(value));
     } else {
       return validator(value);
     }
@@ -169,9 +172,13 @@ function anyValidator(anySpecs) {
 
 function schemaValidator(schema) {
   return function validator(value) {
-    const result = schema.validate(value);
+    if (value && (value._schema === schema)) {
+      const result = schema.validate(value._data);
 
-    return (result instanceof Promise) || (typeof result === 'string') ? result : undefined;
+      return (result instanceof Promise) || (typeof result === 'string') ? result : undefined;
+    } else if (value !== undefined) {
+      return 'invalidType';
+    }
   };
 }
 

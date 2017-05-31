@@ -1,17 +1,11 @@
 'use strict';
-const present = require('present');
-const normalizeFields = require('./normalize-fields');
-
-const isSchema = normalizeFields.isSchema;
-
 
 var idCounter = 0;
-
 
 class PerfectModel {
 
   constructor(schema) {
-    if (!isSchema(schema)) {
+    if (!PerfectSchema.isSchema(schema)) {
       throw new TypeError('Unspecified or invalid schema');
     }
     const ReactiveVar = schema._options.ReactiveVar || FakeReactiveVar;
@@ -46,7 +40,7 @@ class PerfectModel {
     } else if (fieldName.length < field.length) {   // has more keys...
       fieldValue = this._data[fieldName];
 
-      if (isSchema(fieldSpec.type)) {
+      if (PerfectSchema.isSchema(fieldSpec.type)) {
         fieldValue = fieldValue && fieldValue.get(field.substr(pos + 1));
       } else if (isObject(fieldSpec.type)) {
         var _fieldName = fieldName;
@@ -96,7 +90,7 @@ class PerfectModel {
         throw new Error('Field not in schema : ' + fieldName);
       } else if (fieldName.length < field.length) {   // has more keys...
 
-        if (isSchema(fieldSpec.type)) {
+        if (PerfectSchema.isSchema(fieldSpec.type)) {
           if (!(fieldName in data)) {
             fieldValue = data[fieldName] = fieldSpec.type.createModel();
           } else {
@@ -104,9 +98,7 @@ class PerfectModel {
           }
 
           dataTS[fieldName] = present();
-          return fieldValue.set(field.substr(pos + 1), value).then(() => {
-            return fieldName;
-          });
+          return fieldValue.set(field.substr(pos + 1), value).then(() => fieldName);
         } else if (isObject(fieldSpec.type)) {
           var _fieldName = fieldName;
 
@@ -127,7 +119,20 @@ class PerfectModel {
         }
       } else {
         dataTS[fieldName] = present();
-        data[fieldName] = value;
+
+        //console.log("*** SETTING", fieldName, fieldSpec);
+
+        if (PerfectSchema.isSchema(fieldSpec.type)) {
+          if (!(fieldName in data)) {
+            fieldValue = data[fieldName] = fieldSpec.type.createModel();
+          } else {
+            fieldValue = data[fieldName];
+          }
+
+          return fieldValue.set(value).then(() => fieldName);
+        } else {
+          data[fieldName] = value;
+        }
       }
 
       return Promise.resolve(fieldName);
@@ -201,7 +206,7 @@ function validate(model, fieldNames) {
   const messages = model._messages;
   const validationData = {};
   const fieldNamesLen = fieldNames && fieldNames.length || 0;
-  var fieldName;
+  var fieldName, msgFieldName;
 
   for (var i = 0; i < fieldNamesLen; ++i) {
     fieldName = fieldNames[i];
@@ -214,13 +219,16 @@ function validate(model, fieldNames) {
     var messagesLen = messages.length || 0;
     var duplicate, i, j, msg;
 
+    console.log("*** VAL", fieldNames, validationMessages);
+
     for (i = 0; i < fieldNamesLen; ++i) {
       fieldName = fieldNames[i];
 
       for (j = messagesLen - 1; j >= 0; --j) {
         msg = messages[j];
+        msgFieldName = modelFieldName(msg.fieldName);
 
-        if ((msg.fieldName === fieldName) && (dataTS[fieldName] < ts)) {
+        if ((msgFieldName === fieldName) && (dataTS[fieldName] < ts)) {
           messages.splice(j, 1);
           --messagesLen;
         }
@@ -258,6 +266,13 @@ function validate(model, fieldNames) {
 }
 
 
+function modelFieldName(fieldName) {
+  const index = fieldName.indexOf('.');
+
+  return index >= 0 ? fieldName.substr(0, index) : fieldName;
+}
+
+
 function FakeReactiveVar(value) {
   this.get = function getValue() {
     return value;
@@ -268,5 +283,18 @@ function FakeReactiveVar(value) {
 }
 
 
+function isModel(model) {
+  return model && (model instanceof PerfectModel);
+}
+
+
+
+PerfectModel.isModel = isModel;
+
 
 module.exports = PerfectModel;
+
+
+const present = require('present');
+const normalizeFields = require('./normalize-fields');
+const PerfectSchema = require('./schema');

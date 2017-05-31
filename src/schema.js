@@ -1,11 +1,5 @@
 'use strict';
 
-const validatorBuilder = require('./validator-builder');
-const normalizeFields = require('./normalize-fields').normalizeFields;
-const IntegerType = require('./validators/integer').Type;
-const any = require('./any');
-const PerfectModel = require('./model');
-
 
 class PerfectSchema {
 
@@ -118,9 +112,22 @@ class PerfectSchema {
 
 }
 
+
+function isSchema(schema) {
+  return schema && (schema instanceof PerfectSchema);
+}
+
+
+const any = require('./any');
+const IntegerType = require('./validators/integer').Type;
+
 PerfectSchema.any = any;
 PerfectSchema.Integer = IntegerType;
-
+PerfectSchema.isSchema = isSchema;
 
 
 module.exports = PerfectSchema;
+
+const validatorBuilder = require('./validator-builder');
+const normalizeFields = require('./normalize-fields');
+const PerfectModel = require('./model');

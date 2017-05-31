@@ -25,6 +25,20 @@ describe('Testing Schema', () => {
   });
 
 
+  it('should construct new instance with sub-schema', () => {
+    const barFields = {
+      bar: String
+    };
+    const barSchema = new Schema(barFields);
+    const fooFields = {
+      foo: barSchema
+    };
+    const fooSchema = new Schema(fooFields);
+
+    assert.strictEqual(fooSchema._fields['foo'].type, barSchema, 'Failed to normalize sub-schema short type');
+  });
+
+
   it('should extend schema', () => {
     const baseFields = {
       foo: String
@@ -44,6 +58,21 @@ describe('Testing Schema', () => {
     schema.extends(extendedFields);
 
     assert.strictEqual(schema._fieldNames.length, 2, 'Mismatch field names');
+  });
+
+
+  it('should create model', () => {
+    const fields = {
+      foo: String
+    };
+    const schema = new Schema(fields);
+
+    const modelA = schema.createModel();
+    const modelB = schema.createModel();
+
+    assert.ok(modelA && modelB, 'Models are not objects');
+    assert.ok(modelA._id && modelB._id, 'Models have no identifiers');
+    assert.notStrictEqual(modelA._id, modelB._id, 'Models have no unique identifiers');
   });
 
 
@@ -98,14 +127,16 @@ describe('Testing Schema', () => {
       };
       const barSchema = new Schema(barFields);
       const fooFields = {
-        foo: barSchema
+        foo: barSchema,
+        bob: String
       };
       const fooSchema = new Schema(fooFields);
 
-      const validator = fooSchema.validate({ foo: { bar: 123 } });
-
-      return validator.then(messages => {
-        assert.deepStrictEqual(messages, [ { fieldName: 'foo.bar', message: 'invalidType', value: 123 } ], 'Failed to find error in validation');
+      return fooSchema.validate({ foo: { bar: 123 }, bob: 456 }).then(messages => {
+        assert.deepStrictEqual(messages, [
+          { fieldName: 'bob', message: 'invalidType', value: 456 },
+          { fieldName: 'foo.bar', message: 'invalidType', value: 123 }
+        ], 'Failed to find error in validation');
       });
     });
 
