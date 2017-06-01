@@ -1,5 +1,4 @@
 .git/
 coverage/
-src/
 test/
 Gruntfile.js
