@@ -1,9 +1,3 @@
-const validators = require('./validators');
-const PerfectSchema = require('./schema');
-
-const isSchema = PerfectSchema.isSchema;
-const isType = validators.isType;
-
 
 function normalizeFields(fields) {
   const fieldNames = Object.keys(fields || {});
@@ -30,3 +24,9 @@ function normalizeFields(fields) {
 
 
 module.exports = normalizeFields;
+
+const validators = require('./validators');
+const PerfectSchema = require('./schema');
+
+const isSchema = PerfectSchema.isSchema;
+const isType = validators.isType;

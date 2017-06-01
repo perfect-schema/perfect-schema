@@ -1,6 +1,5 @@
 'use strict';
 
-
 class PerfectSchema {
 
   /**
@@ -35,7 +34,7 @@ class PerfectSchema {
       fields[fieldName] = this._fields[fieldName] = Object.assign(this._fields[fieldName] || {}, fields[fieldName]);
     }
 
-    this._validators = Object.assign(this._validators || {}, validatorBuilder(fields));
+    this._validators = Object.assign(this._validators, validatorBuilder(fields));
     this._fieldNames = Object.keys(this._fields);
   }
 
@@ -45,8 +44,12 @@ class PerfectSchema {
 
   @return {PerfectModel}
   */
-  createModel() {
-    return new PerfectModel(this);
+  createModel(data) {
+    const model = new PerfectModel(this);
+
+    data && model.set(data);
+
+    return model;
   }
 
 
@@ -65,46 +68,40 @@ class PerfectSchema {
 
     // Set initial state
     var isPending = true;
-    var isRejected = false;
-    var isFulfilled = false;
     const validationResults = [];
 
     function validateField(fieldName, value) {
       const validator = validators[fieldName];
 
-      return Promise.resolve(validator(value)).then(message => {
-        if (typeof message === 'string') {
-          messages.push({ fieldName: fieldName, message: message, value: value });
-        } else if (message && (Object.prototype.toString.call(message) !== '[object Object]')) {
-          for (var msg of message) {
-            msg.fieldName = fieldName + '.' + msg.fieldName;
-            messages.push(msg);
+      try {
+        return Promise.resolve(validator(value)).then(message => {
+          if (typeof message === 'string') {
+            messages.push({ fieldName: fieldName, message: message, value: value });
+          } else if (message && Array.isArray(message) && message.length) {
+            messages.push({ fieldName: fieldName, message: 'invalid' });
           }
-        }
-      });
+        }, error => {
+          messages.push({ fieldName: fieldName, message: 'error', value: value, error: error });
+        });
+      } catch (error) {
+        messages.push({ fieldName: fieldName, message: 'error', value: value, error: error });
+      }
     }
 
     for (var fieldName of dataFields) {
       if (!(fieldName in fields)) {
-        messages.push({ fieldName: fieldName, message: 'keyNotInSchema' });
+        messages.push({ fieldName: fieldName, message: 'keyNotInSchema', value: data[fieldName] });
       } else {
         validationResults.push(validateField(fieldName, data[fieldName]));
       }
     }
 
     const promise = Promise.all(validationResults).then(() => {
-      isFulfilled = true;
       isPending = false;
       return messages;
-    }, (error) => {
-      isRejected = true;
-      isPending = false;
-      throw error;
-    });
+    });  // note errors are handled inside the validateField function, so there should not be any errors at this point
 
-    promise.isFulfilled = function isFulfilled() { return isFulfilled; };
     promise.isPending = function isPending() { return isPending; };
-    promise.isRejected = function isRejected() { return isRejected; };
     promise.getMessages = function getMessages() { return messages; };
 
     return promise;
@@ -118,13 +115,7 @@ function isSchema(schema) {
 }
 
 
-const any = require('./any');
-const IntegerType = require('./validators/integer').Type;
-
-PerfectSchema.any = any;
-PerfectSchema.Integer = IntegerType;
 PerfectSchema.isSchema = isSchema;
-
 
 module.exports = PerfectSchema;
 

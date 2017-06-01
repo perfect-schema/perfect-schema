@@ -5,6 +5,7 @@ describe('Testing validator builder', () => {
 
   const validatorBuilder = require('../src/validator-builder');
   const validators = require('../src/validators');
+  const Schema = require('../src/schema');
   const any = require('../src/any');
 
   it('should build with no fields', () => {
@@ -165,18 +166,20 @@ describe('Testing validator builder', () => {
 
 
   it('should build with schema instances', () => {
-    const subFields = new (function PerfectSchema() {
-      this.validate = function (value) {
-        return value.bar === true || 'Failed';
-      };
-    })();
+    const subFields = new Schema({ bar: String });
+
+    subFields.validate = function (value) {
+      return value.bar === true || 'Failed';
+    };
+
     const fields = {
       foo: subFields
     };
     const fieldValidators = validatorBuilder(fields);
 
-    assert.strictEqual(fieldValidators.foo({ bar: true }), undefined, 'Failed validation with valid value');
-    assert.notStrictEqual(fieldValidators.foo({ bar: false }), undefined, 'Failed validation with invalid value');
+    assert.strictEqual(fieldValidators.foo(subFields.createModel({ bar: true })), undefined, 'Failed validation with valid value');
+    assert.strictEqual(fieldValidators.foo({ bar: true }), 'invalidType', 'Failed validation with invalid value');
+    assert.notStrictEqual(fieldValidators.foo(subFields.createModel({ bar: false })), undefined, 'Failed validation with invalid value');
   });
 
 

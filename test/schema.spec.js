@@ -5,6 +5,27 @@ describe('Testing Schema', () => {
 
   const Schema = require('../src/schema');
 
+
+  it('should validate isSchema', () => {
+    const fields = {
+      foo: String
+    };
+    const schema = new Schema(fields);
+
+    assert.ok(Schema.isSchema(schema, 'Failed to validate isSchema'));
+  });
+
+
+  it('should not validate isSchema', () => {
+    [
+      undefined, null, false, true, NaN,
+      -1, 0, 1, 0.1234, 't', 'hello',
+      () => {}, function PerfectSchema() {},
+      {}, [], /./, new Date()
+    ].forEach(invalidSchema => assert.ok(!Schema.isSchema(invalidSchema), 'Failed to invalidate isSchema for : ' + JSON.stringify(invalidSchema)));
+  });
+
+
   it('should not create without fields', () => {
     assert.throws(() => { new Schema(); }, TypeError);
 
@@ -78,6 +99,19 @@ describe('Testing Schema', () => {
 
   describe('Testing validation', () => {
 
+    it('should validate nothing', () => {
+      const fields = {
+        foo: String
+      };
+      const schema = new Schema(fields);
+
+      const validator = schema.validate();
+
+      return validator.then(messages => {
+        assert.deepStrictEqual(messages, [], 'Failed to validate nothing');
+      });
+    });
+
     it('should validate simple data', () => {
       const fields = {
         foo: String
@@ -86,8 +120,14 @@ describe('Testing Schema', () => {
 
       const validator = schema.validate({ foo: 'hello' });
 
-      validator.then(messages => {
+      assert.ok(validator.isPending(), 'Failed at pending validator');
+      assert.deepStrictEqual(validator.getMessages(), [], 'Array should be initially empty');
+
+      return validator.then(messages => {
+        assert.ok(validator.isPending(), 'Failed at pending validator');
+
         assert.deepStrictEqual(messages, [], 'Failed to validate model');
+        assert.deepStrictEqual(validator.getMessages(), messages, 'Failed at returning messages from validator');
       });
     });
 
@@ -101,42 +141,56 @@ describe('Testing Schema', () => {
 
       return validator.then(messages => {
         assert.deepStrictEqual(messages, [ { fieldName: 'foo', message: 'invalidType', value: 123 } ], 'Failed to find error in validation');
+        assert.deepStrictEqual(validator.getMessages(), messages, 'Failed at returning messages from validator');
       });
     });
 
-    it('should validate nested data', () => {
-      const barFields = {
-        bar: String
+    it('should handle errors in validation', () => {
+      const error = new Error('Test');
+      const fields = {
+        foo: {
+          type: String,
+          custom() { throw error; }
+        }
       };
-      const barSchema = new Schema(barFields);
-      const fooFields = {
-        foo: barSchema
-      };
-      const fooSchema = new Schema(fooFields);
+      const schema = new Schema(fields);
+      const value = 'hello';
 
-      const validator = fooSchema.validate({ foo: { bar: 'hello' } });
+      const validator = schema.validate({ foo: value });
 
       return validator.then(messages => {
-        assert.deepStrictEqual(messages, [], 'Failed to validate model');
+        assert.deepStrictEqual(messages, [ { fieldName: 'foo', message: 'error', value: value, error: error } ], 'Failed to set error on field');
       });
     });
 
-    it('should invalidate nested data', () => {
-      const barFields = {
-        bar: String
+    it('should handle asynchronous errors in validation', () => {
+      const error = new Error('Test');
+      const fields = {
+        foo: {
+          type: String,
+          custom() { return Promise.reject(error); }
+        }
       };
-      const barSchema = new Schema(barFields);
-      const fooFields = {
-        foo: barSchema,
-        bob: String
-      };
-      const fooSchema = new Schema(fooFields);
+      const schema = new Schema(fields);
+      const value = 'hello';
 
-      return fooSchema.validate({ foo: { bar: 123 }, bob: 456 }).then(messages => {
-        assert.deepStrictEqual(messages, [
-          { fieldName: 'bob', message: 'invalidType', value: 456 },
-          { fieldName: 'foo.bar', message: 'invalidType', value: 123 }
-        ], 'Failed to find error in validation');
+      const validator = schema.validate({ foo: value });
+
+      return validator.then(messages => {
+        assert.deepStrictEqual(messages, [ { fieldName: 'foo', message: 'error', value: value, error: error } ], 'Failed to set error on field');
+      });
+    });
+
+    it('should invalidate key not in schema', () => {
+      const fields = {
+        foo: String
+      };
+      const schema = new Schema(fields);
+
+      const validator = schema.validate({ bar: 123 });
+
+      return validator.then(messages => {
+        assert.deepStrictEqual(messages, [ { fieldName: 'bar', message: 'keyNotInSchema', value: 123 } ], 'Failed to find error in validation');
       });
     });
 

@@ -1,10 +1,4 @@
 'use strict';
-const validators = require('./validators');
-const normalizeFields = require('./normalize-fields');
-const PerfectSchema = require('./schema');
-const isType = validators.isType;
-
-
 
 function validatorBuilder(fields) {
   const fieldNames = Object.keys(fields || {});
@@ -41,7 +35,7 @@ function buildValidator(specs) {
     var type;
     var isArray = false;
 
-    if (isType(specs) || PerfectSchema.isSchema(specs)) {
+    if (isType(specs) || isSchema(specs)) {
       type = specs;
       specs = { type: type };
     } else {
@@ -57,13 +51,13 @@ function buildValidator(specs) {
       isArray = true;
     }
 
-    if (!isType(type) && !PerfectSchema.isSchema(type)) {
+    if (!isType(type) && !isSchema(type)) {
       throw new TypeError('Unknown or unspecified field type : ' + JSON.stringify(type));
     }
 
     if (isArray) {
       return arrayValidator(type, specs);
-    } else if (PerfectSchema.isSchema(type)) {
+    } else if (isSchema(type)) {
       return schemaValidator(type);
     } else {
       return validators[specs.type](specs);
@@ -184,3 +178,11 @@ function schemaValidator(schema) {
 
 
 module.exports = validatorBuilder;
+
+
+const validators = require('./validators');
+const normalizeFields = require('./normalize-fields');
+const PerfectSchema = require('./schema');
+
+const isType = validators.isType;
+const isSchema = PerfectSchema.isSchema;

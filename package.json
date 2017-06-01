@@ -1,11 +1,11 @@
 {
   "name": "perfect-schema",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "Model and schema validation done perfectly.",
   "author": "Yanick Rochon <yanick.rochon@gmail.com>",
   "license": "ISC",
-  "main": "src/schema.js",
-  "_browser": "dist/perfect-schema.min.js",
+  "main": "src/index.js",
+  "browser": "dist/perfect-schema.min.js",
   "engines": {
     "node": ">= 4.2.2"
   },

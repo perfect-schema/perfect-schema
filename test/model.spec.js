@@ -9,24 +9,38 @@ describe('Testing Model', () => {
   const objectValidator = require('../src/validators/object');
 
 
-  function PerfectSchema(fields) {
-    this._fields = fields;
-    this._validators = Object.keys(fields || {}).reduce((validators, fieldName) => {
-      validators[fieldName] = fields[fieldName].type === String ? stringValidator : objectValidator;
+  function createSchema(fields, options) {
+    options = options || {};
 
-      return validators;
-    }, {});
-    this._options = {};
-    this.validate = function () { return Promise.resolve(); };
-    this.createModel = function () {
-      return new Model(this);
-    };
+    const schema = new Schema(fields, options.options);
+
+    if (!options.defaultValidators) {
+      this._validators = Object.keys(fields || {}).reduce((validators, fieldName) => {
+        validators[fieldName] = fields[fieldName].type === String ? stringValidator : objectValidator;
+
+        return validators;
+      }, {});
+    }
+
+    if (!options.defaultValidation) {
+      this.validate = function () { return Promise.resolve(); };
+    }
+
+    return schema
   }
 
 
+  it('should validate if model', () => {
+    const fields = { foo: String };
+    const foo = new Model(createSchema(fields));
+
+    assert.ok(Model.isModel(foo), 'Failed to check model instance');
+  });
+
 
   it('should create new model', () => {
-    const foo = new Model(new PerfectSchema());
+    const fields = { foo: String };
+    const foo = new Model(createSchema(fields));
 
     assert.strictEqual(foo.isValid(), true, 'Failed to have default model validated');
   });
@@ -46,7 +60,7 @@ describe('Testing Model', () => {
   describe('Testing getting fields', () => {
 
     it('should throw with invalid field', () => {
-      const schema = new PerfectSchema({
+      const schema = createSchema({
         foo: { type: String }
       });
       const model = new Model(schema);
@@ -62,7 +76,7 @@ describe('Testing Model', () => {
 
 
     it('should get field (first level)', () => {
-      const schema = new PerfectSchema({
+      const schema = createSchema({
         foo: { type: String }
       });
       const model = new Model(schema);
@@ -75,7 +89,7 @@ describe('Testing Model', () => {
 
 
     it('should throw with fields not in schema', () => {
-      const schema = new PerfectSchema({
+      const schema = createSchema({
         foo: { type: String }
       });
       const model = new Model(schema);
@@ -88,7 +102,7 @@ describe('Testing Model', () => {
 
 
     it('should get field recursively', () => {
-      const schema = new PerfectSchema({
+      const schema = createSchema({
         foo: { type: Object }
       });
       const model = new Model(schema);
@@ -101,10 +115,10 @@ describe('Testing Model', () => {
 
 
     it('should get field from sub-schema', () => {
-      const subSchema = new PerfectSchema({
+      const subSchema = createSchema({
         bar: { type: String }
       });
-      const schema = new PerfectSchema({
+      const schema = createSchema({
         foo: { type: subSchema }
       });
 
@@ -120,10 +134,10 @@ describe('Testing Model', () => {
 
 
     it('should fail to get invalid field type', () => {
-      const subSchema = new PerfectSchema({
+      const subSchema = createSchema({
         bar: { type: String }
       });
-      const schema = new PerfectSchema({
+      const schema = createSchema({
         foo: { type: subSchema },
         buz: { type: String }
       });
@@ -141,10 +155,10 @@ describe('Testing Model', () => {
 
 
     it('should return undefined on missing field', () => {
-      const subSchema = new PerfectSchema({
+      const subSchema = createSchema({
         bar: { type: Object }
       });
-      const schema = new PerfectSchema({
+      const schema = createSchema({
         foo: { type: subSchema }
       });
 
@@ -165,7 +179,7 @@ describe('Testing Model', () => {
   describe('Testing setting fields', () => {
 
     it('should set field (first level)', () => {
-      const schema = new PerfectSchema({
+      const schema = createSchema({
         foo: { type: String }
       });
       const model = new Model(schema);
@@ -178,7 +192,7 @@ describe('Testing Model', () => {
 
 
     it('should throw with fields not in schema', () => {
-      const schema = new PerfectSchema({
+      const schema = createSchema({
         foo: { type: String }
       });
       const model = new Model(schema);
@@ -189,7 +203,7 @@ describe('Testing Model', () => {
 
 
     it('should set field recursively', () => {
-      const schema = new PerfectSchema({
+      const schema = createSchema({
         foo: { type: Object }
       });
       const model = new Model(schema);
@@ -202,10 +216,10 @@ describe('Testing Model', () => {
 
 
     it('should set field to sub-schema', () => {
-      const subSchema = new PerfectSchema({
+      const subSchema = createSchema({
         bar: { type: String }
       });
-      const schema = new PerfectSchema({
+      const schema = createSchema({
         foo: { type: subSchema }
       });
 
@@ -223,10 +237,10 @@ describe('Testing Model', () => {
 
 
     it('should fail to get invalid field type', () => {
-      const subSchema = new PerfectSchema({
+      const subSchema = createSchema({
         bar: { type: String }
       });
-      const schema = new PerfectSchema({
+      const schema = createSchema({
         foo: { type: subSchema },
         buz: { type: String }
       });
@@ -245,7 +259,7 @@ describe('Testing Model', () => {
 
 
     it('should set multiple values', () => {
-      const schema = new PerfectSchema({
+      const schema = createSchema({
         foo: { type: Object },
         bar: { type: Object }
       });
@@ -266,7 +280,7 @@ describe('Testing Model', () => {
 
 
     it('should set multiple values from empty object', () => {
-      const schema = new PerfectSchema({
+      const schema = createSchema({
         foo: { type: Object },
         bar: { type: Object }
       });
@@ -284,7 +298,7 @@ describe('Testing Model', () => {
   describe('Testing validation', () => {
 
     it('should validate simple model', () => {
-      const schema = new PerfectSchema({
+      const schema = createSchema({
         foo: { type: String }
       });
       const model = schema.createModel();
@@ -309,7 +323,7 @@ describe('Testing Model', () => {
     });
 
     it('should cleanup invalidated error messages', () => {
-      const schema = new PerfectSchema({
+      const schema = createSchema({
         foo: { type: String }
       });
       const model = schema.createModel();
@@ -354,7 +368,7 @@ describe('Testing Model', () => {
     });
 
     it('should validate two fields independently', () => {
-      const schema = new PerfectSchema({
+      const schema = createSchema({
         foo: { type: String },
         bar: { type: Number }
       });
@@ -380,7 +394,7 @@ describe('Testing Model', () => {
     });
 
     it('should validate multiple fields', () => {
-      const schema = new PerfectSchema({
+      const schema = createSchema({
         foo: { type: String },
         bar: { type: Number }
       });
@@ -407,7 +421,7 @@ describe('Testing Model', () => {
 
 
     it('should fetch field messages', () => {
-      const schema = new PerfectSchema({
+      const schema = createSchema({
         foo: { type: String },
         bar: { type: Number }
       });
@@ -454,14 +468,38 @@ describe('Testing Model', () => {
       const fooModel = fooSchema.createModel();
 
       return fooModel.set({ foo: { bar: 123 }, bob: 456 }).then(messages => {
-        console.log(messages);
-
         assert.strictEqual(fooModel._data['foo']._data['bar'], 123, 'Failed to create sub model');
+
+        // remove ts from messages...
+        messages.forEach(msg => delete msg.ts);
 
         assert.deepStrictEqual(messages, [
           { fieldName: 'bob', message: 'invalidType', value: 456 },
-          { fieldName: 'foo.bar', message: 'invalidType', value: 123 }
+          { fieldName: 'foo', message: 'invalid' }
         ], 'Failed to find error in validation');
+
+        return fooModel.set('foo', { bar: null }).then(messages => {
+          assert.strictEqual(fooModel._data['foo']._data['bar'], null, 'Failed to update sub model');
+
+          // remove ts from messages...
+          messages.forEach(msg => delete msg.ts);
+
+          assert.deepStrictEqual(messages, [
+            { fieldName: 'bob', message: 'invalidType', value: 456 },
+            { fieldName: 'foo', message: 'invalid' }
+          ], 'Failed to find error in validation');
+
+          return fooModel.set('foo.bar', 'hello').then(messages => {
+            assert.strictEqual(fooModel._data['foo']._data['bar'], 'hello', 'Failed to update sub model');
+
+            // remove ts from messages...
+            messages.forEach(msg => delete msg.ts);
+
+            assert.deepStrictEqual(messages, [
+              { fieldName: 'bob', message: 'invalidType', value: 456 }
+            ], 'Failed to remove invalidated validation error');
+          });
+        })
       });
     });
 
