@@ -120,5 +120,6 @@ PerfectSchema.isSchema = isSchema;
 module.exports = PerfectSchema;
 
 const validatorBuilder = require('./validator-builder');
+const validationContext = require('./validation-context');
 const normalizeFields = require('./normalize-fields');
 const PerfectModel = require('./model');

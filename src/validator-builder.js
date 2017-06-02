@@ -167,7 +167,7 @@ function anyValidator(anySpecs) {
 function schemaValidator(schema) {
   return function validator(value) {
     if (value && (value._schema === schema)) {
-      const result = schema.validate(value._data);
+      const result = schema.validate(value._data, validationContext(value._data, this));
 
       return (result instanceof Promise) || (typeof result === 'string') ? result : undefined;
     } else if (value !== undefined) {
@@ -181,6 +181,7 @@ module.exports = validatorBuilder;
 
 
 const validators = require('./validators');
+const validationContext = require('./validation-context');
 const normalizeFields = require('./normalize-fields');
 const PerfectSchema = require('./schema');
 

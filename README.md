@@ -29,14 +29,14 @@ const itemSchema = new PerfectSchema({
   attributes: Object
 });
 
-const data = {
+const item = itemSchema.createModel({
   name: 'foo'
-};
+});
 
-const validator = await itemSchema.validate(data);
+const messages = await item.validate();
 
-if (!validator.isValid()) {
-  console.error(validator.getMessages());
+if (!item.isValid()) {
+  console.error(messages);
 }
 ```
 
