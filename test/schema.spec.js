@@ -145,7 +145,6 @@ describe('Testing Schema', () => {
       });
     });
 
-    /*
     it('should only allow empty sub-schema if optional', () => {
       const barFields = {
         bar: String
@@ -158,7 +157,7 @@ describe('Testing Schema', () => {
       const fooFieldsB = {
         foo: {
           type: barSchema,
-          optional: true
+          nullable: true
         }
       };
       const fooSchemaB = new Schema(fooFieldsB);
@@ -170,11 +169,10 @@ describe('Testing Schema', () => {
         const messagesA = allMessages[0];
         const messagesB = allMessages[1];
 
-        assert.deepStrictEqual(messagesA, [], 'Failed to validate required field');
+        assert.deepStrictEqual(messagesA, [{ fieldName: 'foo', message: 'invalidType', value: null }], 'Failed to validate required field');
         assert.deepStrictEqual(messagesB, [], 'Failed to validate optional field');
       });
     });
-    */
 
     it('should handle errors in validation', () => {
       const error = new Error('Test');
@@ -258,6 +256,84 @@ describe('Testing Schema', () => {
 
       return validator.then(messages => {
         assert.deepStrictEqual(messages, [], 'Failed to validate');
+      });
+    });
+
+  });
+
+
+  describe('Testing default values', () => {
+
+    var warn;
+    var warnLogs;
+
+    beforeAll(() => {
+      warn = console.warn;
+      console.warn = function (msg) {
+        warnLogs.push(msg);
+      };
+    });
+
+    beforeEach(() => {
+      warnLogs = [];
+    });
+
+    afterAll(() => {
+      console.warn = warn;
+    })
+
+    it('should set default value from constant', () => {
+      const fields = {
+        foo: {
+          type: String,
+          defaultValue: 'hello'
+        }
+      };
+      const schema = new Schema(fields);
+      const model = schema.createModel();
+
+      assert.deepStrictEqual(model._data, { foo: 'hello' }, 'Failed to set default value');
+    });
+
+    it('should set default value from function', () => {
+      const fields = {
+        foo: {
+          type: String,
+          defaultValue() { return expected = new Date().toString(); }
+        }
+      };
+      const schema = new Schema(fields);
+      const model = schema.createModel();
+      var expected;
+
+      assert.deepStrictEqual(model._data, { foo: expected }, 'Failed to set default value');
+    });
+
+    it('should warn if default value is invalid', () => {
+      var defaultSet = false;
+      const fields = {
+        foo: {
+          type: String,
+          defaultValue() {
+            defaultSet = true;
+            return 123;
+          }
+        }
+      };
+      const schema = new Schema(fields);
+      const model = schema.createModel();
+
+      return new Promise(resolve => {
+        (function next() {
+          if (defaultSet) {
+            resolve();
+          } else {
+            setImmediate(next);
+          }
+        })();
+      }).then(() => {
+        assert.deepStrictEqual(model._data, { foo: 123 }, 'Failed to set default value');
+        assert.deepStrictEqual(warnLogs, ['Warning! Default value did not validate for field : foo, message = invalidType'], 'Failed to log warning');
       });
     });
 

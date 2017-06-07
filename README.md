@@ -29,16 +29,33 @@ const itemSchema = new PerfectSchema({
   attributes: Object
 });
 
-const item = itemSchema.createModel({
+const item = itemSchema.createModel();  // all default values set
+
+const messages = await item.set({
   name: 'foo'
 });
-
-const messages = await item.validate();
 
 if (!item.isValid()) {
   console.error(messages);
 }
 ```
+
+
+## Field options
+
+### type : string | type
+
+
+### required : Boolean
+
+
+### nullable : Boolean
+
+
+### defaultValue : function | any
+
+
+### custom : function
 
 
 ## license
