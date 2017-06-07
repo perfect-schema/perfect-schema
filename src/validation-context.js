@@ -1,6 +1,6 @@
 'use strict';
 
-module.exports = function validationContext(data, parent) {
+function validationContext(data, parent) {
   data = data || {};
 
   return {
@@ -49,6 +49,17 @@ function getFieldValue(value) {
     return value;
   }
 }
+
+
+function isValidationContext(ctx) {
+  return ctx && (typeof ctx.field === 'function') && (typeof ctx.parent === 'function');
+}
+
+
+validationContext.isValidationContext = isValidationContext;
+
+
+module.exports = validationContext;
 
 
 const Model = require('./model');

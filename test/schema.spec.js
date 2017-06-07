@@ -145,6 +145,37 @@ describe('Testing Schema', () => {
       });
     });
 
+    /*
+    it('should only allow empty sub-schema if optional', () => {
+      const barFields = {
+        bar: String
+      };
+      const barSchema = new Schema(barFields);
+      const fooFieldsA = {
+        foo: barSchema
+      };
+      const fooSchemaA = new Schema(fooFieldsA);
+      const fooFieldsB = {
+        foo: {
+          type: barSchema,
+          optional: true
+        }
+      };
+      const fooSchemaB = new Schema(fooFieldsB);
+
+      const validatorA = fooSchemaA.validate({ foo: null });
+      const validatorB = fooSchemaB.validate({ foo: null });
+
+      return Promise.all([ validatorA, validatorB ]).then(allMessages => {
+        const messagesA = allMessages[0];
+        const messagesB = allMessages[1];
+
+        assert.deepStrictEqual(messagesA, [], 'Failed to validate required field');
+        assert.deepStrictEqual(messagesB, [], 'Failed to validate optional field');
+      });
+    });
+    */
+
     it('should handle errors in validation', () => {
       const error = new Error('Test');
       const fields = {
@@ -191,6 +222,42 @@ describe('Testing Schema', () => {
 
       return validator.then(messages => {
         assert.deepStrictEqual(messages, [ { fieldName: 'bar', message: 'keyNotInSchema', value: 123 } ], 'Failed to find error in validation');
+      });
+    });
+
+  });
+
+
+  describe('Testing custom validation with context', () => {
+
+    it('should fail to validate with invalid parent context', () => {
+      const fields = {
+        foo: String
+      };
+      const schema = new Schema(fields);
+
+      assert.throws(() => schema.validate({ bar: 123 }, {}));
+    });
+
+    it('should fetch other fields', () => {
+      const fields = {
+        foo: {
+          type: String,
+          custom(value, ctx) {
+            assert.strictEqual(value, fooValue, 'Failed to pass value to custom validation');
+            assert.strictEqual(ctx.field('bar').value, barValue, 'Failed to fetch other field');
+          }
+        },
+        bar: Number
+      };
+      const schema = new Schema(fields);
+      const fooValue = 'hello';
+      const barValue = 1234;
+
+      const validator = schema.validate({ foo: fooValue, bar: barValue });
+
+      return validator.then(messages => {
+        assert.deepStrictEqual(messages, [], 'Failed to validate');
       });
     });
 

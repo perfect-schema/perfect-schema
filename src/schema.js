@@ -14,9 +14,11 @@ class PerfectSchema {
 
     if (!this._fieldNames.length) { throw new TypeError('No fields specified'); }
 
+    this._options = options || {};
     this._fields = normalizeFields(fields);
     this._validators = validatorBuilder(fields);
-    this._options = options || {};
+
+    checkDefaultValues(this._fields, this._validators);
   }
 
 
@@ -36,6 +38,8 @@ class PerfectSchema {
 
     this._validators = Object.assign(this._validators, validatorBuilder(fields));
     this._fieldNames = Object.keys(this._fields);
+
+    checkDefaultValues(fields, this._validators);
   }
 
 
@@ -44,10 +48,17 @@ class PerfectSchema {
 
   @return {PerfectModel}
   */
-  createModel(data) {
+  createModel() {
     const model = new PerfectModel(this);
+    var defaultValue;
 
-    data && model.set(data);
+    for (var fieldName of this._fieldNames) {
+      defaultValue = this._fields[fieldName].defaultValue;
+
+      if (defaultValue) {
+        model._data[fieldName] = typeof defaultValue === 'function' ? defaultValue() : defaultValue;
+      }
+    }
 
     return model;
   }
@@ -56,10 +67,15 @@ class PerfectSchema {
   /**
   Validate the given data
 
-  @param data {Object}    the data to Validate
+  @param data {Object}                            the data to Validate
+  @param parentCtx {validationContext} (optional) the parent validation context
   @return {ValidationResult}
   */
-  validate(data) {
+  validate(data, parentCtx) {
+    if (parentCtx && !validationContext.isValidationContext(parentCtx)) {
+      throw new TypeError('Invalid parent validation context');
+    }
+    const ctx = validationContext(data, parentCtx);
     const dataFields = Object.keys(data || {});
     const fields = this._fields;
     const fieldNames = this._fieldNames;
@@ -74,7 +90,7 @@ class PerfectSchema {
       const validator = validators[fieldName];
 
       try {
-        return Promise.resolve(validator(value)).then(message => {
+        return Promise.resolve(validator(value, ctx)).then(message => {
           if (typeof message === 'string') {
             messages.push({ fieldName: fieldName, message: message, value: value });
           } else if (message && Array.isArray(message) && message.length) {
@@ -107,6 +123,30 @@ class PerfectSchema {
     return promise;
   }
 
+}
+
+
+function checkDefaultValues(fields, validators) {
+  const fieldNames = Object.keys(fields);
+  var defaultValue;
+  var value;
+
+  for (var fieldName of fieldNames) (function (fieldName) {
+    defaultValue = fields[fieldName].defaultValue;
+
+    if (defaultValue) {
+      value = typeof defaultValue === 'function' ? defaultValue(true) : defaultValue;
+
+      Promise.resolve(validators[fieldName](value)).then(message => {
+        if (message) {
+          console.warn('Warning! Default value did not validate for field : ' + fieldName + ', message = ' + message);
+        }
+      }, error => {
+        console.warn("Error while validating default value for field : " + fieldName);
+        console.warn(error);
+      });
+    }
+  })(fieldName);
 }
 
 

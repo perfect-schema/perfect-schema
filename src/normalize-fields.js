@@ -10,7 +10,7 @@ function normalizeFields(fields) {
       fields[fieldName] = { type: [validators.getType(specs[0])] };
     } else if (isType(specs) || isSchema(specs)) {
       fields[fieldName] = { type: validators.getType(specs) };
-    } else if ('type' in specs) {
+    } else if (specs && (typeof specs === 'object') && ('type' in specs)) {
       if (Array.isArray(specs.type)) {
         specs.type = [validators.getType(specs.type[0])];
       } else {

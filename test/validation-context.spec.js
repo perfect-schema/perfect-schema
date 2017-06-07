@@ -17,6 +17,21 @@ describe('Testing Validation Context', () => {
     assert.notDeepStrictEqual(context1, context2, 'Failed to return different contexts');
   });
 
+  it('should validate correct contexts', () => {
+    const context = validationContext();
+    const mockContext = { field() {}, parent() {} };
+
+    assert.ok(validationContext.isValidationContext(context), 'Failed to validate real context');
+    assert.ok(validationContext.isValidationContext(mockContext), 'Failed to validate mock context');
+
+    [
+      undefined, null, false, true,
+      -1, 0, 1, 1.234,
+      [], {}, () => {}, /./, new Date(),
+      { field() {} }, { parent() {} }, { field: 123, parent() {} }, { field() {}, parent: 123 }
+    ].forEach(ctx => assert.ok(!validationContext.isValidationContext(ctx), 'Failed to identify invalid validation context: ' + JSON.stringify(ctx)));
+  });
+
   it('should get field value', () => {
     const data = { foo: 'hello' };
     const context = validationContext(data);

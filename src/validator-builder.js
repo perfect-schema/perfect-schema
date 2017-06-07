@@ -91,15 +91,15 @@ function nullableValidator(validator) {
 function customValidator(validator, specs) {
   const custom = specs.custom.bind(specs);
 
-  return function customValidator(value) {
-    const customResult = custom(value);
+  return function customValidator(value, ctx) {
+    const customResult = custom(value, ctx);
 
     if (typeof customResult === 'string') {
       return customResult;
     } else if (customResult instanceof Promise) {
-      return customResult.then(error => typeof error === 'string' ? error : validator(value));
+      return customResult.then(error => typeof error === 'string' ? error : validator(value, ctx));
     } else {
-      return validator(value);
+      return validator(value, ctx);
     }
   };
 }
@@ -165,11 +165,9 @@ function anyValidator(anySpecs) {
 
 
 function schemaValidator(schema) {
-  return function validator(value) {
+  return function validator(value, ctx) {
     if (value && (value._schema === schema)) {
-      const result = schema.validate(value._data, validationContext(value._data, this));
-
-      return (result instanceof Promise) || (typeof result === 'string') ? result : undefined;
+      return schema.validate(value._data, ctx);
     } else if (value !== undefined) {
       return 'invalidType';
     }

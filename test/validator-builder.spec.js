@@ -166,20 +166,34 @@ describe('Testing validator builder', () => {
 
 
   it('should build with schema instances', () => {
-    const subFields = new Schema({ bar: String });
+    const subFields = new Schema({ bar: Boolean });
 
     subFields.validate = function (value) {
-      return value.bar === true || 'Failed';
+      return Promise.resolve(value.bar === true ? undefined : 'Failed');
     };
 
     const fields = {
       foo: subFields
     };
     const fieldValidators = validatorBuilder(fields);
+    const goodFoo = subFields.createModel();
+    const badFoo = subFields.createModel();
+    const invalidFoo = { bar: true };
 
-    assert.strictEqual(fieldValidators.foo(subFields.createModel({ bar: true })), undefined, 'Failed validation with valid value');
-    assert.strictEqual(fieldValidators.foo({ bar: true }), 'invalidType', 'Failed validation with invalid value');
-    assert.notStrictEqual(fieldValidators.foo(subFields.createModel({ bar: false })), undefined, 'Failed validation with invalid value');
+    return Promise.all([
+      goodFoo.set({ bar: true }),
+      badFoo.set({ bar: false })
+    ]).then(() => {
+      return Promise.all([
+        fieldValidators.foo(goodFoo),
+        fieldValidators.foo(badFoo),
+        fieldValidators.foo(invalidFoo)
+      ]).then(results => {
+        assert.strictEqual(results[0], undefined, 'Failed validation with valid value');
+        assert.strictEqual(results[1], 'Failed', 'Failed validation with invalid value');
+        assert.strictEqual(results[2], 'invalidType', 'Failed validation with invalid value');
+      });
+    });
   });
 
 
