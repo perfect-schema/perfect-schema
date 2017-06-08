@@ -149,7 +149,7 @@ function checkDefaultValues(fields, validators) {
 
 
 function isSchema(schema) {
-  return schema && (schema instanceof PerfectSchema);
+  return schema && (schema instanceof PerfectSchema) || false;
 }
 
 

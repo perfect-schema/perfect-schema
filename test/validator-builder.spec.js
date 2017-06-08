@@ -38,7 +38,7 @@ describe('Testing validator builder', () => {
   });
 
 
-  it('should build with "any" (wildcard)', () => {
+  it('should build with "any" (short + wildcard)', () => {
     const fields = {
       foo: any()
     };
@@ -54,6 +54,20 @@ describe('Testing validator builder', () => {
     });
   });
 
+  it('should build with "any" (wildcard)', () => {
+    const fields = {
+      foo: { type: any() }
+    };
+    const fieldValidators = validatorBuilder(fields);
+
+    // valid for any value...
+    [
+      true, false, null, "", "abc",
+      -1, 0, 1, Infinity, NaN,
+      new Date(), {}, [], () => {}, /./
+    ].forEach(value => assert.strictEqual(fieldValidators.foo(value), undefined, 'Failed validation'));
+  });
+
 
   it('should build with "any" given types', () => {
     const fields = {
@@ -66,25 +80,20 @@ describe('Testing validator builder', () => {
       "", "abc",
       1, 1.5, 2, 2.5, 3,
       5, 6, 7, 8, 9, 10
-    ].forEach(value => {
-      assert.strictEqual(fieldValidators.foo(value), undefined, 'Failed validation : ' + JSON.stringify(value));
-    });
+    ].forEach(value => assert.strictEqual(fieldValidators.foo(value), undefined, 'Failed validation : ' + JSON.stringify(value)));
+
 
     // invalid with these values...
     [
       0.5, 3.1, 7.5, 9.99,
-    ].forEach(value => {
-      assert.notStrictEqual(fieldValidators.foo(value), undefined, 'Failed validation : ' + JSON.stringify(value));
-    });
+    ].forEach(value => assert.notStrictEqual(fieldValidators.foo(value), undefined, 'Failed validation : ' + JSON.stringify(value)));
 
     // invalid with these types...
     [
       true, false, null,
       Infinity, NaN,
       new Date(), {}, [], () => {}, /./
-    ].forEach(value => {
-      assert.strictEqual(fieldValidators.foo(value), 'invalidType', 'Failed validation : ' + JSON.stringify(value));
-    });
+    ].forEach(value => assert.strictEqual(fieldValidators.foo(value), 'invalidType', 'Failed validation : ' + JSON.stringify(value)));
   });
 
 
@@ -97,6 +106,46 @@ describe('Testing validator builder', () => {
     // valid with these values...
     [
       [], [""], ["abc"], ["", "abc"]
+    ].forEach(value => assert.strictEqual(fieldValidators.foo(value), undefined, 'Failed validation : ' + JSON.stringify(value)));
+
+    // invalid with these types...
+    [
+      true, false, null, "", "abc",
+      Infinity, NaN,
+      new Date(), {}, () => {}, /./, [null], [123, ""]
+    ].forEach(value => assert.strictEqual(fieldValidators.foo(value), 'invalidType', 'Failed validation : ' + JSON.stringify(value)));
+  });
+
+  it('should build with arrays (shorthand)', () => {
+    const fields = {
+      foo: []
+    };
+    const fieldValidators = validatorBuilder(fields);
+
+    // valid with these values...
+    [
+      [], [""], [123], ["abc"], [123, "abc"]
+    ].forEach(value => assert.strictEqual(fieldValidators.foo(value), undefined, 'Failed validation : ' + JSON.stringify(value)));
+
+    // invalid with these types...
+    [
+      true, false, null, "", "abc",
+      Infinity, NaN,
+      new Date(), {}, () => {}, /./
+    ].forEach(value => assert.strictEqual(fieldValidators.foo(value), 'invalidType', 'Failed validation : ' + JSON.stringify(value)));
+  });
+
+  /*
+  it('should build with arrays of any', () => {
+    const fields = {
+      foo: [any()]
+    };
+    console.log("*** ANY ARRAY")
+    const fieldValidators = validatorBuilder(fields);
+
+    // valid with these values...
+    [
+      [], [""], [123], ["abc"], [123, "abc"]
     ].forEach(value => {
       assert.strictEqual(fieldValidators.foo(value), undefined, 'Failed validation : ' + JSON.stringify(value));
     });
@@ -105,11 +154,12 @@ describe('Testing validator builder', () => {
     [
       true, false, null, "", "abc",
       Infinity, NaN,
-      new Date(), {}, () => {}, /./, [null]
+      new Date(), {}, () => {}, /./
     ].forEach(value => {
       assert.strictEqual(fieldValidators.foo(value), 'invalidType', 'Failed validation : ' + JSON.stringify(value));
     });
   });
+  */
 
 
   it('should build with arrays (arrayOptions)', () => {
@@ -127,9 +177,7 @@ describe('Testing validator builder', () => {
     // valid with these values...
     [
       ["abc", "defg", "hijkl"]
-    ].forEach(value => {
-      assert.strictEqual(fieldValidators.foo(value), undefined, 'Failed validation : ' + JSON.stringify(value));
-    });
+    ].forEach(value => assert.strictEqual(fieldValidators.foo(value), undefined, 'Failed validation : ' + JSON.stringify(value)));
 
     // invalid with these types...
     [
@@ -137,15 +185,13 @@ describe('Testing validator builder', () => {
       Infinity, NaN,
       new Date(), {}, () => {}, /./,
       [], [""], ["", "", ""], ["abc", "", "def"]
-    ].forEach(value => {
-      assert.notStrictEqual(fieldValidators.foo(value), undefined, 'Failed validation : ' + JSON.stringify(value));
-    });
+    ].forEach(value => assert.notStrictEqual(fieldValidators.foo(value), undefined, 'Failed validation : ' + JSON.stringify(value)));
   });
 
 
   it('should fail with invalid array type', () => {
     [
-      [], [null, null]
+      [undefined], [null], [null, null], [NaN], [true], [false], ["invalidType"]
     ].forEach(type => {
       assert.throws(() => validatorBuilder({ foo: type }));
       assert.throws(() => validatorBuilder({ foo: { type: type } }));

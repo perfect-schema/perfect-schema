@@ -29,33 +29,39 @@ function validatorBuilder(fields) {
 function buildValidator(specs) {
   if (!specs) {
     throw new TypeError('Invalid field type : ' + String(specs));
-  } else if (specs.$any) {
-    return anyValidator(specs);
   } else {
     var type;
     var isArray = false;
 
-    if (isType(specs) || isSchema(specs)) {
+    if (isAny(specs) || isType(specs) || isSchema(specs) || (specs instanceof Array)) {
       type = specs;
       specs = { type: type };
     } else {
       type = specs.type;
     }
 
-    if (type instanceof Array) {
-      if (type.length !== 1) {
-        throw new TypeError('Invalid array type');
-      }
+    var isWildcard = isAny(type);
 
-      type = type[0];
-      isArray = true;
+    if (!isWildcard && (type instanceof Array)) {
+      if (type.length) {
+        if (type.length !== 1) {
+          throw new TypeError('Invalid array type');
+        }
+
+        type = type[0];
+        isArray = true;
+      } else {
+        specs = { type: type = Array };
+      }
     }
 
-    if (!isType(type) && !isSchema(type)) {
+    if (!isWildcard && !isType(type) && !isSchema(type)) {
       throw new TypeError('Unknown or unspecified field type : ' + JSON.stringify(type));
     }
 
-    if (isArray) {
+    if (isWildcard) {
+      return anyValidator(specs);
+    } else if (isArray) {
       return arrayValidator(type, specs);
     } else if (isSchema(type)) {
       return schemaValidator(type);
@@ -115,32 +121,50 @@ function arrayValidator(type, specs) {
 
     if (typeof error !== 'string') {
       var hasError = false;
+      var asyncValidation = [];
 
       for (var val of value) {
         error = valueValidator(val);
 
-        if (typeof error === 'string') {
+        if (error instanceof Promise) {
+          asyncValidation.push(error);
+        } else if (typeof error === 'string') {
           hasError = true;
           break;
         }
       }
 
-      return hasError ? error : undefined;
+      if (hasError) {
+        return error;
+      } else if (asyncValidation.length) {
+        return Promise.all(asyncValidation).then(results => {
+          for (var err of results) {
+            if (err && (typeof err === 'string')) {
+              return err;
+            }
+          }
+        });
+      }
     } else {
       return error;
     }
-
   };
 }
 
 
 function anyValidator(anySpecs) {
-  if (!anySpecs.length) {
+  const baseSpecs = anySpecs;
+  const types = anySpecs.type;
+
+  baseSpecs.type = undefined;
+
+  if (!types.length) {
+    // TODO : custom()
     return noop;
   } else {
     const validators = [];
 
-    for (var specs of anySpecs) {
+    for (var specs of types) {
       validators.push(buildValidator(specs));
     }
 
@@ -183,9 +207,11 @@ module.exports = validatorBuilder;
 
 
 const validators = require('./validators');
+const any = require('./any');
 const validationContext = require('./validation-context');
 const normalizeFields = require('./normalize-fields');
 const PerfectSchema = require('./schema');
 
 const isType = validators.isType;
 const isSchema = PerfectSchema.isSchema;
+const isAny = any.isAny;

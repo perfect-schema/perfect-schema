@@ -272,7 +272,7 @@ function FakeReactiveVar(value) {
 
 
 function isModel(model) {
-  return model && (model instanceof PerfectModel);
+  return model && (model instanceof PerfectModel) || false;
 }
 
 

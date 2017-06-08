@@ -41,7 +41,7 @@ validators.getType = function getType(type) {
 
 
 validators.isType = function isType(type) {
-  return type && ((type in validators) || ((typeof type === 'string') && (type.toLowerCase() in typeMap)));
+  return type && ((type in validators) || ((typeof type === 'string') && (type.toLowerCase() in typeMap))) || false;
 }
 
 

@@ -45,6 +45,51 @@ if (!item.isValid()) {
 ```
 
 
+## Field Types
+
+There are two ways to define a field type; the short way and the descriptive way. The short way is fine when no other options needs to be defined.
+
+```json
+{
+  field1: type,
+  field2: {
+    type: type
+    ...
+  }
+}
+```
+
+* **Type** : PerfectSchema.any(type?)
+
+* **Type** : Array | `"array"` | [type?]
+
+  Field of this type are generic arrays or typed arrays. The following are all equivalent :
+
+  ```
+  {
+    a: Array,
+    b: "array",
+    c: [],
+    d: [PerfectSchema.any()]
+  }
+  ```
+
+
+* **Type** : Boolean | `"boolean"`
+
+* **Type** : Date | `"date"`
+
+* **Type** : PerfectSchema.Integer | `"integer"`
+
+* **Type** : Number | `"number"`
+
+* **Type** : Object | `"object"`
+
+* **Type** : String | `"string"`
+
+
+
+
 ## Field options
 
 ### type : string | type

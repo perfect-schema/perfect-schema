@@ -8,7 +8,7 @@ function normalizeFields(fields) {
 
     if (Array.isArray(specs)) {
       fields[fieldName] = { type: [validators.getType(specs[0])] };
-    } else if (isType(specs) || isSchema(specs)) {
+    } else if (isAny(specs) || isType(specs) || isSchema(specs)) {
       fields[fieldName] = { type: validators.getType(specs) };
     } else if (specs && (typeof specs === 'object') && ('type' in specs)) {
       if (Array.isArray(specs.type)) {
@@ -26,7 +26,9 @@ function normalizeFields(fields) {
 module.exports = normalizeFields;
 
 const validators = require('./validators');
+const any = require('./any');
 const PerfectSchema = require('./schema');
 
 const isSchema = PerfectSchema.isSchema;
 const isType = validators.isType;
+const isAny = any.isAny;
