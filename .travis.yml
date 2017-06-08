@@ -1,0 +1,8 @@
+language: node_js
+node_js:
+- "4.2.2"
+- "6.11"
+matrix:
+  fast_finish: true
+script: "npm run-script test-cov"
+after_script: "npm install coveralls && cat ./coverage/lcov.info | coveralls"
