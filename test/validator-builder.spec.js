@@ -169,7 +169,7 @@ describe('Testing validator builder', () => {
     const subFields = new Schema({ bar: Boolean });
 
     subFields.validate = function (value) {
-      return Promise.resolve(value.bar === true ? undefined : 'Failed');
+      return Promise.resolve(value.bar === true ? [] : ['Failed']);
     };
 
     const fields = {
@@ -189,13 +189,40 @@ describe('Testing validator builder', () => {
         fieldValidators.foo(badFoo),
         fieldValidators.foo(invalidFoo)
       ]).then(results => {
-        assert.strictEqual(results[0], undefined, 'Failed validation with valid value');
-        assert.strictEqual(results[1], 'Failed', 'Failed validation with invalid value');
-        assert.strictEqual(results[2], 'invalidType', 'Failed validation with invalid value');
+        assert.deepStrictEqual(results[0], undefined, 'Failed validation with valid value');
+        assert.deepStrictEqual(results[1], 'invalid', 'Failed validation with invalid value');
+        assert.deepStrictEqual(results[2], 'invalidType', 'Failed validation with invalid value');
       });
     });
   });
 
+
+  it('should build schema validator who rejects invalid schema', () => {
+    const validSchema = new Schema({ bar: Boolean });
+    const invalidSchema = new Schema({ bar: Boolean });
+
+    const fields = {
+      foo: validSchema
+    };
+    const fieldValidators = validatorBuilder(fields);
+
+    const validModel = validSchema.createModel();
+    const invalidValues = [
+      invalidSchema.createModel(), null, true, false, NaN, {}, [], () => {}, /./, new Date(), "", 0, 1
+    ];
+
+    return fieldValidators.foo(validModel).then(message => {
+      assert.strictEqual(message, undefined, 'Failed to validate valid schema');
+    }).then(() => {
+      return Promise.all(invalidValues.map(invalid => fieldValidators.foo(invalid))).then(results => {
+        results.forEach((result, index) => {
+          assert.strictEqual(result, 'invalidType', 'Failed to validate invalid schema value : ' + JSON.stringify(invalidValues[index]));
+        });
+      })
+    }).then(() => {
+      assert.strictEqual(fieldValidators.foo(undefined), undefined, 'Failed with undefined value');
+    });
+  });
 
   it('should build required field validator', () => {
     const optionalFields = {

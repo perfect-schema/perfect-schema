@@ -475,7 +475,7 @@ describe('Testing Model', () => {
 
         assert.deepStrictEqual(messages, [
           { fieldName: 'bob', message: 'invalidType', value: 456 },
-          { fieldName: 'foo', message: 'invalid' }
+          { fieldName: 'foo', message: 'invalid', value: fooModel._data['foo'] }
         ], 'Failed to find error in validation');
 
         return fooModel.set('foo', { bar: null }).then(messages => {
@@ -486,7 +486,7 @@ describe('Testing Model', () => {
 
           assert.deepStrictEqual(messages, [
             { fieldName: 'bob', message: 'invalidType', value: 456 },
-            { fieldName: 'foo', message: 'invalid' }
+            { fieldName: 'foo', message: 'invalid', value: fooModel._data['foo'] }
           ], 'Failed to find error in validation');
 
           return fooModel.set('foo.bar', 'hello').then(messages => {

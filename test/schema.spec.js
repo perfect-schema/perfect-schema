@@ -337,6 +337,35 @@ describe('Testing Schema', () => {
       });
     });
 
+    it('should warn if default value does not validate asynchronously', () => {
+      var validated = false;
+      var error;
+      const fields = {
+        foo: {
+          type: String,
+          defaultValue: 'test',
+          custom(value) {
+            setTimeout(() => validated = true, 200);  // allow some time for Promise to complete
+            return Promise.reject(error = new Error('Test'));
+          }
+        }
+      };
+      const schema = new Schema(fields);
+      const model = schema.createModel();
+
+      return new Promise(resolve => {
+        (function next() {
+          if (validated) {
+            resolve();
+          } else {
+            setImmediate(next);
+          }
+        })();
+      }).then(() => {
+        assert.deepStrictEqual(model._data, { foo: 'test' }, 'Failed to set default value');
+        assert.deepStrictEqual(warnLogs, [ 'Error while validating default value for field : foo', error ], 'Failed to log warning');
+      });
+    });
   });
 
 });

@@ -1,4 +1,8 @@
 # Perfect schema
+[![Build Status](https://travis-ci.org/yanickrochon/perfect-schema.svg?branch=master)](https://travis-ci.org/yanickrochon/perfect-schema)
+[![Coverage Status](https://coveralls.io/repos/github/yanickrochon/perfect-schema/badge.svg?branch=master)](https://coveralls.io/github/yanickrochon/perfect-schema?branch=master)
+
+[![NPM](https://nodei.co/npm/perfect-schema.png)](https://npmjs.org/package/perfect-schema)
 
 Model and schema validation done perfectly.
 

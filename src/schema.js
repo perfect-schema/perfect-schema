@@ -91,10 +91,8 @@ class PerfectSchema {
 
       try {
         return Promise.resolve(validator(value, ctx)).then(message => {
-          if (typeof message === 'string') {
+          if (message) {
             messages.push({ fieldName: fieldName, message: message, value: value });
-          } else if (message && Array.isArray(message) && message.length) {
-            messages.push({ fieldName: fieldName, message: 'invalid' });
           }
         }, error => {
           messages.push({ fieldName: fieldName, message: 'error', value: value, error: error });

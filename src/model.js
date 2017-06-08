@@ -120,8 +120,6 @@ class PerfectModel {
       } else {
         dataTS[fieldName] = present();
 
-        //console.log("*** SETTING", fieldName, fieldSpec);
-
         if (isSchema(fieldSpec.type)) {
           if (!(fieldName in data)) {
             fieldValue = data[fieldName] = fieldSpec.type.createModel();
@@ -224,7 +222,6 @@ function validate(model, fieldNames) {
 
       for (j = messagesLen - 1; j >= 0; --j) {
         msg = messages[j];
-        //msgFieldName = modelFieldName(msg.fieldName);
 
         if ((msg.fieldName === fieldName) && (dataTS[fieldName] < ts)) {
           messages.splice(j, 1);
@@ -262,12 +259,6 @@ function validate(model, fieldNames) {
     return model._messages = messages;
   });
 }
-
-
-//function modelFieldName(fieldName) {
-//  const index = fieldName.indexOf('.');
-//  return index >= 0 ? fieldName.substr(0, index) : fieldName;
-//}
 
 
 function FakeReactiveVar(value) {

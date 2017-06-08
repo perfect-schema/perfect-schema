@@ -167,7 +167,11 @@ function anyValidator(anySpecs) {
 function schemaValidator(schema) {
   return function validator(value, ctx) {
     if (value && (value._schema === schema)) {
-      return schema.validate(value._data, ctx);
+      return schema.validate(value._data, ctx).then(messages => {
+        if (messages.length) {
+          return 'invalid';
+        }
+      });
     } else if (value !== undefined) {
       return 'invalidType';
     }
