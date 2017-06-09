@@ -32,6 +32,7 @@ function buildValidator(specs) {
   } else {
     var type;
     var isArray = false;
+    var isWildcard = false;
 
     if (isAny(specs) || isType(specs) || isSchema(specs) || (specs instanceof Array)) {
       type = specs;
@@ -40,29 +41,28 @@ function buildValidator(specs) {
       type = specs.type;
     }
 
-    var isWildcard = isAny(type);
-
-    if (!isWildcard && (type instanceof Array)) {
-      if (type.length) {
-        if (type.length !== 1) {
-          throw new TypeError('Invalid array type');
-        }
-
+    if (!isAny(type) && (type instanceof Array)) {
+      if (!type.length) {
+        specs.type = type = Array;
+      } else if (type.length === 1) {
         type = type[0];
         isArray = true;
       } else {
-        specs = { type: type = Array };
+        specs.type = type = any.apply(any, type);
+        isWildcard = true;
       }
     }
+
+    isWildcard = isWildcard || isAny(type);
 
     if (!isWildcard && !isType(type) && !isSchema(type)) {
       throw new TypeError('Unknown or unspecified field type : ' + JSON.stringify(type));
     }
 
-    if (isWildcard) {
-      return anyValidator(specs);
-    } else if (isArray) {
+    if (isArray) {
       return arrayValidator(type, specs);
+    } else if (isWildcard) {
+      return anyValidator(specs);
     } else if (isSchema(type)) {
       return schemaValidator(type);
     } else {
@@ -97,16 +97,26 @@ function nullableValidator(validator) {
 function customValidator(validator, specs) {
   const custom = specs.custom.bind(specs);
 
-  return function customValidator(value, ctx) {
-    const customResult = custom(value, ctx);
+  function callValidator(validator, value, ctx, nextValidator) {
+    const result = validator(value, ctx);
 
-    if (typeof customResult === 'string') {
-      return customResult;
-    } else if (customResult instanceof Promise) {
-      return customResult.then(error => typeof error === 'string' ? error : validator(value, ctx));
+    if (typeof result === 'string') {
+      return result;
+    } else if (result instanceof Promise) {
+      return result.then(message => {
+        if (typeof message === 'string') {
+          return message;
+        } else {
+          return nextValidator ? callValidator(nextValidator, value, ctx) : undefined;
+        }
+      });
     } else {
-      return validator(value, ctx);
+       return nextValidator ? callValidator(nextValidator, value, ctx) : undefined;
     }
+  }
+
+  return function customValidator(value, ctx) {
+    return callValidator(validator, value, ctx, custom);
   };
 }
 
@@ -116,50 +126,50 @@ function arrayValidator(type, specs) {
   const elementSpecs = Object.assign({}, specs, { type: type });
   const valueValidator = buildValidator(elementSpecs);
 
-  return function validator(value) {
-    var error = isArray(value);
+  elementSpecs.arrayOptions = undefined;
 
-    if (typeof error !== 'string') {
+  return function arrayValidator(value) {
+    var result = isArray(value);
+
+    if (typeof result === 'string') {
+      return result;
+    } else {
       var hasError = false;
       var asyncValidation = [];
 
       for (var val of value) {
-        error = valueValidator(val);
+        result = valueValidator(val);
 
-        if (error instanceof Promise) {
-          asyncValidation.push(error);
-        } else if (typeof error === 'string') {
+        if (result instanceof Promise) {
+          asyncValidation.push(result);
+        } else if (typeof result === 'string') {
           hasError = true;
           break;
         }
       }
 
       if (hasError) {
-        return error;
+        return result;
       } else if (asyncValidation.length) {
         return Promise.all(asyncValidation).then(results => {
-          for (var err of results) {
-            if (err && (typeof err === 'string')) {
-              return err;
+          for (var index = 0, len = results.length; index < len; ++index) {
+            result = results[index];
+
+            if (result && (typeof result === 'string')) {
+              return result + '@' + index;
             }
           }
         });
       }
-    } else {
-      return error;
     }
   };
 }
 
 
 function anyValidator(anySpecs) {
-  const baseSpecs = anySpecs;
   const types = anySpecs.type;
 
-  baseSpecs.type = undefined;
-
   if (!types.length) {
-    // TODO : custom()
     return noop;
   } else {
     const validators = [];
