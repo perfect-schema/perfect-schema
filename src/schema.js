@@ -1,5 +1,8 @@
 'use strict';
 
+const DEFAULT_OPTIONS = {};
+
+
 class PerfectSchema {
 
   /**
@@ -14,7 +17,7 @@ class PerfectSchema {
 
     if (!this._fieldNames.length) { throw new TypeError('No fields specified'); }
 
-    this._options = options || {};
+    this._options = Object.assign({}, DEFAULT_OPTIONS, options || {});
     this._fields = normalizeFields(fields);
     this._validators = validatorBuilder(fields);
 
@@ -153,7 +156,18 @@ function isSchema(schema) {
 }
 
 
+function setDefaults(options) {
+  if (options && (Object.prototype.toString.call(options) === '[object Object]')) {
+    Object.assign(DEFAULT_OPTIONS, options);
+  } else {
+    throw new TypeError('Invalid options');
+  }
+}
+
+
+
 PerfectSchema.isSchema = isSchema;
+PerfectSchema.setDefaults = setDefaults;
 
 module.exports = PerfectSchema;
 

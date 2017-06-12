@@ -368,4 +368,30 @@ describe('Testing Schema', () => {
     });
   });
 
+
+  describe('Testing default options', () => {
+
+    it('should pass default options', () => {
+      Schema.setDefaults({ ReactiveVar: function () {
+        return {
+          get() { return 'test'; },
+          set() { }
+        };
+      }});
+
+      const schema = new Schema({ foo: String });
+      const model = schema.createModel();
+
+      assert.strictEqual(model.isValid(), 'test', 'Failed to set ReactiveVar');
+    });
+
+    it('should ignore fail with invalid options', () => {
+      [
+        undefined, null, false, true, NaN,
+        -1, 0, 1, "", "test", () => {}, /./, new Date(), []
+      ].forEach(options => assert.throws(() => Schema.setDefaults(options)) );
+    });
+
+  })
+
 });

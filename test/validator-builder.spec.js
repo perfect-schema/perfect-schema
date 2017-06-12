@@ -98,9 +98,36 @@ describe('Testing validator builder', () => {
     });
 
 
-    it('should build with given types', () => {
+    it('should build with given types (explicit)', () => {
       const fields = {
         foo: any(String, { type: Number, min: 1, max: 3 }, { type: 'integer', min: 5, max: 10 })
+      };
+      const fieldValidators = validatorBuilder(fields);
+
+      // valid with these values...
+      [
+        "", "abc",
+        1, 1.5, 2, 2.5, 3,
+        5, 6, 7, 8, 9, 10
+      ].forEach(value => assert.strictEqual(fieldValidators.foo(value), undefined, 'Failed validation : ' + JSON.stringify(value)));
+
+
+      // invalid with these values...
+      [
+        0.5, 3.1, 7.5, 9.99,
+      ].forEach(value => assert.notStrictEqual(fieldValidators.foo(value), undefined, 'Failed validation : ' + JSON.stringify(value)));
+
+      // invalid with these types...
+      [
+        true, false, null,
+        Infinity, NaN,
+        new Date(), {}, [], () => {}, /./
+      ].forEach(value => assert.strictEqual(fieldValidators.foo(value), 'invalidType', 'Failed validation : ' + JSON.stringify(value)));
+    });
+
+    it('should build with given types (implicit)', () => {
+      const fields = {
+        foo: [String, { type: Number, min: 1, max: 3 }, { type: 'integer', min: 5, max: 10 }]
       };
       const fieldValidators = validatorBuilder(fields);
 
