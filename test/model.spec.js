@@ -505,4 +505,19 @@ describe('Testing Model', () => {
 
   });
 
+
+  describe('Testing model validation', () => {
+
+    it('should validate empty model', () => {
+      const fooSchema = createSchema({ foo: String });
+      const fooModel = fooSchema.createModel();
+
+      return fooModel.validate().then(messages => {
+        assert.ok(!messages.length, 'Validation errors when there was none');
+      });
+    });
+
+  });
+
+
 });

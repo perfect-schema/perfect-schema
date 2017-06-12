@@ -8,17 +8,7 @@ function validatorBuilder(fields) {
 
   for (var fieldName of fieldNames) {
     specs = fields[fieldName];
-    validator = buildValidator(specs);
-
-    if (specs.required) {
-      validator = requiredValidator(validator);
-    }
-    if (specs.nullable) {
-      validator = nullableValidator(validator);
-    }
-    if (typeof specs.custom === 'function') {
-      validator = customValidator(validator, specs);
-    }
+    validator = plugins.applyPlugins(specs, buildValidator(specs));
 
     validators[fieldName] = validator;
   }
@@ -75,7 +65,7 @@ function buildValidator(specs) {
 
 function noop() {}
 
-
+/*
 function requiredValidator(validator) {
   return function required(value) {
     if (value === undefined) {
@@ -85,7 +75,9 @@ function requiredValidator(validator) {
     }
   };
 }
+*/
 
+/*
 function nullableValidator(validator) {
   return function nullable(value) {
     if (value !== null) {
@@ -93,7 +85,9 @@ function nullableValidator(validator) {
     }
   };
 }
+*/
 
+/*
 function customValidator(validator, specs) {
   const custom = specs.custom.bind(specs);
 
@@ -119,7 +113,7 @@ function customValidator(validator, specs) {
     return callValidator(validator, value, ctx, custom);
   };
 }
-
+*/
 
 function arrayValidator(type, specs) {
   const isArray = validators[Array](specs.arrayOptions || {});
@@ -217,6 +211,7 @@ module.exports = validatorBuilder;
 
 
 const validators = require('./validators');
+const plugins = require('./validation-plugins');
 const any = require('./any');
 const validationContext = require('./validation-context');
 const normalizeFields = require('./normalize-fields');

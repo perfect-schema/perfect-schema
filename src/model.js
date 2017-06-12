@@ -20,6 +20,28 @@ class PerfectModel {
   }
 
   /**
+  Return the error messages for the specified field. The field
+  may be a dot-separated path of field names for recursive models.
+
+  @param field {string}
+  @return {string}
+  */
+  getMessages(field) {
+    const fieldMessages = [];
+    var message;
+
+    for (var i = 0, iLen = this._messages && this._messages.length || 0; i < iLen; ++i) {
+      message = this._messages[i];
+
+      if (message.fieldName === field) {
+        fieldMessages.push(message);
+      }
+    }
+
+    return fieldMessages.length ? fieldMessages : null;
+  }
+
+  /**
   Retrieve the field value. The field may be a dot-separated path
   of field names for recursive models
 
@@ -71,6 +93,7 @@ class PerfectModel {
 
   @param field {string}
   @param value {mixed}
+  @return {Promise}
   */
   set(field, value) {
     const schema = this._schema;
@@ -83,6 +106,7 @@ class PerfectModel {
       var start = 0;
       var pos = field.indexOf('.', start);
       var fieldName = pos > start ? field.substr(0, pos) : field;
+      var fieldTS = dataTS[fieldName] || (dataTS[fieldName] = {});
       var fieldSpec = schema._fields[fieldName];
       var fieldValue;
 
@@ -97,7 +121,7 @@ class PerfectModel {
             fieldValue = data[fieldName];
           }
 
-          dataTS[fieldName] = present();
+          fieldTS.set = present();
           return fieldValue.set(field.substr(pos + 1), value).then(() => fieldName);
         } else if (isObject(fieldSpec.type)) {
           var _fieldName = fieldName;
@@ -112,13 +136,13 @@ class PerfectModel {
             start = pos + 1;
           }
 
-          dataTS[fieldName] = present();
+          fieldTS.set = present();
           fieldValue[field.substr(start)] = value;
         } else {
           throw new TypeError('Invalid type for field : ' + fieldName);
         }
       } else {
-        dataTS[fieldName] = present();
+        fieldTS.set = present();
 
         if (isSchema(fieldSpec.type)) {
           if (!(fieldName in data)) {
@@ -160,25 +184,31 @@ class PerfectModel {
   }
 
   /**
-  Return the error messages for the specified field. The field
-  may be a dot-separated path of field names for recursive models.
+  Validate all the fields that have not been validated, yet.
+  Useful to make sure all the fields are valid. Use set(field, value)
+  to validate a specific field.
 
-  @param field {string}
-  @return {string}
+  @return {Promise}
   */
-  getMessages(field) {
-    const fieldMessages = [];
-    var message;
+  validate() {
+    const schema = this._schema;
+    const data = this._data;
+    const dataTS = this._dataTS;
+    const fieldNames = schema._fieldNames;
+    const fields = schema._fields;
+    const validateData = {};
+    var field, fieldName, fieldTS;
 
-    for (var i = 0, iLen = this._messages && this._messages.length || 0; i < iLen; ++i) {
-      message = this._messages[i];
+    for (fieldName of fieldNames) {
+      field = fields[fieldName];
+      fieldTS = dataTS;
 
-      if (message.fieldName === field) {
-        fieldMessages.push(message);
+      if (!fieldTS || !fieldTS.validated || (fieldTS.set > fieldTS.validated)) {
+        validateData[fieldName] = data[fieldName];
       }
     }
 
-    return fieldMessages.length ? fieldMessages : null;
+    return schema.validate(validateData);
   }
 
 }
@@ -215,15 +245,16 @@ function validate(model, fieldNames) {
   return schema.validate(validationData).then(validationMessages => {
     const validationMsgLen = validationMessages && validationMessages.length || 0;
     var messagesLen = messages.length || 0;
-    var duplicate, i, j, msg;
+    var duplicate, fieldTS, i, j, msg;
 
     for (i = 0; i < fieldNamesLen; ++i) {
       fieldName = fieldNames[i];
+      fieldTS = dataTS[fieldName];
 
       for (j = messagesLen - 1; j >= 0; --j) {
         msg = messages[j];
 
-        if ((msg.fieldName === fieldName) && (dataTS[fieldName] < ts)) {
+        if ((msg.fieldName === fieldName) && (!fieldTS || (fieldTS.set < ts))) {
           messages.splice(j, 1);
           --messagesLen;
         }
@@ -232,11 +263,12 @@ function validate(model, fieldNames) {
 
     for (i = 0; i < validationMsgLen; ++i) {
       msg = validationMessages[i];
+      fieldTS = dataTS[msg.fieldName] || (dataTS[msg.fieldName] = {});
 
-      if (dataTS[msg.fieldName] <= ts) {
-        // try to find we the same message was already set
+      if (fieldTS.set <= ts) {
+        // try to find if the same message was already set
         duplicate = false;
-        msg.ts = ts;
+        fieldTS.validated = msg.ts = ts;
 
         for (j = 0; j < messagesLen; ++j) {
           if ((messages[j].fieldName === msg.fieldName) && (messages[j].message === msg.message)) {
