@@ -303,7 +303,7 @@ describe('Testing Model', () => {
       });
       const model = schema.createModel();
       const value = 'Hello';
-      const validationMessages = [ { fieldName: 'foo', message: 'Validation Test', value: value } ];
+      const validationMessages = [ { field: 'foo', message: 'Validation Test', value: value } ];
 
       schema.validate = function (data) {
         assert.deepStrictEqual(data, { foo: value }, 'Failed to pass data to validate function');
@@ -328,7 +328,7 @@ describe('Testing Model', () => {
       });
       const model = schema.createModel();
       const value1 = 'Hello';
-      const validationMessages1 = [ { fieldName: 'foo', message: 'Validation Test 1', value: value1 } ];
+      const validationMessages1 = [ { field: 'foo', message: 'Validation Test 1', value: value1 } ];
 
       schema.validate = function (data) {
         return Promise.resolve(validationMessages1);
@@ -338,7 +338,7 @@ describe('Testing Model', () => {
 
       return validator1.then(messages1 => {
         const value2 = 'World';
-        const validationMessages2 = [ { fieldName: 'foo', message: 'Validation Test 2', value: value2 } ];
+        const validationMessages2 = [ { field: 'foo', message: 'Validation Test 2', value: value2 } ];
 
         assert.strictEqual(model.isValid(), false, 'Failed to set invalid with error messages set 1');
         assert.deepStrictEqual(messages1, validationMessages1, 'Failed to return validation messages 1');
@@ -377,8 +377,8 @@ describe('Testing Model', () => {
       const valueFoo = 'Hello';
       const valueBar = 123;
       const validationMessages = [
-        { fieldName: 'foo', message: 'Validation Test Foo', value: valueFoo },
-        { fieldName: 'bar', message: 'Validation Test Bar', value: valueBar }
+        { field: 'foo', message: 'Validation Test Foo', value: valueFoo },
+        { field: 'bar', message: 'Validation Test Bar', value: valueBar }
       ];
 
       schema.validate = function (data) {
@@ -403,8 +403,8 @@ describe('Testing Model', () => {
       const valueFoo = 'Hello';
       const valueBar = 123;
       const validationMessages = [
-        { fieldName: 'foo', message: 'Validation Test Foo', value: valueFoo },
-        { fieldName: 'bar', message: 'Validation Test Bar', value: valueBar }
+        { field: 'foo', message: 'Validation Test Foo', value: valueFoo },
+        { field: 'bar', message: 'Validation Test Bar', value: valueBar }
       ];
 
       schema.validate = function (data) {
@@ -430,8 +430,8 @@ describe('Testing Model', () => {
       const valueFoo = 'Hello';
       const valueBar = 123;
       const validationMessages = [
-        { fieldName: 'foo', message: 'Validation Test Foo', value: valueFoo },
-        { fieldName: 'bar', message: 'Validation Test Bar', value: valueBar }
+        { field: 'foo', message: 'Validation Test Foo', value: valueFoo },
+        { field: 'bar', message: 'Validation Test Bar', value: valueBar }
       ];
 
       schema.validate = function (data) {
@@ -474,8 +474,8 @@ describe('Testing Model', () => {
         messages.forEach(msg => delete msg.ts);
 
         assert.deepStrictEqual(messages, [
-          { fieldName: 'bob', message: 'invalidType', value: 456 },
-          { fieldName: 'foo', message: 'invalid', value: fooModel._data['foo'] }
+          { field: 'bob', message: 'invalidType', value: 456 },
+          { field: 'foo', message: 'invalid', value: fooModel._data['foo'] }
         ], 'Failed to find error in validation');
 
         return fooModel.set('foo', { bar: null }).then(messages => {
@@ -485,8 +485,8 @@ describe('Testing Model', () => {
           messages.forEach(msg => delete msg.ts);
 
           assert.deepStrictEqual(messages, [
-            { fieldName: 'bob', message: 'invalidType', value: 456 },
-            { fieldName: 'foo', message: 'invalid', value: fooModel._data['foo'] }
+            { field: 'bob', message: 'invalidType', value: 456 },
+            { field: 'foo', message: 'invalid', value: fooModel._data['foo'] }
           ], 'Failed to find error in validation');
 
           return fooModel.set('foo.bar', 'hello').then(messages => {
@@ -496,7 +496,7 @@ describe('Testing Model', () => {
             messages.forEach(msg => delete msg.ts);
 
             assert.deepStrictEqual(messages, [
-              { fieldName: 'bob', message: 'invalidType', value: 456 }
+              { field: 'bob', message: 'invalidType', value: 456 }
             ], 'Failed to remove invalidated validation error');
           });
         })
@@ -514,6 +514,50 @@ describe('Testing Model', () => {
 
       return fooModel.validate().then(messages => {
         assert.ok(!messages.length, 'Validation errors when there was none');
+      });
+    });
+
+    it('should not run double validation for the same field', () => {
+      const fooSchema = createSchema({
+        foo: {
+          type: String,
+          custom(value) {
+            // note : shorter delay for valid values
+            const delay = typeof value === 'string' ? 0 : 100;
+            return new Promise(resolve => {
+              setTimeout(() => {
+                resolve(undefined);
+              }, delay);
+            });
+          }
+        }
+      });
+      const fooModel = fooSchema.createModel();
+
+      return Promise.all([
+        fooModel.set('foo', 123 /* invalid value */).then(messages => {
+          assert.ok(!messages.length, 'Failed to ignore previous asynchronous set');
+        }),
+        fooModel.set('foo', "hello" /* invalid value */).then(messages => {
+          assert.ok(!messages.length, 'Failed to validate');
+        }),
+        fooModel.validate().then(messages => {
+          assert.ok(!messages.length, 'Failed validation');
+        })
+      ]);
+    });
+
+    it('should validate manually set fields', () => {
+      const fooSchema = createSchema({ foo: String });
+      const fooModel = fooSchema.createModel();
+
+      fooModel._data['foo'] = 123;
+
+      return fooModel.validate().then(messages => {
+        // remove ts from messages...
+        messages.forEach(msg => delete msg.ts);
+
+        assert.deepStrictEqual(messages, [{ field: 'foo', message: 'invalidType', value: 123 }], 'Failed to validate model');
       });
     });
 

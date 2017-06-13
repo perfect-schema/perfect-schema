@@ -95,19 +95,19 @@ class PerfectSchema {
       try {
         return Promise.resolve(validator(value, ctx)).then(message => {
           if (message) {
-            messages.push({ fieldName: fieldName, message: message, value: value });
+            messages.push({ field: fieldName, message: message, value: value });
           }
         }, error => {
-          messages.push({ fieldName: fieldName, message: 'error', value: value, error: error });
+          messages.push({ field: fieldName, message: 'error', value: value, error: error });
         });
       } catch (error) {
-        messages.push({ fieldName: fieldName, message: 'error', value: value, error: error });
+        messages.push({ field: fieldName, message: 'error', value: value, error: error });
       }
     }
 
     for (var fieldName of dataFields) {
       if (!(fieldName in fields)) {
-        messages.push({ fieldName: fieldName, message: 'keyNotInSchema', value: data[fieldName] });
+        messages.push({ field: fieldName, message: 'keyNotInSchema', value: data[fieldName] });
       } else {
         validationResults.push(validateField(fieldName, data[fieldName]));
       }

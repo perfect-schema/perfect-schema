@@ -33,7 +33,7 @@ class PerfectModel {
     for (var i = 0, iLen = this._messages && this._messages.length || 0; i < iLen; ++i) {
       message = this._messages[i];
 
-      if (message.fieldName === field) {
+      if (message.field === field) {
         fieldMessages.push(message);
       }
     }
@@ -191,24 +191,20 @@ class PerfectModel {
   @return {Promise}
   */
   validate() {
-    const schema = this._schema;
-    const data = this._data;
     const dataTS = this._dataTS;
-    const fieldNames = schema._fieldNames;
-    const fields = schema._fields;
-    const validateData = {};
-    var field, fieldName, fieldTS;
+    const fieldNames = this._schema._fieldNames;
+    const validateFields = [];
+    var fieldName, fieldTS;
 
     for (fieldName of fieldNames) {
-      field = fields[fieldName];
-      fieldTS = dataTS;
+      fieldTS = dataTS[fieldName];
 
-      if (!fieldTS || !fieldTS.validated || (fieldTS.set > fieldTS.validated)) {
-        validateData[fieldName] = data[fieldName];
+      if (!fieldTS || !fieldTS.validating) {
+        validateFields.push(fieldName);
       }
     }
 
-    return schema.validate(validateData);
+    return validate(this, validateFields);
   }
 
 }
@@ -227,7 +223,7 @@ function checkField(field) {
 }
 
 function validate(model, fieldNames) {
-  const ts = present();
+  const validationTS = present();
   const schema = model._schema;
   const data = model._data;
   const dataTS = model._dataTS;
@@ -239,10 +235,14 @@ function validate(model, fieldNames) {
   for (var i = 0; i < fieldNamesLen; ++i) {
     fieldName = fieldNames[i];
 
+    dataTS[fieldName] = dataTS[fieldName] || {};
+    dataTS[fieldName].validating = validationTS;
+
     validationData[fieldName] = data[fieldName];
   }
 
   return schema.validate(validationData).then(validationMessages => {
+    const validatedTS = present();
     const validationMsgLen = validationMessages && validationMessages.length || 0;
     var messagesLen = messages.length || 0;
     var duplicate, fieldTS, i, j, msg;
@@ -254,7 +254,7 @@ function validate(model, fieldNames) {
       for (j = messagesLen - 1; j >= 0; --j) {
         msg = messages[j];
 
-        if ((msg.fieldName === fieldName) && (!fieldTS || (fieldTS.set < ts))) {
+        if ((msg.field === fieldName) && (!fieldTS || (fieldTS.set < validationTS))) {
           messages.splice(j, 1);
           --messagesLen;
         }
@@ -263,15 +263,16 @@ function validate(model, fieldNames) {
 
     for (i = 0; i < validationMsgLen; ++i) {
       msg = validationMessages[i];
-      fieldTS = dataTS[msg.fieldName] || (dataTS[msg.fieldName] = {});
+      fieldTS = dataTS[msg.field] || (dataTS[msg.field] = {});
 
-      if (fieldTS.set <= ts) {
+      if (!fieldTS.set || (fieldTS.set <= validationTS)) {
         // try to find if the same message was already set
         duplicate = false;
-        fieldTS.validated = msg.ts = ts;
+        fieldTS.validated = msg.ts = validatedTS;
+        fieldTS.validating = false;
 
         for (j = 0; j < messagesLen; ++j) {
-          if ((messages[j].fieldName === msg.fieldName) && (messages[j].message === msg.message)) {
+          if ((messages[j].field === msg.field) && (messages[j].message === msg.message)) {
             duplicate = true;
 
             messages[j] = msg;

@@ -10,7 +10,8 @@ const plugins = [
 
 /**
 Register a new plugin. This new plugin will be added after the required and nullable plugin,
-after any other registered plugin, and before the custom plugin.
+after any other registered plugin, and before the custom plugin. If the plugin was already
+registered, it is ignored; unregister the plugin, first, before registering again.
 
 @param plugin {function}
 */
@@ -19,8 +20,25 @@ function registerPlugin(plugin) {
     throw new TypeError('Plugin must be a function');
   }
 
-  plugins.splice(plugins.length - 1, 0, plugin);
+  if (plugins.indexOf(plugin) === -1) {
+    // TODO : add insertion index
+    plugins.splice(plugins.length - 1, 0, plugin);
+  }
 };
+
+
+/**
+Unregister the given plugin.
+
+@param plugin {function}
+*/
+function unregisterPlugin(plugin) {
+  const pluginIndex = plugins.indexOf(plugin);
+
+  if (pluginIndex !== -1) {
+    plugins.splice(pluginIndex, 1);
+  }
+}
 
 
 /**
@@ -87,7 +105,13 @@ function nullablePlugin(specs, validator) {
       }
     };
   } else {
-    return validator;
+    return function notNullable(value) {
+      if (value === null) {
+        return 'noValue';
+      } else {
+        return validator(value);
+      }
+    };
   }
 }
 
@@ -99,7 +123,7 @@ This plugin will allow custom validators to be defined in the specs
 @return {function}
 */
 function customPlugin(specs, validator) {
-  if (specs.custom) {
+  if ('custom' in specs) {
     if (typeof specs.custom !== 'function') {
       throw new TypeError('Custom validator should be a function');
     }
@@ -141,4 +165,5 @@ function customPlugin(specs, validator) {
 
 
 module.exports.registerPlugin = registerPlugin;
+module.exports.unregisterPlugin = unregisterPlugin;
 module.exports.applyPlugins = applyPlugins;

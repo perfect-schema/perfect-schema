@@ -75,7 +75,7 @@ describe('Testing validator builder', () => {
 
       // valid for any value...
       [
-        true, false, null, "", "abc",
+        true, false, "", "abc",
         -1, 0, 1, Infinity, NaN,
         new Date(), {}, [], () => {}, /./
       ].forEach(value => {
@@ -91,7 +91,7 @@ describe('Testing validator builder', () => {
 
       // valid for any value...
       [
-        true, false, null, "", "abc",
+        true, false, "", "abc",
         -1, 0, 1, Infinity, NaN,
         new Date(), {}, [], () => {}, /./
       ].forEach(value => assert.strictEqual(fieldValidators.foo(value), undefined, 'Failed validation'));
@@ -122,7 +122,7 @@ describe('Testing validator builder', () => {
         true, false, null,
         Infinity, NaN,
         new Date(), {}, [], () => {}, /./
-      ].forEach(value => assert.strictEqual(fieldValidators.foo(value), 'invalidType', 'Failed validation : ' + JSON.stringify(value)));
+      ].forEach(value => assert.notStrictEqual(fieldValidators.foo(value), undefined, 'Failed validation : ' + JSON.stringify(value)));
     });
 
     it('should build with given types (implicit)', () => {
@@ -149,7 +149,7 @@ describe('Testing validator builder', () => {
         true, false, null,
         Infinity, NaN,
         new Date(), {}, [], () => {}, /./
-      ].forEach(value => assert.strictEqual(fieldValidators.foo(value), 'invalidType', 'Failed validation : ' + JSON.stringify(value)));
+      ].forEach(value => assert.notStrictEqual(fieldValidators.foo(value), undefined, 'Failed validation : ' + JSON.stringify(value)));
     });
 
   });
@@ -175,7 +175,7 @@ describe('Testing validator builder', () => {
         true, false, null, "", "abc",
         Infinity, NaN,
         new Date(), {}, () => {}, /./, [null], [123, ""]
-      ].forEach(value => assert.strictEqual(fieldValidators.foo(value), 'invalidType', 'Failed validation : ' + JSON.stringify(value)));
+      ].forEach(value => assert.notStrictEqual(fieldValidators.foo(value), undefined, 'Failed validation : ' + JSON.stringify(value)));
     });
 
     it('should build with arrays (shorthand)', () => {
@@ -194,7 +194,7 @@ describe('Testing validator builder', () => {
         true, false, null, "", "abc",
         Infinity, NaN,
         new Date(), {}, () => {}, /./
-      ].forEach(value => assert.strictEqual(fieldValidators.foo(value), 'invalidType', 'Failed validation : ' + JSON.stringify(value)));
+      ].forEach(value => assert.notStrictEqual(fieldValidators.foo(value), undefined, 'Failed validation : ' + JSON.stringify(value)));
     });
 
     it('should build with arrays of any', () => {
@@ -216,7 +216,7 @@ describe('Testing validator builder', () => {
         Infinity, NaN,
         new Date(), {}, () => {}, /./
       ].forEach(value => {
-        assert.strictEqual(fieldValidators.foo(value), 'invalidType', 'Failed validation : ' + JSON.stringify(value));
+        assert.notStrictEqual(fieldValidators.foo(value), undefined, 'Failed validation : ' + JSON.stringify(value));
       });
     });
 
@@ -292,7 +292,7 @@ describe('Testing validator builder', () => {
           Infinity, NaN,
           new Date(), {}, () => {}, /./, [null], [123, ""], [""],
           [model, ""], [model, 123]
-        ].forEach(value => assert.strictEqual(fieldValidators.foo(value), 'invalidType', 'Failed validation : ' + JSON.stringify(value)));
+        ].forEach(value => assert.notStrictEqual(fieldValidators.foo(value), undefined, 'Failed validation : ' + JSON.stringify(value)));
       }).then(model.set('bar', 'test')).then(() => fieldValidators.foo([model])).then(result => {
         assert.strictEqual(result, 'invalid@0', 'Failed to mark error at index 0');
       });
@@ -306,7 +306,7 @@ describe('Testing validator builder', () => {
     const subFields = new Schema({ bar: Boolean });
 
     subFields.validate = function (value) {
-      return Promise.resolve(value.bar === true ? [] : ['Failed']);
+      return Promise.resolve(value.bar === true ? [] : [{ field: 'bar', message: 'Failed' }]);
     };
 
     const fields = {
@@ -353,7 +353,7 @@ describe('Testing validator builder', () => {
     }).then(() => {
       return Promise.all(invalidValues.map(invalid => fieldValidators.foo(invalid))).then(results => {
         results.forEach((result, index) => {
-          assert.strictEqual(result, 'invalidType', 'Failed to validate invalid schema value : ' + JSON.stringify(invalidValues[index]));
+          assert.notStrictEqual(result, undefined, 'Failed to validate invalid schema value : ' + JSON.stringify(invalidValues[index]));
         });
       })
     }).then(() => {
@@ -379,11 +379,11 @@ describe('Testing validator builder', () => {
 
     assert.strictEqual(optionalValidator.foo(), undefined, 'Failed optional validator');
     assert.strictEqual(optionalValidator.foo(undefined), undefined, 'Failed optional validator');
-    assert.strictEqual(optionalValidator.foo(null), 'invalidType', 'Failed optional validator');  // non nullable is not the same as optional
+    assert.strictEqual(optionalValidator.foo(null), 'noValue', 'Failed optional validator');  // non nullable is not the same as optional
     assert.strictEqual(optionalValidator.foo('test'), undefined, 'Failed optional validator');
     assert.strictEqual(requiredValidator.foo(), 'required', 'Failed required validator');
     assert.strictEqual(requiredValidator.foo(undefined), 'required', 'Failed required validator');
-    assert.strictEqual(requiredValidator.foo(null), 'invalidType', 'Failed optional validator');  // required is not nullable
+    assert.strictEqual(requiredValidator.foo(null), 'noValue', 'Failed optional validator');  // required is not nullable
     assert.strictEqual(requiredValidator.foo('test'), undefined, 'Failed required validator');
   });
 
@@ -410,8 +410,8 @@ describe('Testing validator builder', () => {
     assert.strictEqual(optionalValidator.foo(undefined), undefined, 'Failed optional validator');
     assert.strictEqual(optionalValidator.foo(null), undefined, 'Failed optional validator');
     assert.strictEqual(optionalValidator.foo('test'), undefined, 'Failed optional validator');
-    assert.strictEqual(requiredValidator.foo(), 'required', 'Failed required validator');
-    assert.strictEqual(requiredValidator.foo(undefined), 'required', 'Failed required validator');
+    assert.notStrictEqual(requiredValidator.foo(), undefined, 'Failed required validator');
+    assert.notStrictEqual(requiredValidator.foo(undefined), undefined, 'Failed required validator');
     assert.strictEqual(requiredValidator.foo(null), undefined, 'Failed optional validator');
     assert.strictEqual(requiredValidator.foo('test'), undefined, 'Failed required validator');
   });
@@ -459,7 +459,7 @@ describe('Testing validator builder', () => {
         })
       ]).then(() => {
         // sync validation
-        assert.strictEqual(fieldValidators.foo(123), 'invalidType', 'Failed custom async invalid type');
+        assert.notStrictEqual(fieldValidators.foo(123), undefined, 'Failed custom async invalid type');
       });
     });
 
