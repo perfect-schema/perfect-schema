@@ -7,4 +7,4 @@ PerfectSchema.any = any;
 PerfectSchema.Integer = IntegerType;
 PerfectSchema.isModel = PerfectModel.isModel;
 
-module.export = PerfectSchema;
+module.exports = PerfectSchema;
