@@ -18,12 +18,16 @@ registered, it is ignored; unregister the plugin, first, before registering agai
 function registerPlugin(plugin) {
   if (typeof plugin !== 'function') {
     throw new TypeError('Plugin must be a function');
+  } else if (typeof plugin({}) !== 'function') {
+    throw new TypeError('Plugin must return a validator function');
   }
 
   if (plugins.indexOf(plugin) === -1) {
     // TODO : add insertion index
     plugins.splice(plugins.length - 1, 0, plugin);
   }
+
+  return plugins.length;
 };
 
 
@@ -38,6 +42,8 @@ function unregisterPlugin(plugin) {
   if (pluginIndex !== -1) {
     plugins.splice(pluginIndex, 1);
   }
+
+  return plugins.length;
 }
 
 
@@ -49,8 +55,8 @@ Apply the registered plugins to the validator, according to the defined specs.
 @return {function}
 */
 function applyPlugins(specs, validator) {
-  for (var i = 0, len = plugins.length; i < len; ++i) {
-    validator = plugins[i](specs, validator);
+  for (var plugin of plugins) {
+    validator = plugin(specs, validator);
   }
 
   return validator;

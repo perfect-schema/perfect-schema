@@ -64,28 +64,62 @@ describe('Testing validation plugins', () => {
 
   describe('Testing user plugins', () => {
 
-    const userPlugin = function () {
+    const userPlugin = function (specs, validator) {
       return function (value) {
-
+        return value === 'test' ? 'errorTest' : validator(value);
       };
     };
 
-    afterEach() {
+    beforeEach(() => {
+      plugins.registerPlugin(userPlugin);
+    });
+
+    afterEach(() => {
       plugins.unregisterPlugin(userPlugin);
-    }
-
-
-    it('should register new user plugin', () => {
-      assert.doesNotThrow(() => plugins.registerPlugin(userPlugin), 'Failed to register plugin');
     });
 
-    it('should unregister user plugin', () => {
-      assert.doesNotThrow(() => plugins.unregisterPlugin(userPlugin), 'Failed to unregister plugin');
+    it('should apply user plugin', () => {
+      const specs = {};
+      const validator = identity;
+      const actualValidator = plugins.applyPlugins(specs, validator);
+
+      assert.strictEqual(actualValidator('test'), 'errorTest', 'Failed user plugin');
+
+      [
+        -1, 0, 1, "", () => {},
+        [], {}, /./, new Date()
+      ].forEach(value => assert.strictEqual(actualValidator(value), value, 'Failed plugin validation : ' + JSON.stringify(value)));
     });
 
-    //it('should apply user plugin', () => {
+    it('should not allow plugin who is not a function', () => {
+      [
+        undefined, null, -1, 0, 1, NaN, Infinity, "", "test",
+        [], {}, /./, new Date()
+      ].forEach(plugin => assert.throws(() => plugins.registerPlugin(plugin), 'Failed with invalid plugin : ' + JSON.stringify(plugin)));
+    });
 
-    //});
+    it('should not allow plugin who do not return a validator function', () => {
+      [
+        undefined, null, -1, 0, 1, NaN, Infinity, "", "test",
+        [], {}, /./, new Date()
+      ].forEach(plugin => assert.throws(() => plugins.registerPlugin(function () { return plugin; }), 'Failed with invalid plugin : ' + JSON.stringify(plugin)));
+    });
+
+    it('should register and unregister only once', () => {
+      const r1 = plugins.registerPlugin(userPlugin);
+      const r2 = plugins.registerPlugin(userPlugin);
+      const r3 = plugins.registerPlugin(userPlugin);
+
+      assert.strictEqual(r1, r2, 'Duplicate registering');
+      assert.strictEqual(r2, r3, 'Duplicate registering');
+
+      const u1 = plugins.unregisterPlugin(userPlugin);
+      const u2 = plugins.unregisterPlugin(userPlugin);
+      const u3 = plugins.unregisterPlugin(userPlugin);
+
+      assert.strictEqual(u1, u2, 'Failed unregistering');
+      assert.strictEqual(u2, u3, 'Failed unregistering');
+    });
 
   });
 

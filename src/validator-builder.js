@@ -65,55 +65,6 @@ function buildValidator(specs) {
 
 function noop() {}
 
-/*
-function requiredValidator(validator) {
-  return function required(value) {
-    if (value === undefined) {
-      return 'required';
-    } else {
-      return validator(value);
-    }
-  };
-}
-*/
-
-/*
-function nullableValidator(validator) {
-  return function nullable(value) {
-    if (value !== null) {
-      return validator(value);
-    }
-  };
-}
-*/
-
-/*
-function customValidator(validator, specs) {
-  const custom = specs.custom.bind(specs);
-
-  function callValidator(validator, value, ctx, nextValidator) {
-    const result = validator(value, ctx);
-
-    if (typeof result === 'string') {
-      return result;
-    } else if (result instanceof Promise) {
-      return result.then(message => {
-        if (typeof message === 'string') {
-          return message;
-        } else {
-          return nextValidator ? callValidator(nextValidator, value, ctx) : undefined;
-        }
-      });
-    } else {
-       return nextValidator ? callValidator(nextValidator, value, ctx) : undefined;
-    }
-  }
-
-  return function customValidator(value, ctx) {
-    return callValidator(validator, value, ctx, custom);
-  };
-}
-*/
 
 function arrayValidator(type, specs) {
   const isArray = validators[Array](specs.arrayOptions || {});
