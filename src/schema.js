@@ -30,7 +30,7 @@ class PerfectSchema {
 
   @param fields {Object}
   */
-  extends(fields) {
+  extend(fields) {
     const fieldNames = Object.keys(fields);
 
     fields = normalizeFields(fields);
