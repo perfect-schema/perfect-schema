@@ -1,28 +1,29 @@
 /**
 Array validation
 
-Returns true if value is undefined, or an array. False otherwise.
-If elementType is specified, then each array element will be tested
-against this validator.
+Return a validator that will check if the value is an array.
 
 Options:
  - min {Numeric}                  min array length (inclusive)
  - max {Numeric}                  max array length (inclusive)
 
-@param options {Object}
+@oaram field {string}
+@param specs {Object}    the field specs
 @return {function}
 */
-module.exports = function arrayValidator(options) {
+function arrayValidator(field, specs) {
+  const min = 'min' in specs ? specs.min : -Infinity;
+  const max = 'max' in specs ? specs.max : Infinity;
+
   /**
-  Validate the given value
+  Validate the given value if it is an array or undefined, and return the error message
+  or undefined if validated.
 
   @param value {mixed}
   @return {undefined|string}
   */
   return function validate(value) {
     if (Array.isArray(value)) {
-      const min = 'min' in options ? options.min : -Infinity;
-      const max = 'max' in options ? options.max : Infinity;
       const len = value.length;
 
       if (len < min) {
@@ -34,4 +35,7 @@ module.exports = function arrayValidator(options) {
       return 'invalidType';
     }
   };
-};
+}
+
+
+module.exports = arrayValidator;

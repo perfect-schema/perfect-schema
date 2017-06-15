@@ -1,27 +1,29 @@
 /**
 Date validation
 
-Returns true if value is undefined, or a date. False otherwise.
+Return a validator that will check if the value is a Date object.
 
 Options:
  - min {Numeric}       min date (inclusive)
  - max {Numeric}       max date (inclusive)
 
-@param options {Object}
+@oaram field {string}
+@param specs {Object}
 @return {function}
 */
-module.exports = function dateValidator(options) {
+function dateValidator(field, specs) {
+  const min = 'min' in specs ? specs.min : 0;
+  const max = 'max' in specs ? specs.max : Infinity;
+
   /**
-  Validate the given value
+  Validate the given value if it is a Date instance or undefined, and return the error message
+  or undefined if validated.
 
   @param value {mixed}
   @return {undefined|string}
   */
   return function validate(value) {
     if (value instanceof Date && !isNaN(value.getTime())) {
-      const min = 'min' in options ? options.min : 0;
-      const max = 'max' in options ? options.max : Infinity;
-
       if (value < min) {
         return 'minDate';
       } else if (value > max) {
@@ -31,4 +33,7 @@ module.exports = function dateValidator(options) {
       return 'invalidType';
     }
   };
-};
+}
+
+
+module.exports = dateValidator;

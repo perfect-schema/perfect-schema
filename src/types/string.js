@@ -1,27 +1,29 @@
 /**
 String validation
 
-Returns true if value is undefined, or a string. False otherwise.
+Return a validator that will check if the value is a string.
 
 Options:
  - min {Numeric}       string min length (inclusive)
  - max {Numeric}       string max length (inclusive)
 
-@param options {Object}
+@oaram field {string}
+@param specs {Object}
 @return {function}
 */
-module.exports = function stringValidator(options) {
+function stringValidator(field, specs) {
+  const min = 'min' in specs ? specs.min : -Infinity;
+  const max = 'max' in specs ? specs.max : Infinity;
+
   /**
-  Validate the given value
+  Validate the given value if it is a plain object or undefined, and return the error message
+  or undefined if validated.
 
   @param value {mixed}
   @return {undefined|string}
   */
   return function validate(value) {
     if (typeof value === 'string') {
-      const min = 'min' in options ? options.min : -Infinity;
-      const max = 'max' in options ? options.max : Infinity;
-
       if (value.length < min) {
         return 'minString';
       } else if (value.length > max) {
@@ -31,4 +33,7 @@ module.exports = function stringValidator(options) {
       return 'invalidType';
     }
   };
-};
+}
+
+
+module.exports = stringValidator;

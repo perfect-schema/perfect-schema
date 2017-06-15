@@ -1,27 +1,29 @@
 /**
 Number validation
 
-Returns true if value is undefined, or a number. False otherwise.
+Return a validator that will check if the value is a number.
 
 Options:
  - min {Numeric}       min value (inclusive)
  - max {Numeric}       max value (exclusive)
 
-@param options {Object}
+@oaram field {string}
+@param specs {Object}
 @return {function}
 */
-module.exports = function numberValidator(options) {
+function numberValidator(field, specs) {
+  const min = 'min' in specs ? specs.min : -Infinity;
+  const max = 'max' in specs ? specs.max : Infinity;
+
   /**
-  Validate the given value
+  Validate the given value if it is a number or undefined, and return the error message
+  or undefined if validated.
 
   @param value {mixed}
   @return {undefined|string}
   */
   return function validate(value) {
     if ((typeof value == 'number') && (value === value) && isFinite(value)) {
-      const min = 'min' in options ? options.min : -Infinity;
-      const max = 'max' in options ? options.max : Infinity;
-
       if (value < min) {
         return 'minNumber';
       } else if (value > max) {
@@ -31,4 +33,7 @@ module.exports = function numberValidator(options) {
       return 'invalidType';
     }
   };
-};
+}
+
+
+module.exports = numberValidator;

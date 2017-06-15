@@ -1,18 +1,23 @@
 /**
 Integer validation
 
-Returns true if value is undefined, or an integer. False otherwise.
+Return a validator that will check if the value is an integer.
 
 Options:
  - min {Numeric}       min value (inclusive)
  - max {Numeric}       max value (exclusive)
 
-@param options {Object}
+@oaram field {string}
+@param specs {Object}
 @return {function}
 */
-module.exports = function integerValidator(options) {
+function integerValidator(field, specs) {
+  const min = 'min' in specs ? specs.min : -Infinity;
+  const max = 'max' in specs ? specs.max : Infinity;
+
   /**
-  Validate the given value
+  Validate the given value if it is an integer or undefined, and return the error message
+  or undefined if validated.
 
   @param value {mixed}
   @return {undefined|string}
@@ -21,9 +26,6 @@ module.exports = function integerValidator(options) {
     const intValue = value | 0;
 
     if (intValue === value) {
-      const min = 'min' in options ? options.min : -Infinity;
-      const max = 'max' in options ? options.max : Infinity;
-
       if (intValue < min) {
         return 'minInteger';
       } else if (intValue > max) {
@@ -35,7 +37,7 @@ module.exports = function integerValidator(options) {
   };
 };
 
-const IntegerType = Object.create(null, {
+const IntegerType = Object.freeze(Object.create(null, {
   toString: {
     writable: false,
     configurable: false,
@@ -44,10 +46,9 @@ const IntegerType = Object.create(null, {
       return 'integer';
     }
   }
-});
-
-Object.freeze(IntegerType);
+}));
 
 
+integerValidator.Type = IntegerType;
 
-module.exports.Type = IntegerType;
+module.exports = integerValidator;

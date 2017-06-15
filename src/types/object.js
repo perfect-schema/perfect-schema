@@ -1,14 +1,14 @@
 /**
 Object validation
 
-Returns true if value is undefined, or an object. False otherwise.
+Return a validator that will check if the value is a plain object.
 
-@param options {Object}
 @return {function}
 */
-module.exports = function objectValidator(options) {
+function objectValidator() {
   /**
-  Validate the given value
+  Validate the given value if it is a plain object or undefined, and return the error message
+  or undefined if validated.
 
   @param value {mixed}
   @return {undefined|string}
@@ -18,4 +18,7 @@ module.exports = function objectValidator(options) {
       return 'invalidType';
     }
   };
-};
+}
+
+
+module.exports = objectValidator;
