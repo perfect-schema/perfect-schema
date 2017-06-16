@@ -255,6 +255,66 @@ For asynchronous custom validation, the function may return a Promise. For examp
 For synchrnous validation, the function should return a String. For Asynchronous validation, the Promise should resolve with a String. If an error is thrown, either synchronously or asynchronously, the field will failed with an `error` message.
 
 
+## Custom validators
+
+Schemas can be enhenced with custom validations. These user-defined validators
+are functions that return `undefined` when all is fine, or return the error
+message as a `String`.
+
+### Example: synchronous user-defined validator
+
+```js
+/**
+@param field {string}   the field name being validated
+@param specs {object}   the field specs as defined in the schema, for example
+@param next {function}  the next validator function that this validator should wrap around
+@return {function}
+*/
+function customValidator(field, specs, next) {
+  /**
+  @param value {any}                  the value being validated
+  @param context {ValidationContext}  self documented
+  @return {string|Promise|undefined}
+  */
+  return validator(value, context) {
+    // i.e. if some validation fails
+    if (someValidation(value) === false) {
+      // return the error message
+      return 'error';
+    } else {
+      // else, return whatever the next validator returns
+      return next(value, context);
+    }
+  };
+}
+```
+
+### Example: asynchronous user-defined validator
+
+```js
+/**
+@param field {string}   the field name being validated
+@param specs {object}   the field specs as defined in the schema, for example
+@param next {function}  the next validator function that this validator should wrap around
+@return {function}
+*/
+function customValidator(field, specs, next) {
+  /**
+  @param value {any}                  the value being validated
+  @param context {ValidationContext}  self documented
+  @return {string|Promise|undefined}
+  */
+  return validator(value, context) {
+    return someValidation(value).then(result => {
+      if (result === error) {
+        return 'error';
+      } else {
+        return next(value, context);
+      }
+    });
+  };
+}
+```
 
 ## license
 

@@ -1,16 +1,34 @@
 
 describe('Testing any type', () => {
+
   const assert = require('assert');
 
-  const any = require('../src/any');
+  const any = require('../../src/types/any');
 
-  it('should return "any" with no arguments', () => {
-    const type = any();
+  it('should validate "any" with no arguments', () => {
+    const type = any('test', {});
 
-    assert.strictEqual(any.isAny(type), true, 'Failed');
-    assert.strictEqual(type.$any.toString(), 'any', 'Failed to return string of $any');
-    assert.strictEqual(type.length, 0, 'Not an array');
+    [
+      undefined, null, false, true, NaN, Infinity, [], {},
+      () => {}, new Date(), /./, "", "test", -1, 0, 1
+    ].forEach(value => assert.strictEqual(type(value), undefined, 'Failed with : ' + JSON.stringify(value)));
   });
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  return;
+
 
   it('should return "any" with arguments', () => {
     const type = any(String, Boolean);

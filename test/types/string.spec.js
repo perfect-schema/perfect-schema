@@ -2,16 +2,18 @@
 describe('String validation', () => {
   const assert = require('assert');
 
-  const stringValidator = require('../../src/validators/string');
+  const stringValidator = require('../../src/types/string');
+
+  const field = 'test';
 
   it('should validate if undefined', () => {
-    const validator = stringValidator({});
+    const validator = stringValidator(field, {});
 
     assert.strictEqual(validator(undefined), undefined, 'Failed at validating undefined');
   });
 
   it('should validate valid type', () => {
-    const validator = stringValidator({});
+    const validator = stringValidator(field, {});
 
     [
       "", "foo"
@@ -19,7 +21,7 @@ describe('String validation', () => {
   });
 
   it('should validate invalid type', () => {
-    const validator = stringValidator({});
+    const validator = stringValidator(field, {});
 
     [
       true, false, null,
@@ -29,7 +31,7 @@ describe('String validation', () => {
   });
 
   it('should validate min length', () => {
-    const validator = stringValidator({ min: 3 });
+    const validator = stringValidator(field, { min: 3 });
 
     [
       "123", "abc", "   "
@@ -41,7 +43,7 @@ describe('String validation', () => {
   });
 
   it('should validate max length', () => {
-    const validator = stringValidator({ max: 5 });
+    const validator = stringValidator(field, { max: 5 });
 
     [
       "1", "12", "123", "1234", "12345", "abcde", "     "

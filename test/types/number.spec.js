@@ -2,16 +2,18 @@
 describe('Number validation', () => {
   const assert = require('assert');
 
-  const numberValidator = require('../../src/validators/number');
+  const numberValidator = require('../../src/types/number');
+
+  const field = 'test';
 
   it('should validate if undefined', function () {
-    const validator = numberValidator({});
+    const validator = numberValidator(field, {});
 
     assert.strictEqual(validator(undefined), undefined, 'Failed at validating undefined');
   });
 
   it('should validate valid type', () => {
-    const validator = numberValidator({});
+    const validator = numberValidator(field, {});
 
     [
       -98765, -654.321, -1, 0, 1, 678.901, 123456
@@ -19,7 +21,7 @@ describe('Number validation', () => {
   });
 
   it('should validate invalid type', () => {
-    const validator = numberValidator({});
+    const validator = numberValidator(field, {});
 
     [
       true, false, null,
@@ -30,7 +32,7 @@ describe('Number validation', () => {
   });
 
   it('should validate min value', () => {
-    const validator = numberValidator({ min: 10 });
+    const validator = numberValidator(field, { min: 10 });
 
     [
       123456, 321.456, 100, 10.00000001, 10
@@ -42,7 +44,7 @@ describe('Number validation', () => {
   });
 
   it('should validate max value', () => {
-    const validator = numberValidator({ max: 8 });
+    const validator = numberValidator(field, { max: 8 });
 
     [
       -1000, -567.89, 0, 2, 7.99999999999, 8

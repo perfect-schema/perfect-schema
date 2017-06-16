@@ -317,7 +317,6 @@ module.exports = PerfectModel;
 
 
 const present = require('present');
-const normalizeFields = require('./normalize-fields');
 const PerfectSchema = require('./schema');
 
 const isSchema = PerfectSchema.isSchema;

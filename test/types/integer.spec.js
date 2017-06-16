@@ -2,17 +2,19 @@
 describe('Integer validation', () => {
   const assert = require('assert');
 
-  const integerValidator = require('../../src/validators/integer');
+  const integerValidator = require('../../src/types/integer');
+
+  const field = 'test';
 
 
   it('should validate if undefined', function () {
-    const validator = integerValidator({});
+    const validator = integerValidator(field, {});
 
     assert.strictEqual(validator(undefined), undefined, 'Failed at validating undefined');
   });
 
   it('should validate valid type', () => {
-    const validator = integerValidator({});
+    const validator = integerValidator(field, {});
 
     [
       -98765, -1, 0, 1, 123456
@@ -20,7 +22,7 @@ describe('Integer validation', () => {
   });
 
   it('should validate invalid type', () => {
-    const validator = integerValidator({});
+    const validator = integerValidator(field, {});
 
     [
       true, false, null,
@@ -31,7 +33,7 @@ describe('Integer validation', () => {
   });
 
   it('should validate min value', () => {
-    const validator = integerValidator({ min: 10 });
+    const validator = integerValidator(field, { min: 10 });
 
     [
       123456, 100, 10
@@ -43,7 +45,7 @@ describe('Integer validation', () => {
   });
 
   it('should validate max value', () => {
-    const validator = integerValidator({ max: 8 });
+    const validator = integerValidator(field, { max: 8 });
 
     [
       -1000, 0, 2, 8

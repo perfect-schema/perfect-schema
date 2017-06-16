@@ -2,16 +2,18 @@
 describe('Date validation', () => {
   const assert = require('assert');
 
-  const dateValidator = require('../../src/validators/date');
+  const dateValidator = require('../../src/types/date');
+
+  const field = 'test';
 
   it('should validate if undefined', () => {
-    const validator = dateValidator({});
+    const validator = dateValidator(field, {});
 
     assert.strictEqual(validator(undefined), undefined, 'Failed at validating undefined');
   });
 
   it('should validate valid type', () => {
-    const validator = dateValidator({});
+    const validator = dateValidator(field, {});
 
     [
       new Date()
@@ -19,7 +21,7 @@ describe('Date validation', () => {
   });
 
   it('should validate invalid type', () => {
-    const validator = dateValidator({});
+    const validator = dateValidator(field, {});
 
     [
       new Date('invalid'),
@@ -30,7 +32,7 @@ describe('Date validation', () => {
   });
 
   it('should validate min date', () => {
-    const validator = dateValidator({ min: new Date('2000-01-01 0:00:00.000') });
+    const validator = dateValidator(field, { min: new Date('2000-01-01 0:00:00.000') });
 
     [
       new Date('2000-01-01 0:00:00'), new Date('2000-01-01 0:00:00.0001'), new Date('2020-06-30')
@@ -42,7 +44,7 @@ describe('Date validation', () => {
   });
 
   it('should validate max date', () => {
-    const validator = dateValidator({ max: new Date('2000-01-01 0:00:00.000') });
+    const validator = dateValidator(field, { max: new Date('2000-01-01 0:00:00.000') });
 
     [
       new Date('2000-01-01 0:00:00.000'), new Date('1999-12-31 23:59:59.999'), new Date('1980-01-01')

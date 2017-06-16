@@ -2,16 +2,18 @@
 describe('Boolean validation', () => {
   const assert = require('assert');
 
-  const arrayValidator = require('../../src/validators/array');
+  const arrayValidator = require('../../src/types/array');
+
+  const field = 'test';
 
   it('should validate if undefined', () => {
-    const validator = arrayValidator({});
+    const validator = arrayValidator(field, {});
 
     assert.strictEqual(validator(undefined), undefined, 'Failed at validating undefined');
   });
 
   it('should validate valid type', () => {
-    const validator = arrayValidator({});
+    const validator = arrayValidator(field, {});
 
     [
       [], new Array(), [null, null], [0, 1, 2], ["abc"]
@@ -19,7 +21,7 @@ describe('Boolean validation', () => {
   });
 
   it('should validate invalid type', () => {
-    const validator = arrayValidator({});
+    const validator = arrayValidator(field, {});
 
     [
       false, true, null, "", "123",
@@ -29,7 +31,7 @@ describe('Boolean validation', () => {
   });
 
   it('should validate min length', () => {
-    const validator = arrayValidator({ min: 3 });
+    const validator = arrayValidator(field, { min: 3 });
 
     [
       [null, null, null], [null, null, null, null], [null, null, null, null, null]
@@ -41,7 +43,7 @@ describe('Boolean validation', () => {
   });
 
   it('should validate max length', () => {
-    const validator = arrayValidator({ max: 3 });
+    const validator = arrayValidator(field, { max: 3 });
 
     [
       [null, null, null], [null, null], [null], []

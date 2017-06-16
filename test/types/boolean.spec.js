@@ -2,16 +2,18 @@
 describe('Boolean validation', () => {
   const assert = require('assert');
 
-  const booleanValidator = require('../../src/validators/boolean');
+  const booleanValidator = require('../../src/types/boolean');
+
+  const field = 'test';
 
   it('should validate if undefined', () => {
-    const validator = booleanValidator({});
+    const validator = booleanValidator(field, {});
 
     assert.strictEqual(validator(undefined), undefined, 'Failed at validating undefined');
   });
 
   it('should validate valid type', () => {
-    const validator = booleanValidator({});
+    const validator = booleanValidator(field, {});
 
     [
       true, false
@@ -19,7 +21,7 @@ describe('Boolean validation', () => {
   });
 
   it('should validate invalid type', () => {
-    const validator = booleanValidator({});
+    const validator = booleanValidator(field, {});
 
     [
       null, "", "123",

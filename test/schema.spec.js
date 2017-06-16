@@ -46,6 +46,30 @@ describe('Testing Schema', () => {
   });
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  return;
+
+
   it('should construct new instance with sub-schema', () => {
     const barFields = {
       bar: String
@@ -58,6 +82,7 @@ describe('Testing Schema', () => {
 
     assert.strictEqual(fooSchema._fields['foo'].type, barSchema, 'Failed to normalize sub-schema short type');
   });
+
 
 
   it('should extend schema', () => {

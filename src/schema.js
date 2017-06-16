@@ -18,8 +18,12 @@ class PerfectSchema {
     if (!this._fieldNames.length) { throw new TypeError('No fields specified'); }
 
     this._options = Object.assign({}, DEFAULT_OPTIONS, options || {});
-    this._fields = normalizeFields(fields);
-    this._validators = validatorBuilder(fields);
+    this._fields = fields;
+    this._validators = {};
+
+    for (var fieldName of this._fieldNames) {
+      this._validators[fieldName] = validators.build(fieldName, fields[fieldName]);
+    }
 
     checkDefaultValues(this._fields, this._validators);
   }
@@ -32,14 +36,14 @@ class PerfectSchema {
   */
   extend(fields) {
     const fieldNames = Object.keys(fields);
-
-    fields = normalizeFields(fields);
+    var field;
 
     for (var fieldName of fieldNames) {
-      fields[fieldName] = this._fields[fieldName] = Object.assign(this._fields[fieldName] || {}, fields[fieldName]);
+      field = this._fields[fieldName] = Object.assign(this._fields[fieldName] || {}, fields[fieldName]);
+
+      this._validators[fieldName] = validators.build(fieldName, field);
     }
 
-    this._validators = Object.assign(this._validators, validatorBuilder(fields));
     this._fieldNames = Object.keys(this._fields);
 
     checkDefaultValues(fields, this._validators);
@@ -171,7 +175,6 @@ PerfectSchema.setDefaults = setDefaults;
 
 module.exports = PerfectSchema;
 
-const validatorBuilder = require('./validator-builder');
+const validators = require('./validators');
 const validationContext = require('./validation-context');
-const normalizeFields = require('./normalize-fields');
 const PerfectModel = require('./model');

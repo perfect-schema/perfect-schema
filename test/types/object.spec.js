@@ -2,16 +2,18 @@
 describe('Object validation', () => {
   const assert = require('assert');
 
-  const objectValidator = require('../../src/validators/object');
+  const objectValidator = require('../../src/types/object');
+
+  const field = 'test';
 
   it('should validate if undefined', () => {
-    const validator = objectValidator({});
+    const validator = objectValidator(field, {});
 
     assert.strictEqual(validator(undefined), undefined, 'Failed at validating undefined');
   });
 
   it('should validate valid type', () => {
-    const validator = objectValidator({});
+    const validator = objectValidator(field, {});
 
     [
       {}
@@ -19,7 +21,7 @@ describe('Object validation', () => {
   });
 
   it('should validate invalid type', () => {
-    const validator = objectValidator({});
+    const validator = objectValidator(field, {});
 
     [
       true, false, null, "", "abc",

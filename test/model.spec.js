@@ -5,8 +5,8 @@ describe('Testing Model', () => {
 
   const Schema = require('../src/schema');
   const Model = require('../src/model');
-  const stringValidator = require('../src/validators/string');
-  const objectValidator = require('../src/validators/object');
+  const stringValidator = require('../src/types/string');
+  const objectValidator = require('../src/types/object');
 
 
   function createSchema(fields, options) {
@@ -16,7 +16,7 @@ describe('Testing Model', () => {
 
     if (!options.defaultValidators) {
       this._validators = Object.keys(fields || {}).reduce((validators, fieldName) => {
-        validators[fieldName] = fields[fieldName].type === String ? stringValidator : objectValidator;
+        validators[fieldName] = fields[fieldName].type === String ? stringValidator(fieldName, fields[fieldName]) : objectValidator(fieldName, fields[fieldName]);
 
         return validators;
       }, {});
@@ -451,6 +451,26 @@ describe('Testing Model', () => {
 
   });
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  return;
 
   describe('Testing integration with Schema', () => {
 
