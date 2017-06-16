@@ -1,5 +1,5 @@
 
-describe('Boolean validation', () => {
+describe('Testing Boolean type validation', () => {
   const assert = require('assert');
 
   const booleanValidator = require('../../src/types/boolean');

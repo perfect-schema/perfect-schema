@@ -1,5 +1,5 @@
 
-describe('Date validation', () => {
+describe('Test Date type validation', () => {
   const assert = require('assert');
 
   const dateValidator = require('../../src/types/date');

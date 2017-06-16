@@ -1,5 +1,5 @@
 
-describe('Number validation', () => {
+describe('Testing Number type validation', () => {
   const assert = require('assert');
 
   const numberValidator = require('../../src/types/number');

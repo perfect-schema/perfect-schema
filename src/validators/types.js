@@ -15,7 +15,6 @@ function typeValidator(field, specs, validator) {
   }
 
   if (!specs || !specs.type) {
-    console.log("*** ", field, specs, (specs in validators));
     throw new TypeError('Field type not set for ' + field);
   } else if (typeof specs.type === 'string') {
     const type = specs.type.toLowerCase();
@@ -46,7 +45,7 @@ function typeValidator(field, specs, validator) {
   @param ctx {ValidationContext}
   @return {string|undefined}
   */
-  return function isType(value, ctx) {
+  return function type(value, ctx) {
     const result = typeValidator(value, ctx);
 
     if (typeof result === 'string') {
@@ -69,9 +68,13 @@ function typeValidator(field, specs, validator) {
 /**
 Return a proxy function, validating the given value against the specified schema.
 */
-function schemaValidator(schema) {
+function schemaValidator(Schema) {
   return function (value, ctx) {
-    return schema.validate(value, ctx);
+    if (value && (value instanceof Schema)) {
+      return schema.validate(value, ctx);
+    } else {
+      return 'invalidType';
+    }
   };
 }
 

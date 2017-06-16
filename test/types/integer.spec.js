@@ -1,5 +1,5 @@
 
-describe('Integer validation', () => {
+describe('Testing Integer type validation', () => {
   const assert = require('assert');
 
   const integerValidator = require('../../src/types/integer');

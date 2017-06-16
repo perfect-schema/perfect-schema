@@ -1,5 +1,5 @@
 
-describe('String validation', () => {
+describe('Testing String type validation', () => {
   const assert = require('assert');
 
   const stringValidator = require('../../src/types/string');

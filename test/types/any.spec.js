@@ -1,5 +1,5 @@
 
-describe('Testing any type', () => {
+describe('Testing any type validation', () => {
 
   const assert = require('assert');
 

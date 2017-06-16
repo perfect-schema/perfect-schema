@@ -1,5 +1,5 @@
 
-describe('Object validation', () => {
+describe('Testing Object type validation', () => {
   const assert = require('assert');
 
   const objectValidator = require('../../src/types/object');
