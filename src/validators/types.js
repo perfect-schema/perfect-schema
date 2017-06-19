@@ -10,32 +10,27 @@ Type validation : make sure the field has a type set, and that it is valid accor
 function typeValidator(field, specs, validator) {
   var typeValidator;
 
-  if ((typeof specs === 'string') || (specs in validators) || isSchema(specs)) {
-    specs = { type: specs };
-  }
+  specs = specs || {};
 
-  if (!specs || !specs.type) {
-    throw new TypeError('Field type not set for ' + field);
+  if (typeof specs === 'string') {
+    specs = { type: typeMap[specs] || userTypeMap[specs] };
   } else if (typeof specs.type === 'string') {
-    const type = specs.type.toLowerCase();
-
-    if (!(type in typeMap)) {
-      throw new TypeError('Unknown type "' + specs.type + '" for ' + field);
-    }
-
-    // normalize field type
-    specs.type = typeMap[type];
+    specs.type = typeMap[specs.type] || userTypeMap[specs.type];
+  } else if (specs instanceof Array) {
+    specs = { type: anyValidator.Type, allowedTypes: specs };
   } else if (specs.type instanceof Array) {
     specs.allowedTypes = specs.type;
     specs.type = anyValidator.Type;
+  } else if (!('type' in specs)) {
+    specs = { type: specs };
   }
 
-  if (isSchema(specs.type)) {
-    typeValidator = schemaValidator(specs.type);
-  } else if (!validators[specs.type]) {
-    throw new TypeError('Unknown type for field ' + field);
+  if (specs.type in types) {
+    typeValidator = types[specs.type](field, specs);
+  } else if (specs.type in userTypes) {
+    typeValidator = userTypes[specs.type](field, specs);
   } else {
-    typeValidator = validators[specs.type](field, specs);
+    throw new TypeError('Field type not set or unknown for ' + field);
   }
 
   /**
@@ -66,9 +61,57 @@ function typeValidator(field, specs, validator) {
 
 
 /**
+Register a new user-defined type. The type should be a constructor function.
+
+@param type {function}        a constructor function
+@param validator {function}   a function to validate a given value
+@param aliases {Array}        a list of strings that maps to the given type
+*/
+function registerType(type, validator, aliases) {
+  if (!type) {
+    throw new TypeError('Missing type value');
+  } else if (typeof validator !== 'function') {
+    throw new TypeError('Validator must be a function');
+  } else if (typeof validator(null, {}) !== 'function') {
+    throw new TypeError('Validator must return a function');
+  }
+
+  userTypes[type] = validator;
+
+  if (aliases && aliases.length) {
+    for (var alias of aliases) {
+      if (typeof alias !== 'string') {
+        throw new TypeError('Alias for user type must be a string');
+      }
+
+      userTypeMap[alias] = type;
+    }
+  }
+}
+
+
+/**
+Unregister a specific type.
+
+@param type {function}        a constructor function
+*/
+function unregisterType(type) {
+  var aliases = Object.keys(userTypeMap);
+
+  for (var alias of aliases) {
+    if (userTypeMap[alias] === type) {
+      delete userTypeMap[alias];
+    }
+  }
+
+  delete userTypes[type];
+}
+
+
+/**
 Return a proxy function, validating the given value against the specified schema.
 */
-function schemaValidator(Schema) {
+function userTypeValidator(Schema) {
   return function (value, ctx) {
     if (value && (value instanceof Schema)) {
       return schema.validate(value, ctx);
@@ -80,9 +123,9 @@ function schemaValidator(Schema) {
 
 
 module.exports = typeValidator;
+module.exports.registerType = registerType;
+module.exports.unregisterType = unregisterType;
 
-
-const isSchema = require('../schema').isSchema;
 
 const anyValidator = require('../types/any');
 const booleanValidator = require('../types/boolean');
@@ -93,7 +136,7 @@ const dateValidator = require('../types/date');
 const objectValidator = require('../types/object');
 const arrayValidator = require('../types/array');
 
-const validators = {
+const types = {
   [anyValidator.Type]: anyValidator,
   [Array]: arrayValidator,
   [Boolean]: booleanValidator,
@@ -116,3 +159,6 @@ const typeMap = {
   'object': Object,
   'string': String
 };
+
+const userTypes = {};
+const userTypeMap = {};

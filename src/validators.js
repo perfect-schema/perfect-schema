@@ -26,10 +26,10 @@ unregister the validator, first, before registering again.
 @return {number}             the validator count
 */
 function registerValidator(validator, index) {
-  if (typeof plugin !== 'function') {
-    throw new TypeError('Plugin must be a function');
-  } else if (typeof plugin({}) !== 'function') {
-    throw new TypeError('Plugin must return a validator function');
+  if (typeof validator !== 'function') {
+    throw new TypeError('Validator must be a function');
+  } else if (typeof validator(null, {}) !== 'function') {
+    throw new TypeError('Validator must return a function');
   }
 
   if (validators.indexOf(validator) === -1) {

@@ -6,26 +6,6 @@ describe('Testing Schema', () => {
   const Schema = require('../src/schema');
 
 
-  it('should validate isSchema', () => {
-    const fields = {
-      foo: String
-    };
-    const schema = new Schema(fields);
-
-    assert.ok(Schema.isSchema(schema, 'Failed to validate isSchema'));
-  });
-
-
-  it('should not validate isSchema', () => {
-    [
-      undefined, null, false, true, NaN,
-      -1, 0, 1, 0.1234, 't', 'hello',
-      () => {}, function PerfectSchema() {},
-      {}, [], /./, new Date()
-    ].forEach(invalidSchema => assert.ok(!Schema.isSchema(invalidSchema), 'Failed to invalidate isSchema for : ' + JSON.stringify(invalidSchema)));
-  });
-
-
   it('should not create without fields', () => {
     assert.throws(() => { new Schema(); }, TypeError);
 

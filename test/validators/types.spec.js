@@ -10,6 +10,7 @@ describe('Testing types validator', () => {
 
   it('should fail if no type is specified', () => {
     [
+      undefined, null,
       {},
       {type: undefined }, { type: null }
     ].forEach(specs => assert.throws(() => typeValidator(field, specs), 'Failed to throw with : ' + JSON.stringify(specs)));
@@ -58,6 +59,48 @@ describe('Testing types validator', () => {
     [
       '', 'test'
     ].forEach(value => assert.strictEqual(validator(value), undefined, 'Failed validating string : ' + value));
+  });
+
+
+
+  describe('Testing typed arrays', () => {
+
+    it('should validate typed arrays (shortcut)', () => {
+      const validator = typeValidator(field, ['string'], valid);
+
+      [
+        [], ['hello'], ['hello', 'world']
+      ].forEach(value => assert.strictEqual(validator(value), undefined, 'Failed validating string : ' + value));
+    });
+
+  });
+
+
+
+  describe('Testing custom types', () => {
+
+    const UserType = function UserType () {};
+    const validator = function userValidator(field, specs) {
+      return function validate(value, ctx) {
+        return value === 'test' ? undefined : 'error';
+      }
+    };
+
+    beforeEach(() => {
+      typeValidator.registerType(UserType, validator, ['testType']);
+    });
+
+    afterEach(() => {
+      typeValidator.unregisterType(UserType);
+    });
+
+    it('should validate', () => {
+      const validator = typeValidator(field, { type: 'testType' }, valid);
+
+      assert.strictEqual(validator('test'), undefined, 'Failed validating');
+      assert.strictEqual(validator('hello'), 'error', 'Failed validating error');
+    });
+
   });
 
 });

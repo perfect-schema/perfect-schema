@@ -155,10 +155,6 @@ function checkDefaultValues(fields, validators) {
 }
 
 
-function isSchema(schema) {
-  return schema && (schema instanceof PerfectSchema) || false;
-}
-
 
 function setDefaults(options) {
   if (options && (Object.prototype.toString.call(options) === '[object Object]')) {
@@ -170,7 +166,6 @@ function setDefaults(options) {
 
 
 
-PerfectSchema.isSchema = isSchema;
 PerfectSchema.setDefaults = setDefaults;
 
 module.exports = PerfectSchema;
