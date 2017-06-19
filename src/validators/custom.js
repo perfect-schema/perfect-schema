@@ -7,7 +7,7 @@ Custom validation : allow user specified custom validation
 @return {function}
 */
 function customValidator(field, specs, validator) {
-  if ('custom' in specs) {
+  if (specs && specs.custom) {
     if (typeof specs.custom !== 'function') {
       throw new TypeError('Custom validator should be a function for ' + field);
     }

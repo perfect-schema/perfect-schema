@@ -70,7 +70,23 @@ describe('Testing types validator', () => {
 
       [
         [], ['hello'], ['hello', 'world']
-      ].forEach(value => assert.strictEqual(validator(value), undefined, 'Failed validating string : ' + value));
+      ].forEach(value => assert.strictEqual(validator(value), undefined, 'Failed validating string : ' + JSON.stringify(value)));
+    });
+
+    it('should validate typed arrays', () => {
+      const validator = typeValidator(field, { type: ['string'] }, valid);
+
+      [
+        [], ['hello'], ['hello', 'world']
+      ].forEach(value => assert.strictEqual(validator(value), undefined, 'Failed validating string : ' + JSON.stringify(value)));
+    });
+
+    it('should validate typed arrays (long)', () => {
+      const validator = typeValidator(field, { type: Array, elementType: String }, valid);
+
+      [
+        [], ['hello'], ['hello', 'world']
+      ].forEach(value => assert.strictEqual(validator(value), undefined, 'Failed validating string : ' + JSON.stringify(value)));
     });
 
   });
@@ -85,6 +101,119 @@ describe('Testing types validator', () => {
         return value === 'test' ? undefined : 'error';
       }
     };
+    const userAlias = 'testType';
+
+    beforeEach(() => {
+      typeValidator.registerType(UserType, validator, [userAlias]);
+    });
+
+    afterEach(() => {
+      typeValidator.unregisterType(UserType);
+    });
+
+    it('should validate', () => {
+      const validator = typeValidator(field, { type: userAlias }, valid);
+
+      assert.strictEqual(validator('test'), undefined, 'Failed validating');
+      assert.strictEqual(validator('hello'), 'error', 'Failed validating error');
+    });
+
+    it('should not register invalid type', () => {
+      [
+        undefined, null, true, false, NaN, 0, '', 'test'
+      ].forEach(type => assert.throws(() => typeValidator.registerType(type), 'Failed to throw with : ' + JSON.stringify(type)));
+    });
+
+    it('should not register if validator is not a function', () => {
+      const type = { test: true };
+
+      [
+        undefined, null, true, false, NaN, 0, '', 'test',
+        {}, [], /./, new Date()
+      ].forEach(validator => assert.throws(() => typeValidator.registerType(type, validator), 'Failed to throw with : ' + JSON.stringify(validator)));
+    });
+
+    it('should not register if validator function does not return a type validator', () => {
+      const type = { test: true };
+
+      [
+        undefined, null, true, false, NaN, 0, '', 'test',
+        {}, [], /./, new Date()
+      ].forEach(validator => assert.throws(() => typeValidator.registerType(type, function () { return validator; }), 'Failed to throw with : ' + JSON.stringify(validator)));
+    });
+
+    it('should register without an alias', () => {
+      const type = { test: true };
+      const validatorWrapper = function () { return function () {}; };
+
+      typeValidator.registerType(type, validatorWrapper);
+
+      const validator = typeValidator(field, { type: type }, valid);
+
+      assert.strictEqual(validator(), undefined, 'Failed validating');
+
+      typeValidator.unregisterType(type);
+    });
+
+    it('should register without an alias', () => {
+      const type = { test: true };
+      const validatorWrapper = function () { return function () {}; };
+
+      typeValidator.registerType(type, validatorWrapper);
+
+      const validator = typeValidator(field, { type: type }, valid);
+
+      assert.strictEqual(validator(), undefined, 'Failed validating');
+
+      typeValidator.unregisterType(type);
+    });
+
+    it('should register without an alias', () => {
+      const type = { test: true };
+      const validatorWrapper = function () { return function () {}; };
+
+      typeValidator.registerType(type, validatorWrapper, []);
+
+      const validator = typeValidator(field, { type: type }, valid);
+
+      assert.strictEqual(validator(), undefined, 'Failed validating');
+
+      typeValidator.unregisterType(type);
+    });
+
+    it('should not register for invalid aliases', () => {
+      const type = { test: true };
+      const validator = function () { return function () {}; };
+
+      [
+        undefined, null, true, false, NaN, 0, '', 'test', userAlias,
+        [undefined], [null], [false], [NaN], [0], [''], [userAlias],
+        {}, /./, new Date()
+      ].forEach(aliases => assert.throws(() => typeValidator.registerType(type, validator, aliases), 'Failed to throw with : ' + JSON.stringify(aliases)));
+    });
+
+    it('should not validate removed types', () => {
+      const type = { test: true };
+      const validatorWrapper = function () { return function () {}; };
+
+      typeValidator.registerType(type, validatorWrapper);
+      typeValidator.unregisterType(type);
+
+      assert.throws(() => typeValidator(field, { type: type }, valid), 'Failed to throw in removed type');
+    });
+
+  });
+
+
+
+  describe('Testing asynchronous type validation', () => {
+
+    const UserType = function UserType () {};
+    const validator = function userValidator(field, specs) {
+      return function validate(value, ctx) {
+        return Promise.resolve(value === 'test' ? undefined : 'error');
+      }
+    };
 
     beforeEach(() => {
       typeValidator.registerType(UserType, validator, ['testType']);
@@ -94,11 +223,16 @@ describe('Testing types validator', () => {
       typeValidator.unregisterType(UserType);
     });
 
-    it('should validate', () => {
+    it('should validate asynchronously', () => {
       const validator = typeValidator(field, { type: 'testType' }, valid);
 
-      assert.strictEqual(validator('test'), undefined, 'Failed validating');
-      assert.strictEqual(validator('hello'), 'error', 'Failed validating error');
+      return validator('test').then(message => assert.strictEqual(message, undefined, 'Failed validating'));
+    });
+
+    it('should fail to validate asynchronously', () => {
+      const validator = typeValidator(field, { type: 'testType' }, valid);
+
+      return validator('hello').then(message => assert.strictEqual(message, 'error', 'Failed validating'));
     });
 
   });

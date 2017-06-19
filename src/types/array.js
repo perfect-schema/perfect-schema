@@ -14,6 +14,7 @@ Options:
 function arrayValidator(field, specs) {
   const min = 'min' in specs ? specs.min : -Infinity;
   const max = 'max' in specs ? specs.max : Infinity;
+  const elementValidator = specs.elementType && (specs.elementType instanceof Array ? any(field, specs.elementType) : buildValidator(field, specs.elementType));
 
   /**
   Validate the given value if it is an array or undefined, and return the error message
@@ -22,7 +23,7 @@ function arrayValidator(field, specs) {
   @param value {mixed}
   @return {undefined|string}
   */
-  return function validate(value) {
+  return function validate(value, ctx) {
     if (Array.isArray(value)) {
       const len = value.length;
 
@@ -30,6 +31,31 @@ function arrayValidator(field, specs) {
         return 'minArray';
       } else if (len > max) {
         return 'maxArray';
+      }
+
+      if (elementValidator) {
+        const asyncResults = [];
+        var element, result;
+
+        for (element of value) {
+          result = elementValidator(element, ctx);
+
+          if (typeof result === 'string') {
+            return result;
+          } else if (result instanceof Promise) {
+            asyncResults.push(result);
+          }
+        }
+
+        if (asyncResults.length) {
+          return Promise.all(asyncResults).then(messages => {
+            for (var message of messages) {
+              if (typeof message === 'string') {
+                return message;
+              }
+            }
+          });
+        }
       }
     } else if (value !== undefined) {
       return 'invalidType';
@@ -39,3 +65,9 @@ function arrayValidator(field, specs) {
 
 
 module.exports = arrayValidator;
+
+
+const any = require('./any');
+const validators = require('../validators');
+
+const buildValidator = validators.build;

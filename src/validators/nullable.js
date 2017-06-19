@@ -7,7 +7,7 @@ Required validation : allow the field to be null or not
 @return {function}
 */
 function nullableValidator(field, specs, validator) {
-  if (specs.nullable) {
+  if (specs && specs.nullable) {
     /**
     Allow null values.
 

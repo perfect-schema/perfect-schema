@@ -17,10 +17,10 @@ function typeValidator(field, specs, validator) {
   } else if (typeof specs.type === 'string') {
     specs.type = typeMap[specs.type] || userTypeMap[specs.type];
   } else if (specs instanceof Array) {
-    specs = { type: anyValidator.Type, allowedTypes: specs };
+    specs = { type: Array, elementType: specs };
   } else if (specs.type instanceof Array) {
-    specs.allowedTypes = specs.type;
-    specs.type = anyValidator.Type;
+    specs.elementType = specs.type;
+    specs.type = Array;
   } else if (!('type' in specs)) {
     specs = { type: specs };
   }
@@ -63,13 +63,13 @@ function typeValidator(field, specs, validator) {
 /**
 Register a new user-defined type. The type should be a constructor function.
 
-@param type {function}        a constructor function
+@param type {Object|function} a constructor function or an object
 @param validator {function}   a function to validate a given value
 @param aliases {Array}        a list of strings that maps to the given type
 */
 function registerType(type, validator, aliases) {
-  if (!type) {
-    throw new TypeError('Missing type value');
+  if (!type || ((typeof type !== 'object') && (typeof type !== 'function'))) {
+    throw new TypeError('Invalid type value');
   } else if (typeof validator !== 'function') {
     throw new TypeError('Validator must be a function');
   } else if (typeof validator(null, {}) !== 'function') {
@@ -78,13 +78,23 @@ function registerType(type, validator, aliases) {
 
   userTypes[type] = validator;
 
-  if (aliases && aliases.length) {
-    for (var alias of aliases) {
-      if (typeof alias !== 'string') {
-        throw new TypeError('Alias for user type must be a string');
-      }
+  if (arguments.length >= 3) {
+    if (!(aliases instanceof Array)) {
+      throw new TypeError('Aliases must be an array');
+    }
 
-      userTypeMap[alias] = type;
+    if (aliases.length) {
+      for (var alias of aliases) {
+        if (typeof alias !== 'string') {
+          throw new TypeError('Alias for user type must be a string');
+        } else if (!alias.length) {
+          throw new TypeError('Alias cannot be empty');
+        } else if (alias in userTypeMap && (userTypeMap[alias] !== type)) {
+          throw new TypeError('Alias already defined : ' + alias);
+        }
+
+        userTypeMap[alias] = type;
+      }
     }
   }
 }
@@ -105,20 +115,6 @@ function unregisterType(type) {
   }
 
   delete userTypes[type];
-}
-
-
-/**
-Return a proxy function, validating the given value against the specified schema.
-*/
-function userTypeValidator(Schema) {
-  return function (value, ctx) {
-    if (value && (value instanceof Schema)) {
-      return schema.validate(value, ctx);
-    } else {
-      return 'invalidType';
-    }
-  };
 }
 
 

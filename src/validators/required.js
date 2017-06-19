@@ -7,7 +7,7 @@ Required validation : make sure the field is not undefined
 @return {function}
 */
 function requiredValidator(field, specs, validator) {
-  if (specs.required) {
+  if (specs && specs.required) {
     /**
     Ensure that the value is set. If the value is undefined, the error "required"
     is returned. Otherwise, the validation is forwared to the validator function,

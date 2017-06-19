@@ -16,7 +16,7 @@ function anyValidator(field, specs) {
 
   if (specs.allowedTypes instanceof Array) {
     for (var type of specs.allowedTypes) {
-      typeValidators.push(buildValidator(field, specs));
+      typeValidators.push(buildValidator(field, type));
     }
   }
 
@@ -29,20 +29,36 @@ function anyValidator(field, specs) {
     @return {undefined|string}
     */
     return function validate(value, ctx) {
-      return Promise.all(typeValidators.map(validator => validator(value, ctx))).then(messages => {
-        var error = undefined;
-        var valid = false;
+      const asyncResults = [];
+      var typeValidator, result;
+      var error = undefined;
+      var valid = true;
 
-        for (var message in messages) {
-          if ((typeof message === 'string') && (!error || (error === 'invalidType'))) {
-            error = message;
-          } else if (!message) {
-            valid = true;
-          }
+      for (typeValidator of typeValidators) {
+        result = typeValidator(value, ctx);
+
+        if (!message) {
+          valid = true;
+        } else if ((typeof message === 'string') && (!error || (error === 'invalidType'))) {
+          error = message;
+        } else if (result instanceof Promise) {
+          asyncResults.push(result);
         }
+      }
 
-        return !valid ? error : undefined;
-      });
+      if (!valid && asyncResults.length) {
+        return Promise.all(asyncResults).then(messages => {
+          for (var message of messages) {
+            if ((typeof message === 'string') && (!error || (error === 'invalidType'))) {
+              error = message;
+            } else if (!message) {
+              valid = true;
+            }
+          }
+
+          return !valid ? error : undefined;
+        });
+      }
     };
   } else {
     return function validate() {};
