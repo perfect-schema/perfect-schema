@@ -14,11 +14,16 @@ Options:
 function anyValidator(field, specs) {
   const typeValidators = [];
 
-  if (specs.allowedTypes instanceof Array) {
-    for (var type of specs.allowedTypes) {
-      typeValidators.push(buildValidator(field, type));
-    }
+  if ('allowedTypes' in specs) {
+    if (specs.allowedTypes instanceof Array) {
+      for (var type of specs.allowedTypes) {
+        typeValidators.push(buildValidator(field, type));
+      }
+    } else {
+      throw new TypeError('Allowed types must be an array')
+    }    
   }
+
 
   if (typeValidators.length) {
     /**

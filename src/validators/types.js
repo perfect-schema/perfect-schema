@@ -17,9 +17,9 @@ function typeValidator(field, specs, validator) {
   } else if (typeof specs.type === 'string') {
     specs.type = typeMap[specs.type] || userTypeMap[specs.type];
   } else if (specs instanceof Array) {
-    specs = { type: Array, elementType: specs };
+    specs = { type: Array, elementType: { type: anyValidator.Type, elementType: specs } };
   } else if (specs.type instanceof Array) {
-    specs.elementType = specs.type;
+    specs.elementType = { type: anyValidator.Type, elementType: specs.type };
     specs.type = Array;
   } else if (!('type' in specs)) {
     specs = { type: specs };

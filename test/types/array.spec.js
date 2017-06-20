@@ -3,6 +3,7 @@ describe('Testing Array type validation', () => {
   const assert = require('assert');
 
   const arrayValidator = require('../../src/types/array');
+  const validators = require('../../src/validators');
 
   const field = 'test';
 
@@ -53,5 +54,42 @@ describe('Testing Array type validation', () => {
       [null, null, null, null], [null, null, null, null, null]
     ].forEach(value => assert.strictEqual(validator(value), 'maxArray', 'Failed at validating max length : ' + JSON.stringify(value)));
   });
+
+  it('should validate typed arrays', () => {
+    const validator = arrayValidator(field, { elementType: String });
+
+    [
+      [], ['hello'], ['hello', 'world']
+    ].forEach(value => assert.strictEqual(validator(value), undefined, 'Failed at validating typed array : ' + JSON.stringify(value)));
+
+    [
+      [null], [true], [false], [0], [1],
+      [[]], [{}],
+      ['hello', 0], [0, 'hello'], [0, 1]
+    ].forEach(value => assert.strictEqual(validator(value), 'invalidType', 'Failed at invalidating typed array : ' + JSON.stringify(value)));
+  });
+
+  it('should validated typed arrays (asynchronous)', () => {
+    const testValidator = function testValidator(field, specs) {
+      return function (value, ctx) {
+        return Promise.resolve(value === 'test' ? undefined : 'error');
+      };
+    };
+
+    validators.registerValidator(testValidator, 0);
+
+    const validator = arrayValidator(field, { elementType: String });
+
+    return validator(['test']).then(result => {
+      assert.strictEqual(result, undefined, 'Failed at validating typed array');
+
+      return validator(['invalid']);
+    }).then(result => {
+      validators.unregisterValidator(testValidator);
+
+      assert.strictEqual(result, 'error', 'Failed at validating typed array');
+    });
+  });
+
 
 });

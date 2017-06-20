@@ -14,7 +14,7 @@ Options:
 function arrayValidator(field, specs) {
   const min = 'min' in specs ? specs.min : -Infinity;
   const max = 'max' in specs ? specs.max : Infinity;
-  const elementValidator = specs.elementType && (specs.elementType instanceof Array ? any(field, specs.elementType) : buildValidator(field, specs.elementType));
+  const elementValidator = 'elementType' in specs ? buildValidator(field, specs.elementType) : undefined;
 
   /**
   Validate the given value if it is an array or undefined, and return the error message
@@ -67,7 +67,5 @@ function arrayValidator(field, specs) {
 module.exports = arrayValidator;
 
 
-const any = require('./any');
 const validators = require('../validators');
-
 const buildValidator = validators.build;

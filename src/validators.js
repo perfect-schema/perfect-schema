@@ -51,7 +51,7 @@ Unregister the given validator.
 @return {number}             the validator count
 */
 function unregisterValidator(validator) {
-  const validatorIndex = validators.indexOf(plugin);
+  const validatorIndex = validators.indexOf(validator);
 
   if (validatorIndex !== -1) {
     validators.splice(validatorIndex, 1);
