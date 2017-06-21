@@ -21,9 +21,8 @@ function anyValidator(field, specs) {
       }
     } else {
       throw new TypeError('Allowed types must be an array')
-    }    
+    }
   }
-
 
   if (typeValidators.length) {
     /**
@@ -37,15 +36,15 @@ function anyValidator(field, specs) {
       const asyncResults = [];
       var typeValidator, result;
       var error = undefined;
-      var valid = true;
+      var valid = false;
 
       for (typeValidator of typeValidators) {
         result = typeValidator(value, ctx);
 
-        if (!message) {
+        if (!result) {
           valid = true;
-        } else if ((typeof message === 'string') && (!error || (error === 'invalidType'))) {
-          error = message;
+        } else if ((typeof result === 'string') && (!error || (error === 'invalidType'))) {
+          error = result;
         } else if (result instanceof Promise) {
           asyncResults.push(result);
         }
@@ -63,6 +62,8 @@ function anyValidator(field, specs) {
 
           return !valid ? error : undefined;
         });
+      } else {
+        return !valid ? error : undefined;
       }
     };
   } else {
