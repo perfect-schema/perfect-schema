@@ -4,8 +4,6 @@ describe('Testing Validation Context', () => {
   const assert = require('assert');
 
   const validationContext = require('../src/validation-context');
-  const Schema = require('../src/schema');
-  const Model = require('../src/model');
 
 
   it('should create new contexts', () => {
@@ -17,10 +15,6 @@ describe('Testing Validation Context', () => {
     assert.notDeepStrictEqual(context1, context2, 'Failed to return different contexts');
   });
 
-
-
-
-  return;
 
   it('should validate correct contexts', () => {
     const context = validationContext();
@@ -80,30 +74,12 @@ describe('Testing Validation Context', () => {
     assert.strictEqual(context2.field('bar').exists, true, 'Failed to get field');
   });
 
-  it('should get field from model', () => {
-    var data = {
-      foo: {
-        bar: new Model(new Schema({ buz: String }))
-      }
-    };
+  it('should get field value', () => {
+    const data = { foo: { bar: { buz: 'world' } } };
     const context = validationContext(data);
 
-    data.foo.bar.set('buz', 'hello');
-
-    assert.strictEqual(context.field('foo.bar.buz').exists, true, 'Failed to get field');
-    assert.strictEqual(context.field('foo.bar.buz').value, 'hello', 'Failed to fetch field inside model');
+    assert.strictEqual(context.field('foo.bar.buz').value, 'world', 'Failed to get field value');    
   });
 
-  it('should get field from model', () => {
-    var data = {
-      foo: new Model(new Schema({ bar: Object }))
-    };
-    const context = validationContext(data);
-
-    data.foo.set('bar', { buz: 'world' });
-
-    assert.strictEqual(context.field('foo.bar.buz').exists, true, 'Failed to get field');
-    assert.strictEqual(context.field('foo.bar.buz').value, 'world', 'Failed to fetch field inside model');
-  });
 
 });
