@@ -1,38 +1,40 @@
-'use strict';
-
 function validationContext(data, parent) {
   data = data || {};
 
   return {
     field(fieldName) {
-      var value = undefined;
-      var exists = true;
+      const fieldContext = {
+        value: data,
+        exists: true
+      };
 
-      if (fieldName in data) {
-        value = getFieldValue(data[fieldName]);
-      } else if ((typeof fieldName === 'string') && (fieldName.indexOf('.') > -1)) {
-        const fieldNames = fieldName.split('.');
-
-        value = data;
-
-        for (fieldName of fieldNames) {
-          if (value && (fieldName in value)) {
-            value = getFieldValue(value[fieldName]);
-          } else {
-            value = undefined;
-            exists = false;
-            break;
-          }
-        }
+      if ((typeof fieldName !== 'string') || !fieldName.length) {
+        throw new TypeError('Invalid field name');
       } else {
-        value = undefined;
-        exists = false;
+        var start = 0;
+        var end = fieldName.indexOf(FIELD_SEPARATOR);
+
+        if (end > -1) {
+          var field;
+
+          while ((end > -1) && fieldContext.exists) {
+            field = fieldName.substring(start, end);
+
+            setContextValue(fieldContext, field);
+
+            start = end + FIELD_SEPARATOR_LEN;
+            end = fieldName.indexOf(FIELD_SEPARATOR, start);
+          }
+
+          if (fieldContext.exists) {
+            setContextValue(fieldContext, fieldName.substring(start));
+          }
+        } else {
+          setContextValue(fieldContext, fieldName);
+        }
       }
 
-      return {
-        value: value,
-        exists: exists
-      };
+      return fieldContext;
     },
 
     parent() {
@@ -42,12 +44,18 @@ function validationContext(data, parent) {
 };
 
 
-function getFieldValue(value) {
-  if (isModel(value)) {
-    return value._data;
+function setContextValue(ctx, field) {
+  const data = isModel(ctx.value) ? ctx.value._data : ctx.value;
+
+  ctx.exists = (Object.prototype.toString.call(data) === '[object Object]') && (field in data);
+
+  if (ctx.exists) {
+    ctx.value = data[field];
   } else {
-    return value;
+    ctx.value = undefined;
   }
+
+  return ctx.exists;
 }
 
 
@@ -62,6 +70,8 @@ validationContext.isValidationContext = isValidationContext;
 module.exports = validationContext;
 
 
-const Model = require('./model');
+const isModel = require('./model').isModel;
 
-const isModel = Model.isModel;
+const c = require('./constents');
+const FIELD_SEPARATOR = c.FIELD_SEPARATOR;
+const FIELD_SEPARATOR_LEN = c.FIELD_SEPARATOR_LEN;

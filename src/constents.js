@@ -1,0 +1,6 @@
+const FIELD_SEPARATOR = '.';
+
+module.exports = {
+  FIELD_SEPARATOR: FIELD_SEPARATOR,
+  FIELD_SEPARATOR_LEN: FIELD_SEPARATOR.length,
+};

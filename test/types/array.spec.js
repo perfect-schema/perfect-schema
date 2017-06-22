@@ -66,7 +66,7 @@ describe('Testing Array type validation', () => {
       [null], [true], [false], [0], [1],
       [[]], [{}],
       ['hello', 0], [0, 'hello'], [0, 1]
-    ].forEach(value => assert.strictEqual(validator(value), 'invalidType', 'Failed at invalidating typed array : ' + JSON.stringify(value)));
+    ].forEach(value => assert.notStrictEqual(validator(value), undefined, 'Failed at invalidating typed array : ' + JSON.stringify(value)));
   });
 
   it('should validated typed arrays (asynchronous)', () => {
@@ -88,8 +88,12 @@ describe('Testing Array type validation', () => {
       validators.unregisterValidator(testValidator);
 
       assert.strictEqual(result, 'error', 'Failed at validating typed array');
+
+      // override...
+      const validator = arrayValidator(field, { elementType: String });
+
+      assert.strictEqual(validator(['invalid']), undefined, 'Failed at removing validator');
     });
   });
-
-
+  
 });

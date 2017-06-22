@@ -27,29 +27,6 @@ describe('Testing Schema', () => {
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-  return;
-
-
   it('should construct new instance with sub-schema', () => {
     const barFields = {
       bar: String
@@ -60,7 +37,7 @@ describe('Testing Schema', () => {
     };
     const fooSchema = new Schema(fooFields);
 
-    assert.strictEqual(fooSchema._fields['foo'].type, barSchema, 'Failed to normalize sub-schema short type');
+    assert.strictEqual(fooSchema._fields['foo'], barSchema, 'Failed to recognize sub-schema short type');
   });
 
 

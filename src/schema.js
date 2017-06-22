@@ -21,6 +21,9 @@ class PerfectSchema {
     this._fields = fields;
     this._validators = {};
 
+    // register schema as type before validating anything
+    registerSchemaType(this);
+
     for (var fieldName of this._fieldNames) {
       this._validators[fieldName] = validators.build(fieldName, fields[fieldName]);
     }
@@ -39,7 +42,11 @@ class PerfectSchema {
     var field;
 
     for (var fieldName of fieldNames) {
-      field = this._fields[fieldName] = Object.assign(this._fields[fieldName] || {}, fields[fieldName]);
+      if (fields[fieldName] === Object) {
+        field = this._fields[fieldName] = Object.assign(this._fields[fieldName] || {}, { type: Object });
+      } else {
+        field = this._fields[fieldName] = Object.assign(this._fields[fieldName] || {}, fields[fieldName]);
+      }
 
       this._validators[fieldName] = validators.build(fieldName, field);
     }
@@ -131,6 +138,29 @@ class PerfectSchema {
 }
 
 
+function registerSchemaType(schema) {
+  const options = schema._options;
+  const typeName = 'name' in options ? [options.name] : undefined;
+
+  function validator(field, specs) {
+    return function schemaValidator(value, ctx) {
+      if (isModel(value) && value._schema === schema) {
+        return schema.validate(model._data).then(message => {
+          if (typeof message === 'string') {
+            return 'invalid';
+          }
+        });
+      } else {
+        //console.log("** ", value._schema, ' :::: *** ', schema);
+        return 'invalidType';
+      }
+    }
+  };
+
+  types.registerType(schema, validator, typeName);
+}
+
+
 function checkDefaultValues(fields, validators) {
   const fieldNames = Object.keys(fields);
   var defaultValue;
@@ -165,11 +195,19 @@ function setDefaults(options) {
 }
 
 
+function isSchema(schema) {
+  return schema && (schema instanceof PerfectSchema) || false;
+}
+
 
 PerfectSchema.setDefaults = setDefaults;
+PerfectSchema.isSchema = isSchema;
 
 module.exports = PerfectSchema;
 
+const types = require('./validators/types');
 const validators = require('./validators');
 const validationContext = require('./validation-context');
 const PerfectModel = require('./model');
+
+const isModel = PerfectModel.isModel;

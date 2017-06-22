@@ -13,9 +13,9 @@ function typeValidator(field, specs, validator) {
   specs = specs || {};
 
   if (typeof specs === 'string') {
-    specs = { type: typeMap[specs] || userTypeMap[specs] };
+    specs = { type: typeMap[specs] || getUserType(specs) };
   } else if (typeof specs.type === 'string') {
-    specs.type = typeMap[specs.type] || userTypeMap[specs.type];
+    specs.type = typeMap[specs.type] || getUserType(specs.type);
   } else if (specs instanceof Array) {
     specs = { type: Array, elementType: { type: anyValidator.Type, elementType: specs } };
   } else if (specs.type instanceof Array) {
@@ -27,8 +27,8 @@ function typeValidator(field, specs, validator) {
 
   if (specs.type in types) {
     typeValidator = types[specs.type](field, specs);
-  } else if (specs.type in userTypes) {
-    typeValidator = userTypes[specs.type](field, specs);
+  } else if (isUserType(specs.type)) {
+    typeValidator = getUserTypeValidator(specs.type)(field, specs);
   } else {
     throw new TypeError('Field type not set or unknown for ' + field);
   }
@@ -68,7 +68,7 @@ Register a new user-defined type. The type should be a constructor function.
 @param aliases {Array}        a list of strings that maps to the given type
 */
 function registerType(type, validator, aliases) {
-  if (!type || ((typeof type !== 'object') && (typeof type !== 'function'))) {
+  if (!type || (typeof type !== 'object')) {
     throw new TypeError('Invalid type value');
   } else if (typeof validator !== 'function') {
     throw new TypeError('Validator must be a function');
@@ -76,25 +76,30 @@ function registerType(type, validator, aliases) {
     throw new TypeError('Validator must return a function');
   }
 
-  userTypes[type] = validator;
+  if (isUserType(type)) {
+    throw new TypeError('Type already registered');
+  }
 
-  if (arguments.length >= 3) {
-    if (!(aliases instanceof Array)) {
-      throw new TypeError('Aliases must be an array');
-    }
+  const userTypeIndex = userTypes.length;
 
-    if (aliases.length) {
-      for (var alias of aliases) {
-        if (typeof alias !== 'string') {
-          throw new TypeError('Alias for user type must be a string');
-        } else if (!alias.length) {
-          throw new TypeError('Alias cannot be empty');
-        } else if (alias in userTypeMap && (userTypeMap[alias] !== type)) {
-          throw new TypeError('Alias already defined : ' + alias);
-        }
+  userTypes.push({
+    type: type,
+    validator: validator
+  });
 
-        userTypeMap[alias] = type;
+  if ((aliases !== undefined) && !(aliases instanceof Array)) {
+    throw new TypeError('Aliases must be an array');
+  } else if (aliases && aliases.length) {
+    for (var alias of aliases) {
+      if (typeof alias !== 'string') {
+        throw new TypeError('Alias for user type must be a string');
+      } else if (!alias.length) {
+        throw new TypeError('Alias cannot be empty');
+      } else if (alias in userTypeMap && (userTypeMap[alias] !== type)) {
+        throw new TypeError('Alias already defined : ' + alias);
       }
+
+      userTypeMap[alias] = userTypeIndex;
     }
   }
 }
@@ -109,12 +114,60 @@ function unregisterType(type) {
   var aliases = Object.keys(userTypeMap);
 
   for (var alias of aliases) {
-    if (userTypeMap[alias] === type) {
+    if (getUserType(alias) === type) {
       delete userTypeMap[alias];
     }
   }
 
-  delete userTypes[type];
+  for (var i = userTypes.length - 1; i >= 0; --i) {
+    if (userTypes[i].type === type) {
+      userTypes.splice(i, 1);
+    }
+  }
+}
+
+
+function isUserType(type) {
+  if (typeof type === 'string') {
+    const userTypeIndex = userTypeMap[type];
+
+    return !!userTypes[userTypeIndex];
+  }
+
+  for (var i = 0, len = userTypes.length; i < len; ++i) {
+    if (userTypes[i].type === type) {
+      return true;
+    }
+  }
+
+  return false;
+}
+
+function getUserType(type) {
+  if (typeof type === 'string') {
+    const userTypeIndex = userTypeMap[type];
+    const userType = userTypes[userTypeIndex];
+
+    return userType && userType.type;
+  }
+
+  return type;
+}
+
+
+function getUserTypeValidator(type) {
+  if (typeof type === 'string') {
+    const userTypeIndex = userTypeMap[type];
+    const userType = userTypes[userTypeIndex];
+
+    return userType && userType.validator;
+  }
+
+  for (var i = 0, len = userTypes.length; i < len; ++i) {
+    if (userTypes[i].type === type) {
+      return userTypes[i].validator;
+    }
+  }
 }
 
 
@@ -156,5 +209,5 @@ const typeMap = {
   'string': String
 };
 
-const userTypes = {};
+const userTypes = [];
 const userTypeMap = {};

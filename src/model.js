@@ -54,25 +54,25 @@ class PerfectModel {
     var start = 0;
     var pos = field.indexOf('.', start);
     var fieldName = pos > start ? field.substr(0, pos) : field;
-    var fieldSpec = this._schema._fields[fieldName];
+    var fieldType = getFieldType(this._schema._fields[fieldName]);
     var fieldValue;
 
-    if (!fieldSpec) {
+    if (!fieldType) {
       throw new Error('Field not in schema : ' + fieldName);
     } else if (fieldName.length < field.length) {   // has more keys...
       fieldValue = this._data[fieldName];
 
-      if (isSchema(fieldSpec.type)) {
-        fieldValue = fieldValue && fieldValue.get(field.substr(pos + 1));
-      } else if (isObject(fieldSpec.type)) {
+      if (isSchema(fieldType)) {
+        fieldValue = fieldValue && fieldValue.get(field.substr(pos + FIELD_SEPARATOR_LEN));
+      } else if (isObject(fieldType)) {
         var _fieldName = fieldName;
 
-        start = pos + 1;
+        start = pos + FIELD_SEPARATOR_LEN;
 
         while (fieldValue && (pos = field.indexOf('.', start)) >= start) {
           _fieldName = field.substr(start, pos - start);
           fieldValue = fieldValue[_fieldName];
-          start = pos + 1;
+          start = pos + FIELD_SEPARATOR_LEN;
         }
 
         // when pos = -1, then we got all field parts, and start is the offset of the last field names
@@ -104,36 +104,36 @@ class PerfectModel {
       checkField(field);
 
       var start = 0;
-      var pos = field.indexOf('.', start);
+      var pos = field.indexOf(FIELD_SEPARATOR, start);
       var fieldName = pos > start ? field.substr(0, pos) : field;
       var fieldTS = dataTS[fieldName] || (dataTS[fieldName] = {});
-      var fieldSpec = schema._fields[fieldName];
+      var fieldType = getFieldType(schema._fields[fieldName]);
       var fieldValue;
 
-      if (!fieldSpec) {
+      if (!fieldType) {
         throw new Error('Field not in schema : ' + fieldName);
       } else if (fieldName.length < field.length) {   // has more keys...
 
-        if (isSchema(fieldSpec.type)) {
+        if (isSchema(fieldType)) {
           if (!(fieldName in data)) {
-            fieldValue = data[fieldName] = fieldSpec.type.createModel();
+            fieldValue = data[fieldName] = fieldType.createModel();
           } else {
             fieldValue = data[fieldName];
           }
 
           fieldTS.set = present();
-          return fieldValue.set(field.substr(pos + 1), value).then(() => fieldName);
-        } else if (isObject(fieldSpec.type)) {
+          return fieldValue.set(field.substr(pos + FIELD_SEPARATOR_LEN), value).then(() => fieldName);
+        } else if (isObject(fieldType)) {
           var _fieldName = fieldName;
 
           fieldValue = data[fieldName] || (data[fieldName] = {});
 
-          start = pos + 1;
+          start = pos + FIELD_SEPARATOR_LEN;
 
-          while ((pos = field.indexOf('.', start)) >= start) {
+          while ((pos = field.indexOf(FIELD_SEPARATOR, start)) >= start) {
             _fieldName = field.substr(start, pos - start);
             fieldValue = fieldValue[_fieldName] || (fieldValue[_fieldName] = {});
-            start = pos + 1;
+            start = pos + FIELD_SEPARATOR_LEN;
           }
 
           fieldTS.set = present();
@@ -144,9 +144,9 @@ class PerfectModel {
       } else {
         fieldTS.set = present();
 
-        if (isSchema(fieldSpec.type)) {
+        if (isSchema(fieldType)) {
           if (!(fieldName in data)) {
-            fieldValue = data[fieldName] = fieldSpec.type.createModel();
+            fieldValue = data[fieldName] = fieldType.createModel();
           } else {
             fieldValue = data[fieldName];
           }
@@ -211,6 +211,10 @@ class PerfectModel {
 
 
 
+function isModel(model) {
+  return model && (model instanceof PerfectModel) || false;
+}
+
 function isObject(type) {
   return type === Object;
 }
@@ -220,6 +224,10 @@ function checkField(field) {
   if (typeof field !== 'string') {
     throw new TypeError('Invalid field type: expected string, received ' + typeof field);
   }
+}
+
+function getFieldType(specs) {
+  return specs.type || specs;
 }
 
 function validate(model, fieldNames) {
@@ -304,19 +312,14 @@ function FakeReactiveVar(value) {
 }
 
 
-function isModel(model) {
-  return model && (model instanceof PerfectModel) || false;
-}
-
-
-
 PerfectModel.isModel = isModel;
-
 
 module.exports = PerfectModel;
 
-
 const present = require('present');
-const PerfectSchema = require('./schema');
 
-const isSchema = PerfectSchema.isSchema;
+const isSchema = require('./schema').isSchema;
+
+const c = require('./constents');
+const FIELD_SEPARATOR = c.FIELD_SEPARATOR;
+const FIELD_SEPARATOR_LEN = c.FIELD_SEPARATOR_LEN;

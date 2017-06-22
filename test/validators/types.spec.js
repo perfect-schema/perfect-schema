@@ -95,7 +95,7 @@ describe('Testing types validator', () => {
 
   describe('Testing custom types', () => {
 
-    const UserType = function UserType () {};
+    const UserType = { type: 'Test' };
     const validator = function userValidator(field, specs) {
       return function validate(value, ctx) {
         return value === 'test' ? undefined : 'error';
@@ -116,6 +116,12 @@ describe('Testing types validator', () => {
 
       assert.strictEqual(validator('test'), undefined, 'Failed validating');
       assert.strictEqual(validator('hello'), 'error', 'Failed validating error');
+    });
+
+    it('should unregister', () => {
+      typeValidator.unregisterType(UserType);
+
+      assert.throws(() => typeValidator(field, { type: userAlias }, valid), 'Failed at unregistering');
     });
 
     it('should not register invalid type', () => {
@@ -186,7 +192,7 @@ describe('Testing types validator', () => {
       const validator = function () { return function () {}; };
 
       [
-        undefined, null, true, false, NaN, 0, '', 'test', userAlias,
+        null, true, false, NaN, 0, '', 'test', userAlias,
         [undefined], [null], [false], [NaN], [0], [''], [userAlias],
         {}, /./, new Date()
       ].forEach(aliases => assert.throws(() => typeValidator.registerType(type, validator, aliases), 'Failed to throw with : ' + JSON.stringify(aliases)));
@@ -208,7 +214,7 @@ describe('Testing types validator', () => {
 
   describe('Testing asynchronous type validation', () => {
 
-    const UserType = function UserType () {};
+    const UserType = { type: 'Test' };
     const validator = function userValidator(field, specs) {
       return function validate(value, ctx) {
         return Promise.resolve(value === 'test' ? undefined : 'error');

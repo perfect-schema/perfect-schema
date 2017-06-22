@@ -31,6 +31,16 @@ describe('Testing Validation Context', () => {
     ].forEach(ctx => assert.ok(!validationContext.isValidationContext(ctx), 'Failed to identify invalid validation context: ' + JSON.stringify(ctx)));
   });
 
+  it('should provide valid field name', () => {
+    const context = validationContext({});
+
+    [
+      undefined, null, false, true,
+      -1, 0, 1, 1.234, '',
+      [], {}, () => {}, /./, new Date(),
+    ].forEach(field => assert.throws(() => context.field(field), 'Failed to throw : ' + JSON.stringify(field)));
+  });
+
   it('should get field value', () => {
     const data = { foo: 'hello' };
     const context = validationContext(data);
@@ -78,7 +88,7 @@ describe('Testing Validation Context', () => {
     const data = { foo: { bar: { buz: 'world' } } };
     const context = validationContext(data);
 
-    assert.strictEqual(context.field('foo.bar.buz').value, 'world', 'Failed to get field value');    
+    assert.strictEqual(context.field('foo.bar.buz').value, 'world', 'Failed to get field value');
   });
 
 
