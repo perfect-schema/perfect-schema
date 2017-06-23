@@ -130,6 +130,10 @@ describe('Testing types validator', () => {
       ].forEach(type => assert.throws(() => typeValidator.registerType(type), 'Failed to throw with : ' + JSON.stringify(type)));
     });
 
+    it('should not register twice', () => {
+      assert.throws(() => typeValidator.registerType(UserType, validator, [userAlias]), 'Failed to throw');
+    });
+
     it('should not register if validator is not a function', () => {
       const type = { test: true };
 

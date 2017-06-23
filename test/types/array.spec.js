@@ -87,7 +87,7 @@ describe('Testing Array type validation', () => {
     }).then(result => {
       validators.unregisterValidator(testValidator);
 
-      assert.strictEqual(result, 'error', 'Failed at validating typed array');
+      assert.strictEqual(result, 'error@0', 'Failed at validating typed array');
 
       // override...
       const validator = arrayValidator(field, { elementType: String });
@@ -95,5 +95,5 @@ describe('Testing Array type validation', () => {
       assert.strictEqual(validator(['invalid']), undefined, 'Failed at removing validator');
     });
   });
-  
+
 });

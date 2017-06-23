@@ -17,9 +17,21 @@ function typeValidator(field, specs, validator) {
   } else if (typeof specs.type === 'string') {
     specs.type = typeMap[specs.type] || getUserType(specs.type);
   } else if (specs instanceof Array) {
-    specs = { type: Array, elementType: { type: anyValidator.Type, elementType: specs } };
+    if (!specs.length) {
+      specs = { type: Array };
+    } else if (specs.length === 1) {
+      specs = { type: Array, elementType: specs[0] };
+    } else {
+      specs = { type: Array, elementType: { type: anyValidator.Type, allowedTypes: specs } };
+    }
   } else if (specs.type instanceof Array) {
-    specs.elementType = { type: anyValidator.Type, elementType: specs.type };
+    if (!specs.type.length) {
+      specs = { type: Array };
+    } else if (specs.type.length === 1) {
+      specs = { type: Array, elementType: specs.type[0] };
+    } else {
+      specs = { type: Array, elementType: { type: anyValidator.Type, allowedTypes: specs.type } };
+    }
     specs.type = Array;
   } else if (!('type' in specs)) {
     specs = { type: specs };
@@ -82,11 +94,6 @@ function registerType(type, validator, aliases) {
 
   const userTypeIndex = userTypes.length;
 
-  userTypes.push({
-    type: type,
-    validator: validator
-  });
-
   if ((aliases !== undefined) && !(aliases instanceof Array)) {
     throw new TypeError('Aliases must be an array');
   } else if (aliases && aliases.length) {
@@ -95,13 +102,20 @@ function registerType(type, validator, aliases) {
         throw new TypeError('Alias for user type must be a string');
       } else if (!alias.length) {
         throw new TypeError('Alias cannot be empty');
-      } else if (alias in userTypeMap && (userTypeMap[alias] !== type)) {
+      } else if (isUserType(alias) && (getUserType(alias) !== type)) {
         throw new TypeError('Alias already defined : ' + alias);
       }
+    }
 
+    for (var alias of aliases) {
       userTypeMap[alias] = userTypeIndex;
     }
   }
+
+  userTypes.push({
+    type: type,
+    validator: validator
+  });
 }
 
 
@@ -156,12 +170,7 @@ function getUserType(type) {
 
 
 function getUserTypeValidator(type) {
-  if (typeof type === 'string') {
-    const userTypeIndex = userTypeMap[type];
-    const userType = userTypes[userTypeIndex];
-
-    return userType && userType.validator;
-  }
+  type = getUserType(type);
 
   for (var i = 0, len = userTypes.length; i < len; ++i) {
     if (userTypes[i].type === type) {

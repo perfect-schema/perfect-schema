@@ -34,24 +34,30 @@ function arrayValidator(field, specs) {
       }
 
       if (elementValidator) {
-        const asyncResults = [];
-        var element, result;
+        const asyncResults = [], asyncIndex = [];
+        var element, i, iLen, result;
 
-        for (element of value) {
+        for (i = 0, iLen = value.length; i < iLen; ++i) {
+          element = value[i];
           result = elementValidator(element, ctx);
 
           if (typeof result === 'string') {
-            return result;
+            return result + ARRAY_ELEMENT_SEPARATOR + i;
           } else if (result instanceof Promise) {
             asyncResults.push(result);
+            asyncIndex.push(i);
           }
         }
 
         if (asyncResults.length) {
           return Promise.all(asyncResults).then(messages => {
-            for (var message of messages) {
+            var message;
+
+            for (i = 0, iLen = messages.length; i < iLen; ++i) {
+              message = messages[i];
+
               if (typeof message === 'string') {
-                return message;
+                return message + ARRAY_ELEMENT_SEPARATOR + asyncIndex[i];
               }
             }
           });
@@ -66,6 +72,7 @@ function arrayValidator(field, specs) {
 
 module.exports = arrayValidator;
 
-
 const validators = require('../validators');
 const buildValidator = validators.build;
+const c = require('../constents');
+const ARRAY_ELEMENT_SEPARATOR = c.ARRAY_ELEMENT_SEPARATOR;

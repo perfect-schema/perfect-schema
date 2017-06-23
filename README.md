@@ -66,21 +66,21 @@ const schema = new PerfectSchema({
 })
 ```
 
-### Type : `PerfectSchema.any([type?[, type?[, ...]]])`
+### Type : `PerfectSchema.Any`
 
-Wildcard type, the value may be anything if no type provided, or anyting that match the given types, or `undefined`. Each element `type?` may be a short hand or descriptive type definition. For example
+Wildcard type, the value may be anything if no type provided, or anyting that match the given types, or `undefined`. Each allowed types may be a short hand or descriptive type definition. For example
 
 ```
 {
-  a: PerfectSchema.any()
-  b: PerfectSchema.any(String),
-  c: PerfectSchema.any(String, { type: Boolean }),
-  d: PerfectSchema.any(String, { type: Boolean }, { type: Number, min: 0 }),
+  a: PerfectSchema.Any
+  b: { type: PerfectSchema.Any, allowedTypes: [String] },
+  c: { type: PerfectSchema.Any, allowedTypes: [String, { type: Boolean }] },
+  d: { type: PerfectSchema.Any, allowedTypes: [String, { type: Boolean }, { type: Number, min: 0 }] },
   ...
 }
 ```
 
-The validations are performed in parallel, and fail if all types mismatch. If all types mismatch, the first error not equal to `invalidType` is returned, or `invalidType` otherwise.
+The validations are performed in parallel when asynchronous, and fail if all types mismatch. If all types mismatch, the first error not equal to `invalidType` is returned, or `invalidType` otherwise.
 
 
 
@@ -90,10 +90,13 @@ Represent any array values or typed array values, or `undefined`. The following 
 
 ```
 {
-  a: Array,
+  a: Array,              // preferred
   b: "array",
   c: [],
-  d: [PerfectSchema.any()]
+  d: [PerfectSchema.Any]
+  e: { type: Array }
+  f: { type: "array" }
+  g: { type: [] }        // ERROR! type most define explicit type!
 }
 ```
 
@@ -110,7 +113,8 @@ Represent a typed array, or `undefined`. Typed arrays will test _all_ array elem
 ```
 {
   c: [String],
-  d: [PerfectSchema.any(String)]
+  d: [{ type: PerfectSchema.Any, allowedTypes: [String] }],
+  // etc.
 }
 ```
 
@@ -119,7 +123,8 @@ Multiple types may be defined per array elements. The following are all equivale
 ```
 {
   c: [String, { type: Number, min: 0 }],
-  d: [PerfectSchema.any(String, { type: Number, min: 0 )]
+  d: [{ type: PerfectSchema.Any, allowedTypes: [String, { type: Number, min: 0 }] }]
+  // etc.
 }
 ```
 
