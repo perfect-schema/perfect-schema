@@ -247,4 +247,70 @@ describe('Testing types validator', () => {
 
   });
 
+
+  describe('Testing typed arrays', () => {
+
+    it('should fail if array is empty', () => {
+      assert.throws(() => typeValidator(field, [], valid), 'Failed to throw (short)');
+      assert.throws(() => typeValidator(field, { type: [] }, valid), 'Failed to throw');
+    });
+
+    it('should validate single type (short)', () => {
+      const validator = typeValidator(field, [String], valid);
+
+      [
+        [], [''], ['test'], ['', 'test']
+      ].forEach(value => assert.strictEqual(validator(value), undefined, 'Failed validating string : ' + value));
+
+      [
+        [null], [0], [1], [true], [false], [[]], [{}], [/./], [() => {}], [new Date()],
+        ['test', null], ['test', 0], ['test', 1], ['test', true], ['test', false], ['test', []], ['test', {}], ['test', /./], ['test', () => {}], ['test', new Date()],
+      ].forEach(value => assert.notStrictEqual(validator(value), undefined, 'Failed invalidating string : ' + value));
+    });
+
+    it('should validate single type', () => {
+      const validator = typeValidator(field, { type: Array, elementType: String }, valid);
+
+      [
+        [], [''], ['test'], ['', 'test']
+      ].forEach(value => assert.strictEqual(validator(value), undefined, 'Failed validating string : ' + value));
+
+      [
+        [null], [0], [1], [true], [false], [[]], [{}], [/./], [() => {}], [new Date()],
+        ['test', null], ['test', 0], ['test', 1], ['test', true], ['test', false], ['test', []], ['test', {}], ['test', /./], ['test', () => {}], ['test', new Date()],
+      ].forEach(value => assert.notStrictEqual(validator(value), undefined, 'Failed invalidating string : ' + value));
+    });
+
+    it('should validate multiple types (short)', () => {
+      const validator = typeValidator(field, [String, Number], valid);
+
+      [
+        [], [''], ['test'], ['', 'test'],
+        [0], [0, 1],
+        ['', 0], ['', 1], [0, 'test'], [1, '']
+      ].forEach(value => assert.strictEqual(validator(value), undefined, 'Failed validating string : ' + value));
+
+      [
+        [null], [true], [false], [[]], [{}], [/./], [() => {}], [new Date()],
+        ['test', null], [true, 0], [false, 1], ['test', true], ['test', false], ['test', []], ['test', {}], ['test', /./], ['test', () => {}], ['test', new Date()],
+      ].forEach(value => assert.notStrictEqual(validator(value), undefined, 'Failed invalidating string : ' + value));
+    });
+
+    it('should validate multiple types', () => {
+      const validator = typeValidator(field, { type: [String, Number] }, valid);
+
+      [
+        [], [''], ['test'], ['', 'test'],
+        [0], [0, 1],
+        ['', 0], ['', 1], [0, 'test'], [1, '']
+      ].forEach(value => assert.strictEqual(validator(value), undefined, 'Failed validating string : ' + value));
+
+      [
+        [null], [true], [false], [[]], [{}], [/./], [() => {}], [new Date()],
+        ['test', null], [true, 0], [false, 1], ['test', true], ['test', false], ['test', []], ['test', {}], ['test', /./], ['test', () => {}], ['test', new Date()],
+      ].forEach(value => assert.notStrictEqual(validator(value), undefined, 'Failed invalidating string : ' + value));
+    });
+
+  });
+
 });

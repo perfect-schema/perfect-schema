@@ -18,7 +18,7 @@ function typeValidator(field, specs, validator) {
     specs.type = typeMap[specs.type] || getUserType(specs.type);
   } else if (specs instanceof Array) {
     if (!specs.length) {
-      specs = { type: Array };
+      throw new TypeError('Missing element types for typed array');
     } else if (specs.length === 1) {
       specs = { type: Array, elementType: specs[0] };
     } else {
@@ -26,7 +26,7 @@ function typeValidator(field, specs, validator) {
     }
   } else if (specs.type instanceof Array) {
     if (!specs.type.length) {
-      specs = { type: Array };
+      throw new TypeError('Missing element types for typed array');
     } else if (specs.type.length === 1) {
       specs = { type: Array, elementType: specs.type[0] };
     } else {

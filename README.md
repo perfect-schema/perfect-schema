@@ -92,13 +92,17 @@ Represent any array values or typed array values, or `undefined`. The following 
 {
   a: Array,              // preferred
   b: "array",
-  c: [],
-  d: [PerfectSchema.Any]
-  e: { type: Array }
+  c: [],                 // ERROR! must define element types
+  d: [PerfectSchema.Any] // WARNING! will cause unnecessary validations!
+  e: { type: Array }     // preferred
   f: { type: "array" }
-  g: { type: [] }        // ERROR! type most define explicit type!
+  h: { type: [] }        // ERROR! most define element types
+  g: [PerfectSchema.Any] // WARNING! will cause unnecessary validations!
 }
 ```
+
+**Note:** for `c`, `d`, `h`, and `g`, read more about typed arrays.
+
 
 #### Options :
 
@@ -106,7 +110,7 @@ Represent any array values or typed array values, or `undefined`. The following 
 * `max` : the maximum array size
 
 
-### Type : `[type? ...]`
+### Type : `[type? ...]` *(typed arrays)*
 
 Represent a typed array, or `undefined`. Typed arrays will test _all_ array elements to make sure they match the specified `type?` (or types). The following are all equivalent :
 
@@ -117,6 +121,8 @@ Represent a typed array, or `undefined`. Typed arrays will test _all_ array elem
   // etc.
 }
 ```
+
+**Note:** At least one type must be specified, or an error will be thrown. Also, if declaring `[PerfectSchema.Any]`, this will cause unnecessary checks and the type `Array` should be used, instead.
 
 Multiple types may be defined per array elements. The following are all equivalent :
 
