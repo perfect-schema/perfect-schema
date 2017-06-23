@@ -4,6 +4,7 @@ describe('Testing Schema', () => {
   const assert = require('assert');
 
   const Schema = require('../src/schema');
+  const types = require('../src/validators/types');
 
 
   it('should not create without fields', () => {
@@ -51,7 +52,8 @@ describe('Testing Schema', () => {
         required: true,
         min: 3
       },
-      bar: Object
+      bar: Object,
+      buz: { type: Number }
     };
 
     const schema = new Schema(baseFields);
@@ -60,7 +62,7 @@ describe('Testing Schema', () => {
 
     schema.extend(extendedFields);
 
-    assert.strictEqual(schema._fieldNames.length, 2, 'Mismatch field names');
+    assert.strictEqual(schema._fieldNames.length, 3, 'Mismatch field names');
   });
 
 
@@ -374,6 +376,65 @@ describe('Testing Schema', () => {
       ].forEach(options => assert.throws(() => Schema.setDefaults(options)) );
     });
 
-  })
+  });
+
+
+
+  describe('Testing schema as type', () => {
+
+    it('should register type alias', () => {
+      const typeName = 'TestType';
+      const fields = {
+        foo: { type: String, min: 3 }
+      };
+      const options = { name: typeName };
+      const schema = new Schema(fields, options);
+
+      const otherFields = {
+        test: typeName,
+      };
+      const otherSchema = new Schema(otherFields);
+      const otherModel = otherSchema.createModel();
+
+      return otherModel.set('test.foo', '!').then(messages => {
+        assert.ok(messages.length, 'Failed to invalidate');
+        assert.strictEqual(messages[0].message, 'invalid', 'Failed to propagate to parent');
+
+        return otherModel.set('test', '!');
+      }).then(messages => {
+        assert.ok(messages.length, 'Failed to invalidate');
+        assert.strictEqual(messages[0].message, 'invalidType', 'Failed to check valid type');
+
+        // cleanup
+        types.unregisterType(typeName);
+      });
+    });
+
+    it('should not validate if given another type', () => {
+      const typeNameA = 'TestTypeA';
+      const fieldsA = { foo: String };
+      const optionsA = { name: typeNameA };
+      const schemaA = new Schema(fieldsA, optionsA);
+
+      const typeNameB = 'TestTypeB';
+      const fieldsB = { foo: String };
+      const optionsB = { name: typeNameB };
+      const schemaB = new Schema(fieldsB, optionsB);
+
+      const otherFields = { test: typeNameA };
+      const otherSchema = new Schema(otherFields);
+      const otherModel = otherSchema.createModel();
+
+      return otherModel.set('test', schemaB.createModel()).then(messages => {
+        assert.ok(messages.length, 'Failed to invalidate');
+        assert.strictEqual(messages[0].message, 'invalidType', 'Failed to check valid type');
+
+        // cleanup
+        types.unregisterType(typeNameA);
+        types.unregisterType(typeNameB);
+      });
+    });
+
+  });
 
 });

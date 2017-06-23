@@ -145,8 +145,8 @@ function registerSchemaType(schema) {
   function validator(field, specs) {
     return function schemaValidator(value, ctx) {
       if (isModel(value) && value._schema === schema) {
-        return schema.validate(model._data).then(message => {
-          if (typeof message === 'string') {
+        return schema.validate(value._data).then(messages => {
+          if (messages.length) {
             return 'invalid';
           }
         });

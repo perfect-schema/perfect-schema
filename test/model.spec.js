@@ -113,7 +113,6 @@ describe('Testing Model', () => {
     });
 
 
-    /*
     it('should get field from sub-schema', () => {
       const subSchema = createSchema({
         bar: { type: String }
@@ -131,33 +130,7 @@ describe('Testing Model', () => {
 
       assert.strictEqual(model.get('foo.bar'), value, 'Failed to get model property');
     });
-    */
 
-
-    /*
-    it('should fail to get invalid field type', () => {
-      const subSchema = createSchema({
-        bar: { type: String }
-      });
-      const schema = createSchema({
-        foo: { type: subSchema },
-        buz: { type: String }
-      });
-
-      const model = new Model(schema);
-      const subModel = new Model(subSchema);
-      const value = 'hello';
-
-      subModel._data['bar'] = value;  // hard-code value
-      model._data['foo'] = subModel;
-
-      assert.throws(() => model.get('foo.bar.buz'), 'Failed throwing on invalid field type : foo.bar.buz');
-      assert.throws(() => model.get('foo.buz.bar'), 'Failed throwing on invalid field type : foo.bar.buz');
-    });
-    */
-
-
-    /*
     it('should return undefined on missing field', () => {
       const subSchema = createSchema({
         bar: { type: Object }
@@ -177,7 +150,6 @@ describe('Testing Model', () => {
       assert.strictEqual(model.get('foo.bar.buz'), undefined, 'Failed to get missing field');
       assert.strictEqual(model.get('foo.bar.buz.meh'), undefined, 'Failed to get missing field');
     });
-    */
 
   });
 
@@ -488,6 +460,8 @@ describe('Testing Model', () => {
       return fooModel.set({ foo: { bar: 123 }, bob: 456 }).then(messages => {
         assert.strictEqual(fooModel._data['foo']._data['bar'], 123, 'Failed to create sub model');
         assert.strictEqual(fooModel._data['bob'], 456, 'Failed to create sub model');
+
+        assert.strictEqual(fooModel.get('foo.bar'), 123, 'Failed to fetch recursively');
 
         //assert.deepStrictEqual(getFieldMessage(messages, 'foo'), 'invalid', 'Failed to invalidate foo');
         assert.deepStrictEqual(getFieldMessage(messages, 'bob'), 'invalidType', 'Failed to invalidate bob');

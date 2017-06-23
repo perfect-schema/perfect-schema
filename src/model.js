@@ -64,7 +64,7 @@ class PerfectModel {
 
       if (isSchema(fieldType)) {
         fieldValue = fieldValue && fieldValue.get(field.substr(pos + FIELD_SEPARATOR_LEN));
-      } else if (isObject(fieldType)) {
+      } else {
         var _fieldName = fieldName;
 
         start = pos + FIELD_SEPARATOR_LEN;
@@ -77,8 +77,6 @@ class PerfectModel {
 
         // when pos = -1, then we got all field parts, and start is the offset of the last field names
         fieldValue = pos === -1 ? fieldValue && fieldValue[field.substr(start)] : undefined;
-      } else {
-        throw new TypeError('Invalid type for field : ' + fieldName);
       }
     } else {
       fieldValue = this._data[fieldName];
@@ -145,31 +143,32 @@ class PerfectModel {
         fieldTS.set = present();
 
         if (isSchema(fieldType)) {
-          if (!(fieldName in data)) {
-            fieldValue = data[fieldName] = fieldType.createModel();
+          if (isModel(value) || (Object.prototype.toString.call(value) !== '[object Object]')) {
+            data[fieldName] = value;
           } else {
             fieldValue = data[fieldName];
-          }
 
-          return fieldValue.set(value).then(() => fieldName);
+            if (!isModel(fieldValue)) {
+              fieldValue = data[fieldName] = fieldType.createModel();
+            }
+
+            return fieldValue.set(value).then(() => fieldName);
+          }
         } else {
           data[fieldName] = value;
         }
       }
 
-      return Promise.resolve(fieldName);
+      return fieldName;
     }
 
     if (arguments.length === 1 && (Object.prototype.toString.call(field) === '[object Object]')) {
-      return Promise.all(Object.keys(field).map(fieldName => {
-        return setField(fieldName, field[fieldName]);
-      })).then(fieldNames => {
-        return validate(this, fieldNames);
-      });
+      if (isModel(field)) {
+        field = field._data;
+      }
+      return Promise.all(Object.keys(field).map(fieldName => setField(fieldName, field[fieldName]))).then(fieldNames => validate(this, fieldNames));
     } else {
-      return setField(field, value).then(fieldName => {
-        return validate(this, [fieldName]);
-      });
+      return Promise.resolve(setField(field, value)).then(fieldName => validate(this, [fieldName]));
     }
   }
 
@@ -227,7 +226,7 @@ function checkField(field) {
 }
 
 function getFieldType(specs) {
-  return specs.type || specs;
+  return specs && getUserType(specs.type || specs);
 }
 
 function validate(model, fieldNames) {
@@ -318,7 +317,12 @@ module.exports = PerfectModel;
 
 const present = require('present');
 
-const isSchema = require('./schema').isSchema;
+const Schema = require('./schema');
+const isSchema = Schema.isSchema;
+
+const types = require('./validators/types');
+const isUserType = types.isRegisteredType;
+const getUserType = types.getRegisteredType;
 
 const c = require('./constents');
 const FIELD_SEPARATOR = c.FIELD_SEPARATOR;

@@ -141,6 +141,12 @@ function unregisterType(type) {
 }
 
 
+/**
+Returns true if the given type (or type alias) is a registered user type
+
+@param type {String|Object}
+@return {boolean}
+*/
 function isUserType(type) {
   if (typeof type === 'string') {
     const userTypeIndex = userTypeMap[type];
@@ -157,6 +163,16 @@ function isUserType(type) {
   return false;
 }
 
+
+/**
+Return the given user type. This function is useful to return the
+actual user type if the specified value is a recognized alias. If
+the value is not an alias and is not a string, it will be returned
+as is.
+
+@param type {String|any}
+@param {Object|any}
+*/
 function getUserType(type) {
   if (typeof type === 'string') {
     const userTypeIndex = userTypeMap[type];
@@ -183,6 +199,8 @@ function getUserTypeValidator(type) {
 module.exports = typeValidator;
 module.exports.registerType = registerType;
 module.exports.unregisterType = unregisterType;
+module.exports.isRegisteredType = isUserType;
+module.exports.getRegisteredType = getUserType;
 
 
 const anyValidator = require('../types/any');
