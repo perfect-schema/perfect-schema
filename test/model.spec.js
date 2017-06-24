@@ -191,8 +191,6 @@ describe('Testing Model', () => {
       assert.deepStrictEqual(model._data['foo'], { bar: { buz: value } }, 'Failed to set model property');
     });
 
-
-    /*
     it('should set field to sub-schema', () => {
       const subSchema = createSchema({
         bar: { type: String }
@@ -212,9 +210,7 @@ describe('Testing Model', () => {
       model.set('foo.bar', value2);
       assert.strictEqual(model._data['foo']._data['bar'], value2, 'Failed to set model property with value2');
     });
-    */
 
-    /*
     it('should fail to get invalid field type', () => {
       const subSchema = createSchema({
         bar: { type: String }
@@ -235,8 +231,6 @@ describe('Testing Model', () => {
       assert.throws(() => model.set('bar.foo', value), 'Failed to throw setting invalid field');
       assert.throws(() => model.set('foo.bar.buz', value), 'Failed to throw setting invalid field');
     });
-    */
-
 
     it('should set multiple values', () => {
       const schema = createSchema({

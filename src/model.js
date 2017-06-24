@@ -121,7 +121,7 @@ class PerfectModel {
 
           fieldTS.set = present();
           return fieldValue.set(field.substr(pos + FIELD_SEPARATOR_LEN), value).then(() => fieldName);
-        } else if (isObject(fieldType)) {
+        } else if (fieldType === Object) {
           var _fieldName = fieldName;
 
           fieldValue = data[fieldName] || (data[fieldName] = {});
@@ -163,9 +163,7 @@ class PerfectModel {
     }
 
     if (arguments.length === 1 && (Object.prototype.toString.call(field) === '[object Object]')) {
-      if (isModel(field)) {
-        field = field._data;
-      }
+      // if (isModel(field)) { field = field._data; }
       return Promise.all(Object.keys(field).map(fieldName => setField(fieldName, field[fieldName]))).then(fieldNames => validate(this, fieldNames));
     } else {
       return Promise.resolve(setField(field, value)).then(fieldName => validate(this, [fieldName]));
@@ -208,16 +206,9 @@ class PerfectModel {
 
 }
 
-
-
 function isModel(model) {
   return model && (model instanceof PerfectModel) || false;
 }
-
-function isObject(type) {
-  return type === Object;
-}
-
 
 function checkField(field) {
   if (typeof field !== 'string') {

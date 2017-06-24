@@ -70,7 +70,7 @@ const schema = new PerfectSchema({
 
 Wildcard type, the value may be anything if no type provided, or anyting that match the given types, or `undefined`. Each allowed types may be a short hand or descriptive type definition. For example
 
-```
+```js
 {
   a: PerfectSchema.Any
   b: { type: PerfectSchema.Any, allowedTypes: [String] },
@@ -88,7 +88,7 @@ The validations are performed in parallel when asynchronous, and fail if all typ
 
 Represent any array values or typed array values, or `undefined`. The following are all equivalent :
 
-```
+```js
 {
   a: Array,              // preferred
   b: "array",
@@ -114,7 +114,7 @@ Represent any array values or typed array values, or `undefined`. The following 
 
 Represent a typed array, or `undefined`. Typed arrays will test _all_ array elements to make sure they match the specified `type?` (or types). The following are all equivalent :
 
-```
+```js
 {
   c: [String],
   d: [{ type: PerfectSchema.Any, allowedTypes: [String] }],
@@ -126,7 +126,7 @@ Represent a typed array, or `undefined`. Typed arrays will test _all_ array elem
 
 Multiple types may be defined per array elements. The following are all equivalent :
 
-```
+```js
 {
   c: [String, { type: Number, min: 0 }],
   d: [{ type: PerfectSchema.Any, allowedTypes: [String, { type: Number, min: 0 }] }]
@@ -136,7 +136,7 @@ Multiple types may be defined per array elements. The following are all equivale
 
 Validations are performed in parallel for each array elements, and fail if any type mismatch. The first array element that fail is returned, and the index is set to the error message. For example :
 
-```
+```js
 {
   a: [String, Number]
 }
