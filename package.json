@@ -1,6 +1,6 @@
 {
   "name": "perfect-schema",
-  "version": "1.0.2",
+  "version": "1.0.6",
   "description": "Model and schema validation done perfectly.",
   "author": "Yanick Rochon <yanick.rochon@gmail.com>",
   "license": "ISC",
@@ -22,7 +22,7 @@
   ],
   "repository": {
     "type": "git",
-    "url": "git@github.com:yanickrochon/perfect-schema.git"
+    "url": "git@github.com:perfect-schema/perfect-schema.git"
   },
   "dependencies": {
     "present": "^1.0.0"

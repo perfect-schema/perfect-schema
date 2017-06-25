@@ -3,3 +3,6 @@ coverage/
 test/
 Gruntfile.js
 npm-debug.log
+.eslintrc.js
+.npmignore
+.travis.yml
