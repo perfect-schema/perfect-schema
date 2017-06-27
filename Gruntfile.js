@@ -13,9 +13,10 @@ module.exports = function (grunt) {
           ]
         },
         files: {
-          "dist/perfect-schema.js": ["./src/schema.js"]
+          "dist/perfect-schema.js": ["./src/index.js"]
         }
       },
+      /*
       distMin: {
         options: {
           transform: [
@@ -28,9 +29,10 @@ module.exports = function (grunt) {
           ]
         },
         files: {
-          "dist/perfect-schema.min.js": ["./src/schema.js"]
+          "dist/perfect-schema.min.js": ["./src/index.js"]
         }
       },
+      */
     },
     watch: {
       scripts: {

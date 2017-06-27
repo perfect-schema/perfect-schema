@@ -28,4 +28,23 @@ describe('Testing module entry point', () => {
   });
 
 
+  it('should create new instances', () => {
+    const schema = new PerfectSchema({
+      foo: String,
+      bar: {
+        type: PerfectSchema.Integer,
+        defaultValue: 17
+      }
+    });
+
+    const model = schema.createModel();
+
+    return model.set('foo', 'test').then(() => {
+
+      assert.strictEqual(model.get('foo'), 'test', 'Failed setting string');
+      assert.strictEqual(model.get('bar'), 17, 'Failed setting defualt value');
+    });
+  });
+
+
 });
