@@ -1,5 +1,5 @@
-const AnyType = require('./any').Type;
-const IntegerType = require('./validators/integer').Type;
+const AnyType = require('./types/any').Type;
+const IntegerType = require('./types/integer').Type;
 const PerfectSchema = require('./schema');
 const PerfectModel = require('./model');
 const validators = require('./validators');
