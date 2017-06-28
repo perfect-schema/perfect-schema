@@ -1,6 +1,6 @@
 {
   "name": "perfect-schema",
-  "version": "1.0.6",
+  "version": "1.0.8",
   "description": "Model and schema validation done perfectly.",
   "author": "Yanick Rochon <yanick.rochon@gmail.com>",
   "license": "ISC",
@@ -28,20 +28,25 @@
     "present": "^1.0.0"
   },
   "devDependencies": {
-    "babel-eslint": "^7.2.3",
     "babel-preset-es2015": "^6.24.1",
     "babelify": "^7.3.0",
+    "browserify": "^14.4.0",
     "eslint": "^4.0.0",
     "eslint-config-standard": "^10.2.1",
     "eslint-plugin-import": "^2.3.0",
     "eslint-plugin-node": "^5.0.0",
     "eslint-plugin-promise": "^3.5.0",
     "eslint-plugin-standard": "^3.0.1",
-    "grunt": "^1.0.1",
-    "grunt-browserify": "^5.0.0",
-    "grunt-contrib-watch": "^1.0.0",
+    "gulp": "^3.9.1",
+    "gulp-buffer": "0.0.2",
+    "gulp-rename": "^1.2.2",
+    "gulp-sourcemaps": "^2.6.0",
+    "gulp-uglify": "^3.0.0",
+    "gulp-util": "^3.0.8",
     "istanbul": "^0.4.5",
-    "jest": "^20.0.1"
+    "jest": "^20.0.1",
+    "vinyl-buffer": "^1.0.0",
+    "vinyl-source-stream": "^1.1.0"
   },
   "jest": {
     "testMatch": [

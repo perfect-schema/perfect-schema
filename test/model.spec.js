@@ -15,7 +15,7 @@ describe('Testing Model', () => {
     const schema = new Schema(fields, options.options);
 
     if (!options.defaultValidators) {
-      this._validators = Object.keys(fields || {}).reduce((validators, fieldName) => {
+      schema._validators = Object.keys(fields || {}).reduce((validators, fieldName) => {
         validators[fieldName] = fields[fieldName].type === String ? stringValidator(fieldName, fields[fieldName]) : objectValidator(fieldName, fields[fieldName]);
 
         return validators;
@@ -23,7 +23,7 @@ describe('Testing Model', () => {
     }
 
     if (!options.defaultValidation) {
-      this.validate = function () { return Promise.resolve(); };
+      schema.validate = function () { return Promise.resolve(); };
     }
 
     return schema
@@ -520,7 +520,7 @@ describe('Testing Model', () => {
     });
 
     it('should validate manually set fields', () => {
-      const fooSchema = createSchema({ foo: String });
+      const fooSchema = createSchema({ foo: String }, { defaultValidation: true });
       const fooModel = fooSchema.createModel();
 
       fooModel._data['foo'] = 123;

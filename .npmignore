@@ -1,8 +1,9 @@
 .git/
 coverage/
 test/
-Gruntfile.js
+gulpfile.js
 npm-debug.log
+.babelrc
 .eslintrc.js
 .npmignore
 .travis.yml
