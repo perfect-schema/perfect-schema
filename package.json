@@ -45,6 +45,7 @@
     "gulp-util": "^3.0.8",
     "istanbul": "^0.4.5",
     "jest": "^20.0.1",
+    "uppercamelcase": "^3.0.0",
     "vinyl-buffer": "^1.0.0",
     "vinyl-source-stream": "^1.1.0"
   },

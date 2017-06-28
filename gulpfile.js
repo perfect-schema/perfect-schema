@@ -9,12 +9,15 @@ const sourcemaps = require('gulp-sourcemaps');
 const gutil = require('gulp-util');
 const path = require('path');
 const pkg = require('./package');
+const upperCamelCase = require('uppercamelcase');
 
 const SRC_PATH = path.dirname(pkg.main);
 const DIST_PATH = path.dirname(pkg.browser);
 
 const INPUT_FILE = path.basename(pkg.main);
 const OUTPUT_FILE = path.basename(pkg.browser);
+
+const MODULE_NAME = upperCamelCase(pkg.name);
 
 
 gulp.task('default', () => {
@@ -23,6 +26,7 @@ gulp.task('default', () => {
     entries: INPUT_FILE,
     basedir: SRC_PATH,
     transform: ['babelify'],
+    standalone: MODULE_NAME,
     debug: true
   });
 
