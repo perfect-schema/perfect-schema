@@ -1,6 +1,6 @@
 {
   "name": "perfect-schema",
-  "version": "1.0.8",
+  "version": "1.0.10",
   "description": "Model and schema validation done perfectly.",
   "author": "Yanick Rochon <yanick.rochon@gmail.com>",
   "license": "ISC",
@@ -13,7 +13,7 @@
     "test": "jest --forceExit",
     "test-cov": "npm run test -- --coverage",
     "lint": "eslint benchmarks dist --fix",
-    "prepublishOnly": "grunt build"
+    "prepublishOnly": "gulp"
   },
   "keywords": [
     "model",

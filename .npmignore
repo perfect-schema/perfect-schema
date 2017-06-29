@@ -3,6 +3,7 @@ coverage/
 test/
 gulpfile.js
 npm-debug.log
+package-lock.json
 .babelrc
 .eslintrc.js
 .npmignore
