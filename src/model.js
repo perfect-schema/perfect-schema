@@ -26,7 +26,9 @@ class PerfectModel {
   @param field {string}
   @return {string}
   */
-  getMessages(...fields) {
+  getMessages() {
+    const fields = arguments;
+    
     if (fields.length) {
       const fieldMessages = [];
       var message;
