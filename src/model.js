@@ -26,19 +26,27 @@ class PerfectModel {
   @param field {string}
   @return {string}
   */
-  getMessages(field) {
-    const fieldMessages = [];
-    var message;
+  getMessages() {
+    const fields = arguments;
+    
+    if (fields.length) {
+      const fieldMessages = [];
+      var message;
 
-    for (var i = 0, iLen = this._messages && this._messages.length || 0; i < iLen; ++i) {
-      message = this._messages[i];
+      for (var field of fields) {
+        for (var i = 0, iLen = this._messages && this._messages.length || 0; i < iLen; ++i) {
+          message = this._messages[i];
 
-      if (message.field === field) {
-        fieldMessages.push(message);
+          if (message.field === field) {
+            fieldMessages.push(message);
+          }
+        }
       }
-    }
 
-    return fieldMessages.length ? fieldMessages : null;
+      return fieldMessages.length ? fieldMessages : null;
+    } else {
+      return this._messages.length ? this._messages.slice() : null;
+    }
   }
 
   /**

@@ -414,10 +414,12 @@ describe('Testing Model', () => {
 
       assert.deepStrictEqual(model.getMessages('foo'), null, 'Failed to fetch null');
       assert.deepStrictEqual(model.getMessages('bar'), null, 'Failed to fetch null');
+      assert.deepStrictEqual(model.getMessages(), null, 'Failed to fetch null');
 
       const validator = model.set({ 'foo': valueFoo, 'bar': valueBar });
 
       return validator.then(allMessages => {
+        assert.deepStrictEqual(model.getMessages().length, validationMessages.length, 'Failed to fetch all messages');
         assert.deepStrictEqual(model.getMessages('foo'), [validationMessages[0]], 'Failed to fetch messages for foo');
         assert.deepStrictEqual(model.getMessages('bar'), [validationMessages[1]], 'Failed to fetch messages for bar');
       });
