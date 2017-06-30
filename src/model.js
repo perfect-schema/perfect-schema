@@ -226,6 +226,7 @@ function validate(model, fieldNames) {
   const data = model._data;
   const dataTS = model._dataTS;
   const messages = model._messages;
+  const context = validationContext(data);
   const validationData = {};
   const fieldNamesLen = fieldNames && fieldNames.length || 0;
   var fieldName, msgFieldName;
@@ -239,7 +240,7 @@ function validate(model, fieldNames) {
     validationData[fieldName] = data[fieldName];
   }
 
-  return schema.validate(validationData).then(validationMessages => {
+  return schema.validate(validationData, context).then(validationMessages => {
     const validatedTS = present();
     const validationMsgLen = validationMessages && validationMessages.length || 0;
     var messagesLen = messages.length || 0;
@@ -318,3 +319,5 @@ const getUserType = types.getRegisteredType;
 const c = require('./constents');
 const FIELD_SEPARATOR = c.FIELD_SEPARATOR;
 const FIELD_SEPARATOR_LEN = c.FIELD_SEPARATOR_LEN;
+
+const validationContext = require('./validation-context');

@@ -82,14 +82,14 @@ class PerfectSchema {
   Validate the given data
 
   @param data {Object}                            the data to Validate
-  @param parentCtx {validationContext} (optional) the parent validation context
+  @param context {validationContext}   (optional) the validation context
   @return {ValidationResult}
   */
-  validate(data, parentCtx) {
-    if (parentCtx && !validationContext.isValidationContext(parentCtx)) {
+  validate(data, context) {
+    if (context && !validationContext.isValidationContext(context)) {
       throw new TypeError('Invalid parent validation context');
     }
-    const ctx = validationContext(data, parentCtx);
+    const ctx = context || validationContext(data);
     const dataFields = Object.keys(data || {});
     const fields = this._fields;
     const fieldNames = this._fieldNames;
@@ -145,7 +145,8 @@ function registerSchemaType(schema) {
   function validator(field, specs) {
     return function schemaValidator(value, ctx) {
       if (isModel(value) && value._schema === schema) {
-        return schema.validate(value._data).then(messages => {
+        const context = validationContext(value._data, ctx);
+        return schema.validate(value._data, context).then(messages => {
           if (messages.length) {
             return 'invalid';
           }

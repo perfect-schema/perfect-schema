@@ -47,4 +47,26 @@ describe('Testing module entry point', () => {
   });
 
 
+  it('should call custom validator with context', () => {
+    const schema = new PerfectSchema({
+      foo: String,
+      bar: {
+        type: String,
+        custom(value, ctx) {
+          const field = ctx.field('foo');
+
+          assert.ok(field.exists, 'Failed to have all model data within context');
+          assert.strictEqual(field.value, 'hello', 'Field does not have same value in context');
+        }
+      }
+    });
+
+    const model = schema.createModel();
+
+    model._data.foo = 'hello';  // manually setting fields...
+
+    return model.set({ bar: 'world' });
+  });
+
+
 });
