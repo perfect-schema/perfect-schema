@@ -1,6 +1,6 @@
 {
   "name": "perfect-schema",
-  "version": "1.0.12",
+  "version": "1.0.14",
   "description": "Model and schema validation done perfectly.",
   "author": "Yanick Rochon <yanick.rochon@gmail.com>",
   "license": "ISC",
@@ -38,6 +38,7 @@
     "eslint-plugin-standard": "^3.0.1",
     "gulp": "^3.9.1",
     "gulp-buffer": "0.0.2",
+    "gulp-derequire": "^2.1.0",
     "gulp-rename": "^1.2.2",
     "gulp-sourcemaps": "^2.6.0",
     "gulp-uglify": "^3.0.0",

@@ -14,9 +14,9 @@ npm i -S perfect-schema
 
 ## Requirements
 
-This modules does not provide a polyfill for a `Promise` impelementation is none is available. If such is the case, an [ECMA-262](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise) complient implementation should be defined _before_ declaring any model schema.
+This modules does not provide a polyfill for a global `Promise` impelementation if none is available. If such is the case, an [ECMA-262](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise) complient implementation should be defined _before_ declaring any schema.
 
-A client version of this module can be build using [Grunt](https://gruntjs.com/) : `$ grunt build` which can then be found in the `dist` folder. If installed through [npm](https://www.npmjs.com/package/perfect-schema), these files should already be provided.
+A client version of this module can be built using [Gulp](http://gulpjs.com/) (i.e. `$ gulp`) which can then be found in the `dist` folder. If installed through [npm](https://www.npmjs.com/package/perfect-schema), this file should already be provided as `dist/perfect-schema.min.js`. The client module is wrapped by a UMD, and also globally exposes a `PerfectSchema` constructor.
 
 
 ## Usage

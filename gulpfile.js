@@ -3,6 +3,7 @@
 const browserify = require('browserify');
 const gulp = require('gulp');
 const source = require('vinyl-source-stream');
+const derequire = require('gulp-derequire');
 const buffer = require('vinyl-buffer');
 const uglify = require('gulp-uglify');
 const sourcemaps = require('gulp-sourcemaps');
@@ -33,6 +34,7 @@ gulp.task('default', () => {
   return b.bundle()
     .pipe(source(OUTPUT_FILE))
     .pipe(buffer())
+    .pipe(derequire())
     .pipe(sourcemaps.init({loadMaps: true}))
     .pipe(uglify())
     .on('error', gutil.log)
