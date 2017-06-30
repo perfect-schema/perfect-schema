@@ -7,8 +7,8 @@ Required validation : make sure the field is not undefined
 @return {function}
 */
 function requiredValidator(field, specs, validator) {
-  if (specs && specs.required) {
-    /**
+	if (specs && specs.required) {
+		/**
     Ensure that the value is set. If the value is undefined, the error "required"
     is returned. Otherwise, the validation is forwared to the validator function,
     and whatever value is returned.
@@ -17,13 +17,13 @@ function requiredValidator(field, specs, validator) {
     @param ctx {ValidationContext}
     @return {string|undefined}
     */
-    return function required(value, ctx) {
-      return value === undefined ? 'required' : validator(value, ctx);
-    };
-  } else {
-    return validator;
-  }
+		return function required(value, ctx) {
+			return value === undefined ? 'required' : validator(value, ctx)
+		}
+	} else {
+		return validator
+	}
 }
 
 
-module.exports = requiredValidator;
+module.exports = requiredValidator

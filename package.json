@@ -1,6 +1,6 @@
 {
   "name": "perfect-schema",
-  "version": "1.0.11",
+  "version": "1.0.12",
   "description": "Model and schema validation done perfectly.",
   "author": "Yanick Rochon <yanick.rochon@gmail.com>",
   "license": "ISC",
@@ -12,7 +12,7 @@
   "scripts": {
     "test": "jest --forceExit",
     "test-cov": "npm run test -- --coverage",
-    "lint": "eslint benchmarks dist --fix",
+    "lint": "eslint benchmarks src --fix",
     "prepublishOnly": "gulp"
   },
   "keywords": [
@@ -33,7 +33,6 @@
     "browserify": "^14.4.0",
     "eslint": "^4.0.0",
     "eslint-config-standard": "^10.2.1",
-    "eslint-plugin-import": "^2.3.0",
     "eslint-plugin-node": "^5.0.0",
     "eslint-plugin-promise": "^3.5.0",
     "eslint-plugin-standard": "^3.0.1",

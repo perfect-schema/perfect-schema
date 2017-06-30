@@ -69,7 +69,7 @@ function anyValidator(field, specs) {
   } else {
     return function validate() {};
   }
-};
+}
 
 const AnyType = Object.freeze(Object.create(null, {
   toString: {

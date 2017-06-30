@@ -41,7 +41,7 @@ function validationContext(data, parent) {
       return parent;
     }
   };
-};
+}
 
 
 function setContextValue(ctx, field) {

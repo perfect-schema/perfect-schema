@@ -28,7 +28,7 @@ class PerfectModel {
   */
   getMessages() {
     const fields = arguments;
-    
+
     if (fields.length) {
       const fieldMessages = [];
       var message;
@@ -237,7 +237,7 @@ function validate(model, fieldNames) {
   const context = validationContext(data);
   const validationData = {};
   const fieldNamesLen = fieldNames && fieldNames.length || 0;
-  var fieldName, msgFieldName;
+  var fieldName;
 
   for (var i = 0; i < fieldNamesLen; ++i) {
     fieldName = fieldNames[i];
@@ -321,7 +321,6 @@ const Schema = require('./schema');
 const isSchema = Schema.isSchema;
 
 const types = require('./validators/types');
-const isUserType = types.isRegisteredType;
 const getUserType = types.getRegisteredType;
 
 const c = require('./constents');

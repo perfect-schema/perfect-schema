@@ -35,7 +35,7 @@ function integerValidator(field, specs) {
       return 'invalidType';
     }
   };
-};
+}
 
 const IntegerType = Object.freeze(Object.create(null, {
   toString: {

@@ -1,3 +1,6 @@
+/*eslint no-unused-vars: "off"*/
+/*eslint no-console: "off"*/
+
 'use strict';
 
 const DEFAULT_OPTIONS = {};
@@ -92,13 +95,12 @@ class PerfectSchema {
     const ctx = context || validationContext(data);
     const dataFields = Object.keys(data || {});
     const fields = this._fields;
-    const fieldNames = this._fieldNames;
     const validators = this._validators;
     const messages = [];
 
+    const validationResults = [];
     // Set initial state
     var isPending = true;
-    const validationResults = [];
 
     function validateField(fieldName, value) {
       const validator = validators[fieldName];
@@ -142,7 +144,7 @@ function registerSchemaType(schema) {
   const options = schema._options;
   const typeName = 'name' in options ? [options.name] : undefined;
 
-  function validator(field, specs) {
+  function validator(/*field, specs*/) {
     return function schemaValidator(value, ctx) {
       if (isModel(value) && value._schema === schema) {
         const context = validationContext(value._data, ctx);
@@ -156,7 +158,7 @@ function registerSchemaType(schema) {
         return 'invalidType';
       }
     }
-  };
+  }
 
   types.registerType(schema, validator, typeName);
 }

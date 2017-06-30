@@ -97,7 +97,9 @@ function registerType(type, validator, aliases) {
   if ((aliases !== undefined) && !(aliases instanceof Array)) {
     throw new TypeError('Aliases must be an array');
   } else if (aliases && aliases.length) {
-    for (var alias of aliases) {
+    var alias;
+
+    for (alias of aliases) {
       if (typeof alias !== 'string') {
         throw new TypeError('Alias for user type must be a string');
       } else if (!alias.length) {
@@ -107,7 +109,7 @@ function registerType(type, validator, aliases) {
       }
     }
 
-    for (var alias of aliases) {
+    for (alias of aliases) {
       userTypeMap[alias] = userTypeIndex;
     }
   }
