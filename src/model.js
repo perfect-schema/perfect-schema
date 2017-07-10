@@ -212,7 +212,7 @@ class PerfectModel {
     var fieldName, fieldTS;
 
     if (allFields === true) {
-      validateFields.push(...fieldNames);
+      validateFields.push.apply(validateFields, fieldNames);
     } else if (allFields instanceof Array) {
       for (fieldName of allFields) {
         if (!(fieldName in fields)) {
