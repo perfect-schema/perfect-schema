@@ -48,22 +48,33 @@ describe('Testing module entry point', () => {
 
 
   it('should call custom validator with context', () => {
+    const buzSchema = new PerfectSchema({
+      foo: Object
+    });
     const schema = new PerfectSchema({
       foo: String,
       bar: {
         type: String,
         custom(value, ctx) {
           const field = ctx.field('foo');
+          const subField = ctx.field('buz.foo.bar');
 
           assert.ok(field.exists, 'Failed to have all model data within context');
           assert.strictEqual(field.value, 'hello', 'Field does not have same value in context');
-        }
-      }
-    });
 
+          assert.ok(subField.exists, 'Failed to fetch sub-model data');
+          assert.strictEqual(subField.value, 'world', 'Sub-field does not have same value in context');
+        }
+      },
+      buz: buzSchema
+    });
     const model = schema.createModel();
+    const buzModel = buzSchema.createModel();
+
+    buzModel._data.foo = { bar: 'world' };
 
     model._data.foo = 'hello';  // manually setting fields...
+    model._data.buz = buzModel;
 
     return model.set({ bar: 'world' });
   });

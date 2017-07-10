@@ -45,7 +45,7 @@ class PerfectModel {
 
       return fieldMessages.length ? fieldMessages : null;
     } else {
-      return this._messages.length ? this._messages.slice() : null;
+      return this._messages.length ? this._messages : null;
     }
   }
 
@@ -193,23 +193,59 @@ class PerfectModel {
   Useful to make sure all the fields are valid. Use set(field, value)
   to validate a specific field.
 
+  If allFields is an array, it is the explicit list of fields to validate. If
+  any array element is not a recognized field, an error will be thrown.
+
+  If allFields is an object, then all keys that are truthy are the fields to
+  validate. If any key is not a recognized field, an error will be thrown.
+
+  If allFields is any other value, all fields will be validated.
+
+  @param allFields {Object|Array}    (optional) validate all fields
   @return {Promise}
   */
-  validate() {
+  validate(allFields) {
     const dataTS = this._dataTS;
+    const fields = this._schema._fields;
     const fieldNames = this._schema._fieldNames;
     const validateFields = [];
     var fieldName, fieldTS;
 
-    for (fieldName of fieldNames) {
-      fieldTS = dataTS[fieldName];
-
-      if (!fieldTS || !fieldTS.validating) {
+    if (allFields === true) {
+      validateFields.push(...fieldNames);
+    } else if (allFields instanceof Array) {
+      for (fieldName of allFields) {
+        if (!(fieldName in fields)) {
+          throw new TypeError('Unknown field : ' + fieldName);
+        }
         validateFields.push(fieldName);
+      }
+    } else if (Object.prototype.toString.call(allFields) === '[object Object]') {
+      const keys = Object.keys(allFields);
+
+      for (fieldName of keys) {
+        if (allFields[fieldName]) {
+          if (!(fieldName in fields)) {
+            throw new TypeError('Unknown field : ' + fieldName);
+          }
+          validateFields.push(fieldName);
+        }
+      }
+    } else {
+      for (fieldName of fieldNames) {
+        fieldTS = dataTS[fieldName];
+
+        if (!fieldTS || (!fieldTS.validating && (fieldTS.validated < fieldTS.set))) {
+          validateFields.push(fieldName);
+        }
       }
     }
 
-    return validate(this, validateFields);
+    if (validateFields.length) {
+      return validate(this, validateFields);
+    } else {
+      return Promise.resolve(this._messages);
+    }
   }
 
 }
@@ -252,16 +288,24 @@ function validate(model, fieldNames) {
     const validatedTS = present();
     const validationMsgLen = validationMessages && validationMessages.length || 0;
     var messagesLen = messages.length || 0;
-    var duplicate, fieldTS, i, j, msg;
+    var duplicate, fieldMsgFound, fieldTS, i, j, msg;
 
     for (i = 0; i < fieldNamesLen; ++i) {
       fieldName = fieldNames[i];
       fieldTS = dataTS[fieldName];
+      fieldMsgFound = false;
+
+      for (j = 0; j < validationMsgLen; ++j) {
+        msg = validationMessages[j];
+        if (msg.field === fieldName) {
+          fieldMsgFound = true;
+        }
+      }
 
       for (j = messagesLen - 1; j >= 0; --j) {
         msg = messages[j];
 
-        if ((msg.field === fieldName) && (!fieldTS || (fieldTS.set < validationTS))) {
+        if ((msg.field === fieldName) && (!fieldMsgFound || !fieldTS || (fieldTS.set < validationTS))) {
           messages.splice(j, 1);
           --messagesLen;
         }
@@ -270,7 +314,7 @@ function validate(model, fieldNames) {
 
     for (i = 0; i < validationMsgLen; ++i) {
       msg = validationMessages[i];
-      fieldTS = dataTS[msg.field] || (dataTS[msg.field] = {});
+      fieldTS = dataTS[msg.field]; // || (dataTS[msg.field] = {});
 
       if (!fieldTS.set || (fieldTS.set <= validationTS)) {
         // try to find if the same message was already set
