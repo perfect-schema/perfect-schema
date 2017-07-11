@@ -81,14 +81,15 @@ A function that does nothing. Required as base validator by some wrappers
 */
 function valid() {}
 
+
+module.exports.build = buildValidator;
+module.exports.registerValidator = registerValidator;
+module.exports.unregisterValidator = unregisterValidator;
+
+
 const validators = [
   { wrapper: require('./validators/required'), index: 0 },
   { wrapper: require('./validators/nullable'), index: 1 },
   { wrapper: require('./validators/types'), index: 10 },
   { wrapper: require('./validators/custom'), index: 100 }
 ];
-
-
-module.exports.build = buildValidator;
-module.exports.registerValidator = registerValidator;
-module.exports.unregisterValidator = unregisterValidator;
