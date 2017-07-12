@@ -17,6 +17,8 @@ class PerfectModel {
     this._dataTS = {};
     this._valid = new ReactiveVar(true);
     this._messages = [];
+
+    setDefaults(this, schema);
   }
 
   /**
@@ -262,6 +264,21 @@ function checkField(field) {
 
 function getFieldType(specs) {
   return specs && getUserType(specs.type || specs);
+}
+
+function setDefaults(model, schema) {
+  const fieldNames = schema._fieldNames;
+  const fields = schema._fields;
+  const data = model._data;
+  var defaultValue, field, fieldName;
+
+  for (fieldName of fieldNames) {
+    field = fields[fieldName];
+    if ((Object.prototype.toString.call(field) === '[object Object]') && ('defaultValue' in field)) {
+      defaultValue = field.defaultValue;
+      data[fieldName] = typeof defaultValue === 'function' ? defaultValue() : defaultValue;
+    }
+  }
 }
 
 function validate(model, fieldNames) {

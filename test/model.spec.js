@@ -659,4 +659,27 @@ describe('Testing Model', () => {
   });
 
 
+  describe('Testing default values', () => {
+
+    it('should set defaults on model creation', () => {
+      const schema = createSchema({
+        foo: {
+          type: String,
+          defaultValue: 'hello'
+        },
+        bar: {
+          type: Number,
+          defaultValue: 0
+        }
+      }, {
+        defaultValidation: true
+      });
+      const model = schema.createModel();
+
+      assert.strictEqual(model.get('foo'), 'hello', 'Failed to set default string');
+      assert.strictEqual(model.get('bar'), 0, 'Failed to set default number');
+    });
+
+  });
+
 });

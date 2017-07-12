@@ -1,6 +1,6 @@
 {
   "name": "perfect-schema",
-  "version": "1.0.20",
+  "version": "1.0.21",
   "description": "Model and schema validation done perfectly.",
   "author": "Yanick Rochon <yanick.rochon@gmail.com>",
   "license": "ISC",

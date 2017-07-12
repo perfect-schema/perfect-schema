@@ -66,18 +66,7 @@ class PerfectSchema {
   @return {PerfectModel}
   */
   createModel() {
-    const model = new PerfectModel(this);
-    var defaultValue;
-
-    for (var fieldName of this._fieldNames) {
-      defaultValue = this._fields[fieldName].defaultValue;
-
-      if (defaultValue) {
-        model._data[fieldName] = typeof defaultValue === 'function' ? defaultValue() : defaultValue;
-      }
-    }
-
-    return model;
+    return new PerfectModel(this);
   }
 
 
