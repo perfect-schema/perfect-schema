@@ -25,7 +25,7 @@ class PerfectModel {
   Return the error messages for the specified field. The field
   may be a dot-separated path of field names for recursive models.
 
-  @param field {string}
+  @param field {String}
   @return {string}
   */
   getMessages() {
@@ -55,7 +55,7 @@ class PerfectModel {
   Retrieve the field value. The field may be a dot-separated path
   of field names for recursive models
 
-  @param field {string}
+  @param field {String}
   @return {mixed}
   */
   get(field) {
@@ -75,13 +75,11 @@ class PerfectModel {
       if (isSchema(fieldType)) {
         fieldValue = fieldValue && fieldValue.get(field.substr(pos + FIELD_SEPARATOR_LEN));
       } else {
-        var _fieldName = fieldName;
-
         start = pos + FIELD_SEPARATOR_LEN;
 
         while (fieldValue && (pos = field.indexOf('.', start)) >= start) {
-          _fieldName = field.substr(start, pos - start);
-          fieldValue = fieldValue[_fieldName];
+          fieldName = field.substr(start, pos - start);
+          fieldValue = fieldValue[fieldName];
           start = pos + FIELD_SEPARATOR_LEN;
         }
 
@@ -96,10 +94,19 @@ class PerfectModel {
   }
 
   /**
+  Return all the raw data from this model
+
+  @return {Object}
+  */
+  getData() {
+    return this._data;
+  }
+
+  /**
   Set the given value to the specified field. The field may be a dot-separated
   path of field names for recursive models.
 
-  @param field {string}
+  @param field {String}
   @param value {mixed}
   @return {Promise}
   */
@@ -184,7 +191,7 @@ class PerfectModel {
   /**
   Returns true if this model is valid
 
-  @return {boolean}
+  @return {Boolean}
   */
   isValid() {
     return this._valid.get();

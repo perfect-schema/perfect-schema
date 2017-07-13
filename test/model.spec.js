@@ -56,6 +56,7 @@ describe('Testing Model', () => {
     const foo = new Model(createSchema(fields));
 
     assert.strictEqual(foo.isValid(), true, 'Failed to have default model validated');
+    assert.deepStrictEqual(foo.getData(), {}, 'Failed to fetch raw data from empty model');
   });
 
 
@@ -169,6 +170,7 @@ describe('Testing Model', () => {
       model.set('foo', value);
 
       assert.strictEqual(model._data['foo'], value, 'Failed to set model property');
+      assert.deepStrictEqual(model.getData(), { foo: value }, 'Failed to fetch raw data');
     });
 
 
@@ -678,6 +680,7 @@ describe('Testing Model', () => {
 
       assert.strictEqual(model.get('foo'), 'hello', 'Failed to set default string');
       assert.strictEqual(model.get('bar'), 0, 'Failed to set default number');
+      assert.deepStrictEqual(model.getData(), { foo: 'hello', bar: 0 }, 'Failed to fetch raw data from model');
     });
 
   });
