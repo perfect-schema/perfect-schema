@@ -253,7 +253,7 @@ class PerfectModel {
     if (validateFields.length) {
       return validate(this, validateFields);
     } else {
-      return Promise.resolve(this._messages);
+      return Promise.resolve(this);
     }
   }
 
@@ -364,7 +364,7 @@ function validate(model, fieldNames) {
 
     model._valid.set(!messages.length);
 
-    return model._messages = messages;
+    return model;
   });
 }
 

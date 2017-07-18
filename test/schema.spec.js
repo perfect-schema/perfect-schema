@@ -394,14 +394,17 @@ describe('Testing Schema', () => {
         test: typeName,
       };
       const otherSchema = new Schema(otherFields);
-      const otherModel = otherSchema.createModel();
 
-      return otherModel.set('test.foo', '!').then(messages => {
+      return otherSchema.createModel().set('test.foo', '!').then(otherModel => {
+        const messages = otherModel.getMessages();
+
         assert.ok(messages.length, 'Failed to invalidate');
         assert.strictEqual(messages[0].message, 'invalid', 'Failed to propagate to parent');
 
         return otherModel.set('test', '!');
-      }).then(messages => {
+      }).then(otherModel => {
+        const messages = otherModel.getMessages();
+
         assert.ok(messages.length, 'Failed to invalidate');
         assert.strictEqual(messages[0].message, 'invalidType', 'Failed to check valid type');
 
@@ -423,9 +426,10 @@ describe('Testing Schema', () => {
 
       const otherFields = { test: typeNameA };
       const otherSchema = new Schema(otherFields);
-      const otherModel = otherSchema.createModel();
 
-      return otherModel.set('test', schemaB.createModel()).then(messages => {
+      return otherSchema.createModel().set('test', schemaB.createModel()).then(otherModel => {
+        const messages = otherModel.getMessages();
+
         assert.ok(messages.length, 'Failed to invalidate');
         assert.strictEqual(messages[0].message, 'invalidType', 'Failed to check valid type');
 

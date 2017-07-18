@@ -295,7 +295,9 @@ describe('Testing Model', () => {
 
       const validator = model.set('foo', value);
 
-      return validator.then(messages => {
+      return validator.then(() => {
+        const messages = model.getMessages();
+
         assert.deepStrictEqual(messages, validationMessages, 'Failed to return validation messages');
 
         assert.strictEqual(model.isValid(), false, 'Failed to set invalid with error messages set');
@@ -316,12 +318,12 @@ describe('Testing Model', () => {
 
       const validator1 = model.set('foo', value1);
 
-      return validator1.then(messages1 => {
+      return validator1.then(() => {
         const value2 = 'World';
         const validationMessages2 = [ { field: 'foo', message: 'Validation Test 2', value: value2 } ];
 
         assert.strictEqual(model.isValid(), false, 'Failed to set invalid with error messages set 1');
-        assert.deepStrictEqual(messages1, validationMessages1, 'Failed to return validation messages 1');
+        assert.deepStrictEqual(model.getMessages(), validationMessages1, 'Failed to return validation messages 1');
 
         schema.validate = function (data) {
           return Promise.resolve(validationMessages2);
@@ -329,9 +331,9 @@ describe('Testing Model', () => {
 
         const validator2 = model.set('foo', value2);
 
-        return validator2.then(messages2 => {
+        return validator2.then(() => {
           assert.strictEqual(model.isValid(), false, 'Failed to set invalid with error messages set 2');
-          assert.deepStrictEqual(messages2, validationMessages2, 'Failed to return validation messages 2');
+          assert.deepStrictEqual(model.getMessages(), validationMessages2, 'Failed to return validation messages 2');
 
           schema.validate = function (data) {
             return Promise.resolve([]);
@@ -339,9 +341,10 @@ describe('Testing Model', () => {
 
           const validator3 = model.set('foo', 'something');
 
-          return validator3.then(messages3 => {
+          return validator3.then(() => {
             assert.strictEqual(model.isValid(), true, 'Failed to set valid with no error messages set 3');
-            assert.deepStrictEqual(messages3, [], 'Failed to return validation messages 3');
+
+            assert.strictEqual(model.getMessages(), null, 'Failed to return validation messages 3');
           });
         });
       });
@@ -452,7 +455,9 @@ describe('Testing Model', () => {
 
       const fooModel = fooSchema.createModel();
 
-      return fooModel.set({ foo: { bar: 123 }, bob: 456 }).then(messages => {
+      return fooModel.set({ foo: { bar: 123 }, bob: 456 }).then(() => {
+        const messages = fooModel.getMessages();
+
         assert.strictEqual(fooModel._data['foo']._data['bar'], 123, 'Failed to create sub model');
         assert.strictEqual(fooModel._data['bob'], 456, 'Failed to create sub model');
 
@@ -461,13 +466,17 @@ describe('Testing Model', () => {
         assert.deepStrictEqual(getFieldMessage(messages, 'foo'), 'invalid', 'Failed to invalidate foo');
         assert.deepStrictEqual(getFieldMessage(messages, 'bob'), 'invalidType', 'Failed to invalidate bob');
 
-        return fooModel.set('foo', { bar: null }).then(messages => {
+        return fooModel.set('foo', { bar: null }).then(() => {
+          const messages = fooModel.getMessages();
+
           assert.strictEqual(fooModel._data['foo']._data['bar'], null, 'Failed to update sub model');
 
           assert.deepStrictEqual(getFieldMessage(messages, 'foo'), 'invalid', 'Failed to invalidate foo');
           assert.deepStrictEqual(getFieldMessage(messages, 'bob'), 'invalidType', 'Failed to invalidate bob');
 
-          return fooModel.set('foo.bar', 'hello').then(messages => {
+          return fooModel.set('foo.bar', 'hello').then(() => {
+            const messages = fooModel.getMessages();
+
             assert.strictEqual(fooModel._data['foo']._data['bar'], 'hello', 'Failed to update sub model');
 
             assert.deepStrictEqual(getFieldMessage(messages, 'bob'), 'invalidType', 'Failed to invalidate bob');
@@ -526,7 +535,9 @@ describe('Testing Model', () => {
 
       fooModel._data['foo'] = 123;
 
-      return fooModel.validate().then(messages => {
+      return fooModel.validate().then(() => {
+        const messages = fooModel.getMessages();
+
         // remove ts from messages...
         messages.forEach(msg => delete msg.ts);
 
@@ -552,14 +563,16 @@ describe('Testing Model', () => {
       };
 
       // first validation (all fields)
-      return model.validate().then(messages => {
+      return model.validate().then(() => {
+        const messages = model.getMessages();
+
         assert.strictEqual(messages.length, 3, 'Something went wrong with first validation');
 
         model._messages = [];
 
         // specific fields (object)
         return model.validate({ foo: true, bar: false, buz: true });
-      }).then(messages => {
+      }).then(() => {
         assert.strictEqual(model.getMessages().length, 2, 'Invalid field validation');
 
         assert.strictEqual(model.getMessages('foo').length, 1, 'Did not revalidate foo');
@@ -570,7 +583,7 @@ describe('Testing Model', () => {
 
         // specific fields 2 (object)
         return model.validate({ bar: true });
-      }).then(messages => {
+      }).then(() => {
         assert.strictEqual(model.getMessages().length, 1, 'Invalid field validation');
 
         assert.ok(!model.getMessages('foo'), 'Failed at ignoring foo');
@@ -581,7 +594,7 @@ describe('Testing Model', () => {
 
         // specific fields 3 (array)
         return model.validate(['buz', 'bar']);
-      }).then(messages => {
+      }).then(() => {
         assert.strictEqual(model.getMessages().length, 2, 'Invalid field validation');
 
         assert.ok(!model.getMessages('foo'), 'Failed at ignoring foo');
@@ -592,31 +605,34 @@ describe('Testing Model', () => {
 
         // specific fields 4 (empty array)
         return model.validate([]);
-      }).then(messages => {
-        assert.ok(!messages.length, 'Failed at validating no fields');
+      }).then(() => {
+
+        assert.ok(!model.getMessages(), 'Failed at validating no fields');
 
         // specific fields 5 (revalidate)
         return model.validate();
-      }).then(messages => {
+      }).then(() => {
         // NOTE : manually reset messages are not updated if model didn't find changes...
-        assert.ok(!messages.length, 'Failed at validating all (no args)');
+        assert.ok(!model.getMessages(), 'Failed at validating all (no args)');
 
         model._data.foo = '123';
 
         return model.validate(false);  // ignored
-      }).then(messages => {
+      }).then(() => {
         // NOTE : same thing as above...
-        assert.ok(!messages.length, 'Failed at validating all (repeated no args)');
+        assert.ok(!model.getMessages(), 'Failed at validating all (repeated no args)');
 
         // force revalidation
         return model.validate(true);
-      }).then(messages => {
+      }).then(() => {
+        const messages = model.getMessages();
+
         assert.strictEqual(messages.length, 2, 'Failed at validating all');
 
         return model.validate();
-      }).then(messages => {
+      }).then(() => {
         // NOTE : old error messages should not be reset
-        assert.strictEqual(messages.length, 2, 'Failed at preserving old error messages');
+        assert.strictEqual(model.getMessages().length, 2, 'Failed at preserving old error messages');
       });
     });
 
