@@ -7,12 +7,14 @@ Custom validation : allow user specified custom validation
 @return {function}
 */
 function customValidator(field, specs, validator) {
-  if (specs && specs.custom) {
-    if (typeof specs.custom !== 'function') {
+  const customFn = specs && specs.custom;
+
+  if (customFn !== undefined) {
+    if (typeof customFn !== 'function') {
       throw new TypeError('Custom validator should be a function for ' + field);
     }
 
-    const userCustom = specs.custom.bind(specs);
+    const userCustom = customFn.bind(specs);
 
     /**
     Invoke the custom validator function if all current validation passes

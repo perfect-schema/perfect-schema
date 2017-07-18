@@ -7,16 +7,16 @@ Allowed value validation : make sure the field only provides one of the specifie
 @return {function}
 */
 function allowedValuesValidator(field, specs, validator) {
-  const allowedValues = specs && specs.allowedValues;
+  const allowed = specs && specs.allowedValues;
 
-	if (allowedValues) {
-    if (!Array.isArray(allowedValues)) {
+	if (allowed !== undefined) {
+    if (!Array.isArray(allowed)) {
       throw new TypeError('Allowed values must be an array');
-    } else if (!allowedValues.length) {
+    } else if (!allowed.length) {
       throw new TypeError('Empty allowed values');
     }
 
-    const len = allowedValues.length;
+    const len = allowed.length;
 
 		/**
     Ensure that the value is any of the following values.
@@ -26,15 +26,13 @@ function allowedValuesValidator(field, specs, validator) {
     @return {string|undefined}
     */
 		return function allowedValues(value, ctx) {
-      var found = false;
-
       for (var i = 0; i < len; ++i) {
-        if (value === allowedValues[i]) {
-          found = true;
+        if (value === allowed[i]) {
+          return validator(value, ctx);
         }
       }
 
-      return found ? validator(value, ctx) : 'notAllowed';
+      return 'notAllowed';
 		}
 	} else {
 		return validator
