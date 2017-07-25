@@ -135,15 +135,22 @@ function registerSchemaType(schema) {
 
   function validator(/*field, specs*/) {
     return function schemaValidator(value, ctx) {
-      if (isModel(value) && value._schema === schema) {
-        const context = validationContext(value._data, ctx);
-        return schema.validate(value._data, context).then(messages => {
+      if (isModel(value)) {
+        if (value._schema === schema) {
+          return schema.validate(value._data, validationContext(value._data, ctx)).then(messages => {
+            if (messages.length) {
+              return 'invalid';
+            }
+          });
+        }
+      } else if (Object.prototype.toString.call(value) === '[object Object]') {
+        return schema.validate(value, validationContext(value, ctx)).then(messages => {
           if (messages.length) {
             return 'invalid';
           }
         });
-      } else {
-        //console.log("** ", value._schema, ' :::: *** ', schema);
+      }
+      if (value !== undefined) {
         return 'invalidType';
       }
     }

@@ -156,6 +156,38 @@ describe('Testing Model', () => {
       assert.strictEqual(model.get('foo.bar.buz.meh'), undefined, 'Failed to get missing field');
     });
 
+    it('should return model from data', () => {
+      const subSchema = createSchema({
+        bar: String
+      });
+      const schema = createSchema({
+        foo: subSchema
+      });
+      const model = new Model(schema);
+
+      model._data['foo'] = { bar: 'Hello' };
+
+      const foo = model.get('foo');
+
+      assert.ok(Model.isModel(foo), 'Failed to return model');
+      assert.deepStrictEqual(model.getData(), { foo: { bar: 'Hello' }}, 'Failed to extract sub-model data');
+    });
+
+    it('should return model from data', () => {
+      const subSchema = createSchema({
+        bar: String
+      });
+      const schema = createSchema({
+        foo: subSchema
+      });
+      const model = new Model(schema);
+
+      model._data['foo'] = subSchema.createModel();
+      model._data['foo']._data['bar'] = 'Hello';
+
+      assert.deepStrictEqual(model.getData(), { foo: { bar: 'Hello' }}, 'Failed to extract sub-model data');
+    });
+
   });
 
   describe('Testing setting fields', () => {
@@ -270,6 +302,24 @@ describe('Testing Model', () => {
 
       model.set(value);
       assert.deepStrictEqual(model._data, expected, 'Failed to set empty values');
+    });
+
+    it('should set data from sub-model', () => {
+      const subSchema = createSchema({
+        bar: String
+      });
+      const schema = createSchema({
+        foo: subSchema
+      });
+      const model = new Model(schema);
+      const subModel = new Model(subSchema);
+
+      subModel._data['bar'] = 'Test';
+      model._data['foo'] = subModel;
+
+      return new Model(schema).set(model).then(otherModel => {
+        assert.deepStrictEqual(model.getData(), otherModel.getData(), 'Failed to set other model from model');
+      });
     });
 
   });

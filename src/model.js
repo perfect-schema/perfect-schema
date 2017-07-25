@@ -73,7 +73,7 @@ class PerfectModel {
       fieldValue = this._data[fieldName];
 
       if (isSchema(fieldType)) {
-        fieldValue = fieldValue && fieldValue.get(field.substr(pos + FIELD_SEPARATOR_LEN));
+        fieldValue = ensureModel(fieldValue, fieldType).get(field.substr(pos + FIELD_SEPARATOR_LEN));
       } else {
         start = pos + FIELD_SEPARATOR_LEN;
 
@@ -88,6 +88,10 @@ class PerfectModel {
       }
     } else {
       fieldValue = this._data[fieldName];
+
+      if (isSchema(fieldType)) {
+        fieldValue = ensureModel(fieldValue, fieldType);
+      }
     }
 
     return fieldValue;
@@ -99,7 +103,21 @@ class PerfectModel {
   @return {Object}
   */
   getData() {
-    return this._data;
+    const data = {};
+    const d = this._data;
+    var value;
+
+    Object.keys(d).forEach(key => {
+      value = d[key];
+
+      if (isModel(value)) {
+        data[key] = value.getData();
+      } else {
+        data[key] = value;
+      }
+    });
+
+    return data;
   }
 
   /**
@@ -177,6 +195,10 @@ class PerfectModel {
       }
 
       return fieldName;
+    }
+
+    if (isModel(field)) {
+      field = field.getData();
     }
 
     if (arguments.length === 1 && (Object.prototype.toString.call(field) === '[object Object]')) {
@@ -261,6 +283,17 @@ class PerfectModel {
 
 function isModel(model) {
   return model && (model instanceof PerfectModel) || false;
+}
+
+function ensureModel(value, schema) {
+  const data = value;
+
+  if (value && (Object.prototype.toString.call(value) === '[object Object]') && !isModel(value)) {
+    value = schema.createModel();
+    value.set(data);
+  }
+
+  return value;
 }
 
 function checkField(field) {

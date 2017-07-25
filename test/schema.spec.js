@@ -439,6 +439,33 @@ describe('Testing Schema', () => {
       });
     });
 
+    it('should validate schema from object', () => {
+      const subFields = {
+        bar: String
+      }
+      const subSchema = new Schema(subFields);
+      const fields = {
+        foo: subSchema
+      };
+      const schema = new Schema(fields);
+      const invalidData = { foo: { bar: 123 } };
+      const validData = { foo: { bar: 'Hello' } };
+      const undefData = { foo: undefined };
+
+      return schema.validate(invalidData).then(messages => {
+        assert.ok(messages.length, 'Failed to validate sub schema from object');
+        assert.strictEqual(messages[0].message, 'invalid', 'Failed to properly invalidate field');
+
+        return schema.validate(validData);
+      }).then(messages => {
+        assert.ok(!messages.length, 'Failed to properly validate data');
+
+        return schema.validate(undefData);
+      }).then(messages => {
+        assert.ok(!messages.length, 'Failed to properly validate data');
+      });
+    });
+
   });
 
 });
