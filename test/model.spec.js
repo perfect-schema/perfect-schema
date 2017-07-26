@@ -173,7 +173,7 @@ describe('Testing Model', () => {
       assert.deepStrictEqual(model.getData(), { foo: { bar: 'Hello' }}, 'Failed to extract sub-model data');
     });
 
-    it('should return model from data', () => {
+    it('should return model from data with sub-model', () => {
       const subSchema = createSchema({
         bar: String
       });
@@ -186,6 +186,31 @@ describe('Testing Model', () => {
       model._data['foo']._data['bar'] = 'Hello';
 
       assert.deepStrictEqual(model.getData(), { foo: { bar: 'Hello' }}, 'Failed to extract sub-model data');
+    });
+
+    it('should return model from array of sub-models', () => {
+      const subSchema = createSchema({
+        bar: String
+      });
+      const schema = createSchema({
+        foo: [subSchema]
+      });
+      const model = new Model(schema);
+      var subModel;
+
+      model._data['foo'] = [];
+      for (var i = 0; i < 4; ++i) {
+        if (i % 2) {
+          subModel = subSchema.createModel();
+          subModel._data['bar'] = 'Test ' + i;
+        } else {
+          subModel = { bar: 'Test ' + i };
+        }
+
+        model._data['foo'][i] = subModel;
+      }
+
+      assert.deepStrictEqual(model.getData(), { foo: [ { bar: 'Test 0' }, { bar: 'Test 1' }, { bar: 'Test 2' }, { bar: 'Test 3' } ] }, 'Failed to extract sub-model data');
     });
 
   });

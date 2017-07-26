@@ -110,10 +110,10 @@ class PerfectModel {
     Object.keys(d).forEach(key => {
       value = d[key];
 
-      if (isModel(value)) {
-        data[key] = value.getData();
+      if (value instanceof Array) {
+        data[key] = value.map(value => isModel(value) ? value.getData() : value);
       } else {
-        data[key] = value;
+        data[key] = isModel(value) ? value.getData() : value;
       }
     });
 
@@ -295,6 +295,7 @@ function ensureModel(value, schema) {
 
   return value;
 }
+
 
 function checkField(field) {
   if (typeof field !== 'string') {
