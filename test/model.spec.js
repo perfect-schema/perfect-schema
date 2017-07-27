@@ -530,6 +530,26 @@ describe('Testing Model', () => {
       });
     });
 
+    it('should not be valid if required field no set', () => {
+      const schema = createSchema({
+        foo: {
+          type: String,
+          required: true
+        },
+        bar: {
+          type: String,
+          required: true
+        }
+      });
+      const model = schema.createModel();
+
+      assert.ok(!model.isValid(), 'Failed at initializing invalid model');
+
+      return model.set('bar', 'Test').then(() => {
+        assert.ok(!model.isValid(), 'Failed at preserving invalid state');
+      });
+    });
+
   });
 
 
