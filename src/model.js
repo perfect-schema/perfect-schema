@@ -409,7 +409,7 @@ function validate(model, fieldNames) {
       }
     }
 
-    model._valid.set(!messages.length);
+    model._valid.set(!messages.length && !anyRequired(schema, data));
 
     return model;
   });
