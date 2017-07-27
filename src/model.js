@@ -10,15 +10,13 @@ class PerfectModel {
     }
     const ReactiveVar = schema._options.ReactiveVar || FakeReactiveVar;
 
+    this._id = ++idCounter;
     this._schema = schema;
 
-    this._id = ++idCounter;
-    this._data = {};
+    this._data = setDefaults(schema);
     this._dataTS = {};
-    this._valid = new ReactiveVar(true);
+    this._valid = new ReactiveVar(!anyRequired(schema, this._data));
     this._messages = [];
-
-    setDefaults(this, schema);
   }
 
   /**
@@ -281,6 +279,19 @@ class PerfectModel {
 
 }
 
+
+function anyRequired(schema, data) {
+  const fieldNames = schema._fieldNames;
+  const fields = schema._fields;
+  var fieldName, required = false;
+
+  for (fieldName of fieldNames) {
+    required = required || (fields[fieldName].required && (data[fieldName] === undefined));
+  }
+
+  return required;
+}
+
 function isModel(model) {
   return model && (model instanceof PerfectModel) || false;
 }
@@ -307,10 +318,10 @@ function getFieldType(specs) {
   return specs && getUserType(specs.type || specs);
 }
 
-function setDefaults(model, schema) {
+function setDefaults(schema) {
   const fieldNames = schema._fieldNames;
   const fields = schema._fields;
-  const data = model._data;
+  const data = {};
   var defaultValue, field, fieldName;
 
   for (fieldName of fieldNames) {
@@ -320,6 +331,8 @@ function setDefaults(model, schema) {
       data[fieldName] = typeof defaultValue === 'function' ? defaultValue() : defaultValue;
     }
   }
+
+  return data;
 }
 
 function validate(model, fieldNames) {

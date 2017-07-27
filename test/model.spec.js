@@ -59,6 +59,27 @@ describe('Testing Model', () => {
     assert.deepStrictEqual(foo.getData(), {}, 'Failed to fetch raw data from empty model');
   });
 
+  it('shoud mark initially valid only if no field is required', () => {
+    const hasRequiredFields = {
+      foo: String,
+      bar: { type: String, required: true }
+    };
+    const hasRequiredWithDefaultFields = {
+      foo: String,
+      bar: { type: String, required: true, defaultValue: 'test' }
+    }
+    const hasOptionalFields = {
+      foo: String, bar: String
+    };
+
+    const fooRequired = new Model(createSchema(hasRequiredFields));
+    const fooRequiredDefault = new Model(createSchema(hasRequiredWithDefaultFields));
+    const fooOptional = new Model(createSchema(hasOptionalFields));
+
+    assert.strictEqual(fooRequired.isValid(), false, 'Required field is initially valid');
+    assert.strictEqual(fooRequiredDefault.isValid(), true, 'Required field is initially invalid with defaults');
+    assert.strictEqual(fooOptional.isValid(), true, 'Optional field is initially invalid');
+  });
 
 
   describe('Testing getting fields', () => {
