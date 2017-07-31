@@ -137,8 +137,8 @@ function registerSchemaType(schema) {
     return function schemaValidator(value, ctx) {
       if (isModel(value)) {
         if (value._schema === schema) {
-          return schema.validate(value._data, validationContext(value._data, ctx)).then(messages => {
-            if (messages.length) {
+          return value.validate(null, validationContext(value._data, ctx)).then(() => {
+            if (!value.isValid()) {
               return 'invalid';
             }
           });

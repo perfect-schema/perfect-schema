@@ -5,6 +5,6 @@ gulpfile.js
 npm-debug.log
 package-lock.json
 .babelrc
-.eslintrc.js
+.eslintrc.json
 .npmignore
 .travis.yml

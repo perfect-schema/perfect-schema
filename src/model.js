@@ -231,14 +231,19 @@ class PerfectModel {
   If allFields is any other value, all fields will be validated.
 
   @param allFields {Object|Array}    (optional) validate all fields
+  @param context {ValidationContext} (optional) the validation context to use
   @return {Promise}
   */
-  validate(allFields) {
+  validate(allFields, context) {
     const dataTS = this._dataTS;
     const fields = this._schema._fields;
     const fieldNames = this._schema._fieldNames;
     const validateFields = [];
     var fieldName, fieldTS;
+
+    if (context && !validationContext.isValidationContext(context)) {
+      throw new TypeError('Invalid validation context');
+    }
 
     if (allFields === true) {
       validateFields.push.apply(validateFields, fieldNames);
@@ -249,7 +254,7 @@ class PerfectModel {
         }
         validateFields.push(fieldName);
       }
-    } else if (Object.prototype.toString.call(allFields) === '[object Object]') {
+    } else if ((allFields !== null) && (Object.prototype.toString.call(allFields) === '[object Object]')) {
       const keys = Object.keys(allFields);
 
       for (fieldName of keys) {
@@ -271,7 +276,7 @@ class PerfectModel {
     }
 
     if (validateFields.length) {
-      return validate(this, validateFields);
+      return validate(this, validateFields, context);
     } else {
       return Promise.resolve(this);
     }
@@ -335,16 +340,18 @@ function setDefaults(schema) {
   return data;
 }
 
-function validate(model, fieldNames) {
+function validate(model, fieldNames, context) {
   const validationTS = present();
   const schema = model._schema;
   const data = model._data;
   const dataTS = model._dataTS;
   const messages = model._messages;
-  const context = validationContext(data);
   const validationData = {};
   const fieldNamesLen = fieldNames && fieldNames.length || 0;
   var fieldName;
+
+
+  context = context || validationContext(data);
 
   for (var i = 0; i < fieldNamesLen; ++i) {
     fieldName = fieldNames[i];
@@ -387,7 +394,7 @@ function validate(model, fieldNames) {
       msg = validationMessages[i];
       fieldTS = dataTS[msg.field]; // || (dataTS[msg.field] = {});
 
-      if (!fieldTS.set || (fieldTS.set <= validationTS)) {
+      //if (!fieldTS.set || (fieldTS.set <= validationTS)) {
         // try to find if the same message was already set
         duplicate = false;
         fieldTS.validated = msg.ts = validatedTS;
@@ -406,7 +413,7 @@ function validate(model, fieldNames) {
           messages.push(msg);
           ++messagesLen;
         }
-      }
+      //}
     }
 
     model._valid.set(!messages.length && !anyRequired(schema, data));

@@ -550,10 +550,28 @@ describe('Testing Model', () => {
       });
     });
 
+
+    it('should invalidate nested model', () => {
+      const subSchema = createSchema({
+        bar: String
+      }, { defaultValidation: true });
+      const schema = createSchema({
+        foo: subSchema
+      }, { defaultValidation: true });
+
+      const subModel = subSchema.createModel();
+      const model = schema.createModel();
+
+      subModel._data.bar = 123; // invalid type
+      model._data.foo = subModel;
+
+      return model.validate(true).then(() => {
+        //console.log(model.isValid(), model.getMessages(), subModel.isValid(), subModel.getMessages());
+        assert.ok(!subModel.isValid(), 'Sub-model was not invalidated');
+      });
+    });
+
   });
-
-
-
 
 
   describe('Testing integration with Schema', () => {
@@ -788,6 +806,21 @@ describe('Testing Model', () => {
         assert.ok(!model.getMessages(), 'Failed to validate foo');
       });
 
+    });
+
+
+    it('should not validate with invalid context', () => {
+      const schema = createSchema({
+        foo: String
+      });
+      const model = schema.createModel();
+
+      [
+        true, Infinity, 'test', 123,
+        new Date(), {}, [], /./
+      ].forEach(context => {
+        assert.throws(() => model.validate(null, context), 'Failed throwing with invalid context : ' + JSON.stringify(context));
+      });
     });
 
   });

@@ -355,6 +355,10 @@ describe('Testing Schema', () => {
 
   describe('Testing default options', () => {
 
+    afterEach(() => {
+      Schema.setDefaults({ ReactiveVar: null });
+    });
+
     it('should pass default options', () => {
       Schema.setDefaults({ ReactiveVar: function () {
         return {
@@ -398,14 +402,14 @@ describe('Testing Schema', () => {
       return otherSchema.createModel().set('test.foo', '!').then(otherModel => {
         const messages = otherModel.getMessages();
 
-        assert.ok(messages.length, 'Failed to invalidate');
+        assert.ok(messages && messages.length, 'Failed to invalidate');
         assert.strictEqual(messages[0].message, 'invalid', 'Failed to propagate to parent');
 
         return otherModel.set('test', '!');
       }).then(otherModel => {
         const messages = otherModel.getMessages();
 
-        assert.ok(messages.length, 'Failed to invalidate');
+        assert.ok(messages && messages.length, 'Failed to invalidate');
         assert.strictEqual(messages[0].message, 'invalidType', 'Failed to check valid type');
 
         // cleanup
