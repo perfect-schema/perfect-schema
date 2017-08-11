@@ -222,43 +222,48 @@ class PerfectModel {
   Useful to make sure all the fields are valid. Use set(field, value)
   to validate a specific field.
 
-  If allFields is an array, it is the explicit list of fields to validate. If
-  any array element is not a recognized field, an error will be thrown.
+  Options :
 
-  If allFields is an object, then all keys that are truthy are the fields to
-  validate. If any key is not a recognized field, an error will be thrown.
+   - revalidate {Boolean}       if set to true, ignores the fields options and revalidate the entire model (default: false)
+   - fields {Array|Object}      if set, specify the fields to validate (default: null)
+   - data {mixed}               if set, data passed to the validation context
 
-  If allFields is any other value, all fields will be validated.
 
-  @param allFields {Object|Array}    (optional) validate all fields
-  @param context {ValidationContext} (optional) the validation context to use
+  @param options {Object}         (optional) the validation options
   @return {Promise}
   */
-  validate(allFields, context) {
+  validate(options) {
     const dataTS = this._dataTS;
     const fields = this._schema._fields;
     const fieldNames = this._schema._fieldNames;
     const validateFields = [];
     var fieldName, fieldTS;
 
+    options = options || {};
+
+    const revalidate = options.revalidate;
+    const validationFields = options.fields;
+    const context = options.context;
+
+
     if (context && !validationContext.isValidationContext(context)) {
       throw new TypeError('Invalid validation context');
     }
 
-    if (allFields === true) {
+    if (revalidate) {
       validateFields.push.apply(validateFields, fieldNames);
-    } else if (allFields instanceof Array) {
-      for (fieldName of allFields) {
+    } else if (validationFields instanceof Array) {
+      for (fieldName of validationFields) {
         if (!(fieldName in fields)) {
           throw new TypeError('Unknown field : ' + fieldName);
         }
         validateFields.push(fieldName);
       }
-    } else if ((allFields !== null) && (Object.prototype.toString.call(allFields) === '[object Object]')) {
-      const keys = Object.keys(allFields);
+    } else if ((validationFields !== null) && (Object.prototype.toString.call(validationFields) === '[object Object]')) {
+      const keys = Object.keys(validationFields);
 
       for (fieldName of keys) {
-        if (allFields[fieldName]) {
+        if (validationFields[fieldName]) {
           if (!(fieldName in fields)) {
             throw new TypeError('Unknown field : ' + fieldName);
           }

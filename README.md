@@ -6,6 +6,10 @@
 
 Model and schema validation done perfectly.
 
+## Breaking changes
+
+* `1.1.10` to `1.2.0` : Model validation API changed to accept only one object (`options`) argument.
+
 ## Install
 
 ```
@@ -42,12 +46,12 @@ const itemSchema = new PerfectSchema({
 
 const item = itemSchema.createModel();  // all default values set
 
-const messages = await item.set({
+await item.set({
   name: 'foo'
 });
 
 if (!item.isValid()) {
-  console.error(messages);
+  console.error(item.getMessages());
 }
 ```
 

@@ -705,7 +705,7 @@ describe('Testing Model', () => {
         model._messages = [];
 
         // specific fields (object)
-        return model.validate({ foo: true, bar: false, buz: true });
+        return model.validate({ fields: { foo: true, bar: false, buz: true } });
       }).then(() => {
         assert.strictEqual(model.getMessages().length, 2, 'Invalid field validation');
 
@@ -716,7 +716,7 @@ describe('Testing Model', () => {
         model._messages = [];
 
         // specific fields 2 (object)
-        return model.validate({ bar: true });
+        return model.validate({ fields: { bar: true } });
       }).then(() => {
         assert.strictEqual(model.getMessages().length, 1, 'Invalid field validation');
 
@@ -727,7 +727,7 @@ describe('Testing Model', () => {
         model._messages = [];
 
         // specific fields 3 (array)
-        return model.validate(['buz', 'bar']);
+        return model.validate({ fields: ['buz', 'bar'] });
       }).then(() => {
         assert.strictEqual(model.getMessages().length, 2, 'Invalid field validation');
 
@@ -751,13 +751,13 @@ describe('Testing Model', () => {
 
         model._data.foo = '123';
 
-        return model.validate(false);  // ignored
+        return model.validate();  // ignored
       }).then(() => {
         // NOTE : same thing as above...
         assert.ok(!model.getMessages(), 'Failed at validating all (repeated no args)');
 
         // force revalidation
-        return model.validate(true);
+        return model.validate({ revalidate : true });
       }).then(() => {
         const messages = model.getMessages();
 
@@ -778,9 +778,9 @@ describe('Testing Model', () => {
       });
       const model = schema.createModel();
 
-      assert.throws(() => model.validate({ bar: true }));
-      assert.throws(() => model.validate({ bar: 1 }));
-      assert.throws(() => model.validate(['bar']));
+      assert.throws(() => model.validate({ fields: { bar: true } }));
+      assert.throws(() => model.validate({ fields: { bar: 1 } }));
+      assert.throws(() => model.validate({ fields: ['bar'] }));
     });
 
     it('should update field error message', () => {
@@ -819,7 +819,7 @@ describe('Testing Model', () => {
         true, Infinity, 'test', 123,
         new Date(), {}, [], /./
       ].forEach(context => {
-        assert.throws(() => model.validate(null, context), 'Failed throwing with invalid context : ' + JSON.stringify(context));
+        assert.throws(() => model.validate({ context }), 'Failed throwing with invalid context : ' + JSON.stringify(context));
       });
     });
 
