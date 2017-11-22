@@ -1,8 +1,0 @@
-const FIELD_SEP = '.';
-const ARRAY_SEP = '@';
-
-module.exports = {
-  FIELD_SEPARATOR: FIELD_SEP,
-  FIELD_SEPARATOR_LEN: FIELD_SEP.length,
-  ARRAY_ELEMENT_SEPARATOR: ARRAY_SEP
-};
