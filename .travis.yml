@@ -1,8 +1,7 @@
 language: node_js
 node_js:
-- "4.2.2"
-- "6.11"
-- "8.2"
+- "8.9",
+- "9.2"
 
 # see also: https://github.com/travis-ci/travis-ci/issues/4653
 # as NPM2 b0rks on the peerDependencies...

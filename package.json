@@ -1,5 +1,5 @@
 {
-  "name": "@perfect-schema/core",
+  "name": "@perfect-schema/base",
   "version": "2.0.0",
   "description": "Model and schema validation done perfectly.",
   "author": "Yanick Rochon <yanick.rochon@gmail.com>",
@@ -27,7 +27,7 @@
   "dependencies": {
     "var-validator": "0.0.3"
   },
-  "peerDependencies": {
+  "optionalDependencies": {
     "@perfect-schema/standard-validators": "^2.0.0"
   },
   "devDependencies": {
@@ -45,6 +45,7 @@
     "gulp-butternut": "^1.0.0",
     "gulp-derequire": "^2.1.0",
     "gulp-rename": "^1.2.2",
+    "gulp-sourcemaps": "^2.6.1",
     "gulp-util": "^3.0.8",
     "istanbul": "^0.4.5",
     "jest": "^21.2.1",
