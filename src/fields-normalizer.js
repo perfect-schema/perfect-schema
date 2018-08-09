@@ -23,9 +23,7 @@ export function normalizeFields(fields, schema) {
       throw new Error('Invalid field name : ' + fieldName);
     } else if (!field) {
       throw new TypeError('Invalid field specification for ' + fieldName + ' : ' + field);
-    }
-
-    if (!field.type) {
+    } else if (!field.type) {
       fields[fieldName] = field = { type: field };
     }
 

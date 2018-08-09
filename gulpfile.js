@@ -9,10 +9,9 @@ const derequire = require('gulp-derequire');
 const butternut = require('gulp-butternut');
 const gutil = require('gulp-util');
 const path = require('path');
-const upperCamelCase = require('uppercamelcase');
 const pkg = require('./package');
 
-const MODULE_NAME = upperCamelCase(pkg.name);
+const MODULE_NAME = pkg.name;
 
 const SRC_PATH = path.dirname(pkg.main);
 const DIST_PATH = path.dirname(pkg.browser);

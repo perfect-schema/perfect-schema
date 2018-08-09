@@ -60,7 +60,7 @@ export default class ValidationContext {
     this.isValid = valid;
 
     if (this.parentContext && this.parentField) {
-      this.parentContext.setMessage(this.parentField, valid ? 'invalid' : null);
+      this.parentContext.setMessage(this.parentField, valid ? null : 'invalid');
     }
   }
 
@@ -68,6 +68,10 @@ export default class ValidationContext {
   reset() {
     this.messages = {};
     this.isValid = true;
+
+    if (this.parentContext && this.parentField) {
+      this.parentContext.setMessage(this.parentField, null);
+    }
   }
 
 
@@ -76,7 +80,6 @@ export default class ValidationContext {
     const { fieldNames, fields } = schema;
     const { validatorOptions } = options || {};
     const asyncValidations = [];
-    let result;
 
     // reset 'notInSchema' errors
     Object.keys(messages).forEach(fieldName => {
@@ -95,26 +98,21 @@ export default class ValidationContext {
     fieldNames.forEach(fieldName => {
       const field = fields[fieldName];
       const propValue = value[fieldName];
-
-      try {
-        result = field.validator(propValue, validatorOptions, this);
-      } catch (e) {
-        result = 'error';
-      }
+      const result = field.validator(propValue, validatorOptions, this);
 
       if (result instanceof Promise) {
         asyncValidations.push(result.then(result => {
           this.setMessage(fieldName, result);
-        }, () => {
+        }, error => {
           this.setMessage(fieldName, 'error')
-          throw new Error('Validation error : ' + fieldName);
+          throw error;
         }));
       } else {
         this.setMessage(fieldName, result);
       }
     });
 
-    return Promise.all(asyncValidations).then(() => schema.isValid);
+    return Promise.all(asyncValidations).then(() => schema);
   }
 
 }

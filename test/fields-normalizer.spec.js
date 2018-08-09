@@ -31,6 +31,7 @@ describe('Testing Fields Normalizer', () => {
     const schema = {};
 
     [
+      undefined, null, NaN,
       { type: null },
       { type: {} },
       { type: { $$type: null }} ,
