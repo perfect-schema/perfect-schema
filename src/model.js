@@ -7,11 +7,11 @@ Create a new model given the specified fields
 @return {Object}
 */
 export function createModel(schema) {
-  const { fields } = schema;
+  const { fields, fieldNames } = schema;
   const model = {};
 
-  for (let fieldName in fields) {
-    let field = fields[fieldName];
+  for (const fieldName of fieldNames) {
+    const field = fields[fieldName];
 
     if (field.defaultValue) {
       model[fieldName] = (typeof field.defaultValue === 'function') ? field.defaultValue() : field.defaultValue
@@ -19,4 +19,4 @@ export function createModel(schema) {
   }
 
   return model;
-};
+}

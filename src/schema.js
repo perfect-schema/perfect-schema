@@ -1,12 +1,8 @@
-import ValidationContext from './validation-context';
-import { sanitizeFields } from './field-sanitizer';
-import { createModel } from './model-defaults';
+import ValidationContext from './context';
+import { normalizeFields } from './fields-normalizer';
+import { createModel } from './model';
 
-
-/**
-Global plugin cache
-*/
-const plugins = [];
+import Any from './types/any';
 
 
 export default class PerfectSchema {
@@ -17,10 +13,17 @@ export default class PerfectSchema {
 
   @param plugin {Function} a single function receiving the instance
   */
-  static use(plugin) {
-    plugins.push(plugin);
-  }
+  static use(pluginFactory) {
+    const plugin = pluginFactory(PerfectSchema)
 
+    if (plugin) {
+      if (typeof plugin !== 'function') {
+        throw new TypeError('Plugin factory did return something, but a function was expected : ' + plugin);
+      }
+
+      PerfectSchema._plugins.push(plugin);
+    }
+  }
 
   /**
   Create a new instance
@@ -29,16 +32,39 @@ export default class PerfectSchema {
   @params options {Object} the schema options
   */
   constructor(fields, options = {}) {
-    if (!fields) {
+    if (!fields || !Object.keys(fields).length) {
       throw new TypeError('No defined fields');
+    } else if (typeof fields !== 'object') {
+      throw new TypeError('Invalid fields argument');
     }
 
-    this.options = options;
-    this.fields = sanitizeFields(fields);
+    Object.defineProperties(this, {
+      options: {
+        enumerable: true,
+        configurable: false,
+        writable: false,
+        value: options
+      },
+      fields: {
+        enumerable: true,
+        configurable: false,
+        writable: false,
+        value: normalizeFields(fields, this)
+      },
+      fieldNames: {
+        enumerable: true,
+        configurable: false,
+        writable: false,
+        value: Object.keys(fields)
+      }
+    });
 
-    plugins.forEach(plugin => plugin(this));
+    PerfectSchema._plugins.forEach(plugin => plugin(this));
 
-    Object.freeze(this.fields);   // no further mods!
+    this.fieldNames.forEach(field => Object.freeze(this.fields[field]));
+
+    Object.freeze(this.fields);     // no further mods!
+    Object.freeze(this.fieldNames); //
   }
 
   /**
@@ -58,3 +84,17 @@ export default class PerfectSchema {
   }
 
 }
+
+
+// Bind default standard type
+PerfectSchema.Any = Any;
+
+// internal properties
+Object.defineProperties(PerfectSchema, {
+  _plugins: {
+    enumerable: false,
+    configurable: false,
+    writable: false,
+    value: []
+  }
+});

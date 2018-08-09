@@ -1,10 +1,18 @@
 {
+    "ecmaFeatures": {
+        "modules": true,
+        "spread" : true,
+        "restParams" : true
+    },
     "env": {
         "browser": true,
         "commonjs": true,
         "es6": true
     },
     "extends": "eslint:recommended",
+    "parserOptions": {
+        "sourceType": "module"
+    },
     "rules": {
         "accessor-pairs": "error",
         "array-bracket-newline": "error",
@@ -105,7 +113,7 @@
         "max-len": "off",
         "max-lines": "off",
         "max-nested-callbacks": "error",
-        "max-params": "error",
+        "max-params": "off",
         "max-statements": "off",
         "max-statements-per-line": "off",
         "multiline-ternary": [
@@ -270,7 +278,7 @@
             "error",
             "last"
         ],
-        "sort-imports": "error",
+        "sort-imports": "off",
         "sort-keys": "off",
         "sort-vars": "off",
         "space-before-blocks": "error",
