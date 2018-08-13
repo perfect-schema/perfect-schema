@@ -3,10 +3,7 @@
 
 export default class ValidationContext {
 
-  constructor(schema, options) {
-    const { parentContext, parentField } = options || {};
-    let valid = true;
-
+  constructor(schema) {
     Object.defineProperties(this, {
       schema: {
         enumerable: true,
@@ -14,72 +11,63 @@ export default class ValidationContext {
         writable: false,
         value: schema
       },
-      parentContext: {
-        enumerable: true,
+      _internals: {
+        enumerable: false,
         configurable: false,
         writable: false,
-        value: parentContext || undefined
-      },
-      parentField: {
-        enumerable: true,
-        configurable: false,
-        writable: false,
-        value: parentField || undefined
-      },
-      messages: {
-        enumerable: true,
-        configurable: false,
-        writable: true,
-        value: {}
-      },
-      isValid: {
-        enumerable: true,
-        configurable: true,
-        get() { return valid; },
-        set(v) { valid = v; }
+        value: {
+          valid: true,
+          messages: {}
+        }
       }
     });
+  }
+
+  isValid() {
+    return this._internals.valid;
+  }
+
+
+  getMessages() {
+    return Object.assign({}, this._internals.messages);
+  }
+
+
+  getMessage(field) {
+    return this._internals.messages[field];
   }
 
 
   setMessage(field, message) {
     if (typeof field !== 'string') {
       throw new TypeError('Invalid field value');
-    } else if (!(field in this.schema.fields)) {
+    } else if (!(fieldPart(field, 0) in this.schema.fields)) {
       throw new Error('Unknown field : ' + field);
     } else if (message && (typeof message !== 'string')) {
       throw new TypeError('Invalid message for ' + field);
     } else if (message) {
-      this.messages[field] = message;
+      this._internals.messages[field] = message;
     } else {
-      delete this.messages[field];
+      delete this._internals.messages[field];
     }
 
-    const valid = !Object.keys(this.messages).length;
-
-    this.isValid = valid;
-
-    if (this.parentContext && this.parentField) {
-      this.parentContext.setMessage(this.parentField, valid ? null : 'invalid');
-    }
+    this._internals.valid = !Object.keys(this._internals.messages).length;
   }
 
 
   reset() {
-    this.messages = {};
-    this.isValid = true;
-
-    if (this.parentContext && this.parentField) {
-      this.parentContext.setMessage(this.parentField, null);
-    }
+    this._internals.messages = {};
+    this._internals.valid = true;
   }
 
 
   validate(value, options) {
-    const { schema, messages } = this;
+    const { schema, _internals } = this;
+    const { messages } = _internals;
     const { fieldNames, fields } = schema;
-    const { validatorOptions } = options || {};
     const asyncValidations = [];
+
+    options = options || {};
 
     // reset 'notInSchema' errors
     Object.keys(messages).forEach(fieldName => {
@@ -98,21 +86,17 @@ export default class ValidationContext {
     fieldNames.forEach(fieldName => {
       const field = fields[fieldName];
       const propValue = value[fieldName];
-      const result = field.validator(propValue, validatorOptions, this);
+      const result = field.validator(propValue, options, this);
 
-      if (result instanceof Promise) {
-        asyncValidations.push(result.then(result => {
-          this.setMessage(fieldName, result);
-        }, error => {
-          this.setMessage(fieldName, 'error')
-          throw error;
-        }));
-      } else {
-        this.setMessage(fieldName, result);
-      }
+      this.setMessage(fieldName, result);
     });
 
-    return Promise.all(asyncValidations).then(() => schema);
+    return this.isValid();
   }
 
+}
+
+
+function fieldPart(fieldName, index){
+  return fieldName.split('.')[index];
 }

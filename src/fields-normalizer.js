@@ -1,6 +1,6 @@
 import varValidator from 'var-validator';
 //import isPlainObject from 'is-plain-object';
-import primitiveTypes from './types/primitives';
+import types from './types/types';
 
 //
 varValidator.enableScope = false;
@@ -13,7 +13,7 @@ key is a valid name, and that each type if a recognized validator
 
 @param schema {PerfectSchema}
 */
-export function normalizeFields(fields, schema) {
+export function normalizeFields(fields, schema, PerfectSchema) {
   const fieldNames = Object.keys(fields);
 
   for (const fieldName of fieldNames) {
@@ -22,20 +22,22 @@ export function normalizeFields(fields, schema) {
     if (!varValidator.isValid(fieldName)) {
       throw new Error('Invalid field name : ' + fieldName);
     } else if (!field) {
-      throw new TypeError('Invalid field specification for ' + fieldName + ' : ' + field);
+      throw new TypeError('Empty field specification for ' + fieldName);
     } else if (!field.type) {
       fields[fieldName] = field = { type: field };
     }
 
-    if (field.type in primitiveTypes) {
-      field.type = primitiveTypes[field.type];
+    if (field.type instanceof PerfectSchema) {
+      field.type = field.type._type;
+    } else {
+      field.type = types.getType(field.type);
+
+      if (!field.type) {
+        throw new TypeError('Invalid field specification for ' + fieldName);
+      }
     }
 
-    if (!(field.type.$$type && typeof field.type.validatorFactory === 'function')) {
-      throw new TypeError('Invalid field type for ' + fieldName);
-    } else {
-      field.validator = field.type.validatorFactory(fieldName, field.options, schema);
-    }
+    field.validator = field.type.validatorFactory(fieldName, field, schema, field.validator);
   }
 
   return fields;

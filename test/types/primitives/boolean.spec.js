@@ -10,6 +10,18 @@ describe('Testing Boolean primitive type', () => {
   });
 
 
+  it('should be chainable', () => {
+    const value = false;
+    const validator = BooleanType.validatorFactory(null, null, null, nextValue => {
+      assert.strictEqual( value, nextValue );
+
+      return 'test';
+    });
+
+    assert.strictEqual( validator(value), 'test' );
+  });
+
+
   describe('Testing validation', () => {
 
     const validator = BooleanType.validatorFactory();
@@ -38,18 +50,6 @@ describe('Testing Boolean primitive type', () => {
       ].forEach(value => assert.strictEqual( validator(value), 'invalidType' ));
     });
 
-  });
-
-
-  it('should be chainable', () => {
-    const value = false;
-    const validator = BooleanType.validatorFactory(null, null, null, function (nextValue) {
-      assert.strictEqual( value, nextValue );
-
-      return 'test';
-    });
-
-    assert.strictEqual( validator(value), 'test' );
   });
 
 });

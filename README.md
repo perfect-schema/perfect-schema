@@ -23,13 +23,22 @@ const itemSchema = new PerfectSchema({
     min: 3
   },
   qty: {
-    type: PerfectSchema.Integer,
+    type: Number,
     defaultValue: 0
   },
-  price: Number,
-  tags: [String],
-  attributes: Object
+  price: Number
 });
+
+const cartItemSchema = new PerfectSchema({
+  itemId: String,
+  qty: Number
+});
+
+const cartSchema = new PerfectSchema({
+  _id: String,
+  userId: String,
+  items: PerfectSchema.ArrayOf(cartItemSchema)
+})
 
 const context = itemSchema.createContext();
 const item = itemSchema.createModel({
@@ -37,9 +46,8 @@ const item = itemSchema.createModel({
 });
 
 
-context.validate(item);
-
-if (!context.isValid()) {
+if (!context.validate(item)) {
+  // context.isValid() == false
   console.error(context.getMessages());
 }
 ```

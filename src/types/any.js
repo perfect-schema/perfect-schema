@@ -10,22 +10,22 @@ Usage:
 
 See schema.js for more information
 */
-export default {
+export default Object.freeze({
   $$type: Symbol('any'),
   validatorFactory: anyValidator
-};
+});
 
 
 /**
 Validation function favtory
 
-@param field {String}            the field name being eva
-@param options {Object}          the field options
-@param schema {PerfectSchema}    the schema instance
-@param nextValidator {Function}  the next validator chain
+@param fieldName {String}           the field name being eva
+@param field {Object}               the field options
+@param schema {PerfectSchema}       the schema instance
+@param wrappedValidator {Function}  (optional) the validator being wrapped
 */
-function anyValidator(field, options, schema, nextValidator) {
-  return function validator(value) {
-    return nextValidator && nextValidator(value);
+function anyValidator(fieldName, field, schema, wrappedValidator) {
+  return function validator(value, options, context) {
+    return wrappedValidator && wrappedValidator(value, options, context);
   };
 }

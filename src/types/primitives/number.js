@@ -10,26 +10,26 @@ Usage:
 
 See schema.js for more information
 */
-export default {
+export default Object.freeze({
   $$type: Symbol('number'),
   validatorFactory: numberValidator
-};
+});
 
 
 /**
 Validation function favtory
 
-@param field {String}            the field name being eva
-@param options {Object}          the field options
-@param schema {PerfectSchema}    the schema instance
-@param nextValidator {Function}  the next validator chain
+@param fieldName {String}           the field name being eva
+@param field {Object}               the field options
+@param schema {PerfectSchema}       the schema instance
+@param wrappedValidator {Function}  (optional) the validator being wrapped
 */
-function numberValidator(options, field, schema, nextValidator) {
-  return function validator(value) {
+function numberValidator(fieldName, field, schema, wrappedValidator) {
+  return function validator(value, options, context) {
     if ((value !== undefined) && (value !== null) && (typeof value !== 'number')) {
       return 'invalidType';
     }
 
-    return nextValidator && nextValidator(value);
+    return wrappedValidator && wrappedValidator(value, options, context);
   };
 }

@@ -10,10 +10,10 @@ Usage:
 
 See schema.js for more information
 */
-export default {
+export default Object.freeze({
   $$type: Symbol('object'),
   validatorFactory: objectValidator
-};
+});
 
 
 const proto = Object.prototype;
@@ -22,17 +22,17 @@ const gpo = Object.getPrototypeOf;
 /**
 Validation function favtory
 
-@param field {String}            the field name being eva
-@param options {Object}          the field options
-@param schema {PerfectSchema}    the schema instance
-@param nextValidator {Function}  the next validator chain
+@param fieldName {String}           the field name being eva
+@param field {Object}               the field options
+@param schema {PerfectSchema}       the schema instance
+@param wrappedValidator {Function}  (optional) the validator being wrapped
 */
-function objectValidator(options, field, schema, nextValidator) {
-  return function validator(value) {
+function objectValidator(fieldName, field, schema, wrappedValidator) {
+  return function validator(value, options, context) {
     if ((value !== undefined) && (value !== null) && ((typeof value !== 'object') || (gpo(value) !== proto))) {
       return 'invalidType';
     }
 
-    return nextValidator && nextValidator(value);
+    return wrappedValidator && wrappedValidator(value, options, context);
   };
 }

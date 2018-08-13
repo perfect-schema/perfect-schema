@@ -2,11 +2,23 @@ import assert from 'assert';
 import AnyType from '../../src/types/any';
 
 
-describe('Testing String primitive type', () => {
+describe('Testing Any type', () => {
 
   it('should be valid', () => {
-    assert.strictEqual( typeof AnyType.$$type, 'symbol', 'String type does not declare a Symbol' );
-    assert.strictEqual( typeof AnyType.validatorFactory, 'function', 'String type does not declare a validator factory function');
+    assert.strictEqual( typeof AnyType.$$type, 'symbol', 'Any type does not declare a Symbol' );
+    assert.strictEqual( typeof AnyType.validatorFactory, 'function', 'Any type does not declare a validator factory function');
+  });
+
+
+  it('should be chainable', () => {
+    const value = 'hello';
+    const validator = AnyType.validatorFactory(null, null, null, function (nextValue) {
+      assert.strictEqual( value, nextValue );
+
+      return 'test';
+    });
+
+    assert.strictEqual( validator(value), 'test' );
   });
 
 
@@ -33,18 +45,6 @@ describe('Testing String primitive type', () => {
       ].forEach(value => assert.strictEqual( validator(value), undefined ));
     });
 
-  });
-
-
-  it('should be chainable', () => {
-    const value = 'hello';
-    const validator = AnyType.validatorFactory(null, null, null, function (nextValue) {
-      assert.strictEqual( value, nextValue );
-
-      return 'test';
-    });
-
-    assert.strictEqual( validator(value), 'test' );
   });
 
 });

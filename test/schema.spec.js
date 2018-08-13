@@ -108,4 +108,36 @@ describe('Testing Schema', () => {
     assert.ok( context instanceof ValidationContext );
   });
 
+
+  it('should get type validation', () => {
+    const schema = new Schema({ foo: String });
+    const type = schema._type;
+
+    assert.ok( typeof type === 'object' );
+    assert.ok( type.$$type.toString().match('^schema\\d+$') );
+    assert.ok( typeof type.validatorFactory === 'function' );
+
+    const validator = type.validatorFactory();
+    const context = validator.context;
+
+    assert.ok( validator({ foo: 'test' }) === undefined );
+    assert.deepStrictEqual( context.getMessages(), {} );
+
+
+    assert.ok( validator({ foo: false }) === 'invalid' );
+    assert.deepStrictEqual( context.getMessages(), { foo: 'invalidType' } );
+  });
+
+
+  it('should be chainable', () => {
+    const schema = new Schema({ foo: String });
+    const type = schema._type;
+    const validator = type.validatorFactory(null, null, schema, (value, options, context) => {
+      return 'test';
+    });
+
+    assert.ok( validator({ foo: 'test' }) === 'test' );
+  });
+
+
 });

@@ -10,6 +10,18 @@ describe('Testing Array primitive type', () => {
   });
 
 
+  it('should be chainable', () => {
+    const value = [];
+    const validator = ArrayType.validatorFactory(null, null, null, nextValue => {
+      assert.strictEqual( value, nextValue );
+
+      return 'test';
+    });
+
+    assert.strictEqual( validator(value), 'test' );
+  });
+
+
   describe('Testing validation', () => {
 
     const validator = ArrayType.validatorFactory();
@@ -38,18 +50,6 @@ describe('Testing Array primitive type', () => {
       ].forEach(value => assert.strictEqual( validator(value), 'invalidType' ));
     });
 
-  });
-
-
-  it('should be chainable', () => {
-    const value = [];
-    const validator = ArrayType.validatorFactory(null, null, null, function (nextValue) {
-      assert.strictEqual( value, nextValue );
-
-      return 'test';
-    });
-
-    assert.strictEqual( validator(value), 'test' );
   });
 
 });

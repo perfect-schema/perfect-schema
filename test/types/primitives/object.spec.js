@@ -10,6 +10,18 @@ describe('Testing Object primitive type', () => {
   });
 
 
+  it('should be chainable', () => {
+    const value = { foo: 'bar' };
+    const validator = ObjectType.validatorFactory(null, null, null, nextValue => {
+      assert.strictEqual( value, nextValue );
+
+      return 'test';
+    });
+
+    assert.strictEqual( validator(value), 'test' );
+  });
+
+
   describe('Testing validation', () => {
 
     const validator = ObjectType.validatorFactory();
@@ -39,18 +51,6 @@ describe('Testing Object primitive type', () => {
       ].forEach(value => assert.strictEqual( validator(value), 'invalidType' ));
     });
 
-  });
-
-
-  it('should be chainable', () => {
-    const value = { foo: 'bar' };
-    const validator = ObjectType.validatorFactory(null, null, null, function (nextValue) {
-      assert.strictEqual( value, nextValue );
-
-      return 'test';
-    });
-
-    assert.strictEqual( validator(value), 'test' );
   });
 
 });

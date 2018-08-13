@@ -3,9 +3,15 @@ import { normalizeFields } from './fields-normalizer';
 import { createModel } from './model';
 
 import Any from './types/any';
+import ArrayOf from './types/array-of';
+//import OneOf from './types/one-of';
 
 
-export default class PerfectSchema {
+let schemaCount = 0;
+
+
+
+class PerfectSchema {
 
   /**
   Add a plugin to use with new instances of PerfectSchema. Added
@@ -23,6 +29,8 @@ export default class PerfectSchema {
 
       PerfectSchema._plugins.push(plugin);
     }
+
+    return PerfectSchema;
   }
 
   /**
@@ -49,13 +57,19 @@ export default class PerfectSchema {
         enumerable: true,
         configurable: false,
         writable: false,
-        value: normalizeFields(fields, this)
+        value: normalizeFields(fields, this, PerfectSchema)
       },
       fieldNames: {
         enumerable: true,
         configurable: false,
         writable: false,
         value: Object.keys(fields)
+      },
+      _type: {
+        enumerable: false,
+        configurable: false,
+        writable: false,
+        value: createType(this)
       }
     });
 
@@ -72,8 +86,8 @@ export default class PerfectSchema {
 
   @return {Object}
   */
-  createModel() {
-    return createModel(this);
+  createModel(data) {
+    return createModel(this, data);
   }
 
   /**
@@ -86,8 +100,10 @@ export default class PerfectSchema {
 }
 
 
-// Bind default standard type
+// Bind default standard types
 PerfectSchema.Any = Any;
+PerfectSchema.ArrayOf = ArrayOf;
+//PerfectSchema.OneOf = OneOf;
 
 // internal properties
 Object.defineProperties(PerfectSchema, {
@@ -96,5 +112,31 @@ Object.defineProperties(PerfectSchema, {
     configurable: false,
     writable: false,
     value: []
-  }
+  },
 });
+
+
+function createType(schemaType) {
+  return {
+    $$type: 'schema' + (++schemaCount),
+    validatorFactory: function (fieldName, field, schema, wrappedValidator) {
+      const validatorContext = schemaType.createContext();
+      const validator = (value, options, context) => {
+        validatorContext.validate(value);
+
+        if (!validatorContext.isValid()) {
+          return 'invalid';
+        }
+
+        return wrappedValidator && wrappedValidator(value, options, context);
+      };
+
+      validator.context = validatorContext;
+
+      return validator;
+    }
+  };
+}
+
+
+export default PerfectSchema;

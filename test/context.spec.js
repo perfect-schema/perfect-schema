@@ -11,20 +11,6 @@ describe('Testing Validation Context', () => {
     };
   }
 
-  function mockTypeAsync(name, passthrough, throwError) {
-    return {
-      type: { $$type: Symbol(name) },
-      validator: async value => !passthrough && (value !== name) ? 'testErrorAsync' : undefined
-    }
-  }
-
-  function mockTypeAsyncError(name, error) {
-    return {
-      type: { $$type: Symbol(name) },
-      validator: async value => { throw new Error(error); }
-    }
-  }
-
 
   it('should create instance', () => {
     const context = new ValidationContext({
@@ -47,12 +33,13 @@ describe('Testing Validation Context', () => {
     });
 
     await context.validate({ foo: 'test' });
-    assert.deepStrictEqual(context.messages, {});
-    assert.strictEqual(context.isValid, true);
+    assert.deepStrictEqual(context.getMessages(), {});
+    assert.strictEqual(context.isValid(), true);
 
     await context.validate({ foo: 123 });
-    assert.deepStrictEqual(context.messages, { foo: 'testError' });
-    assert.strictEqual(context.isValid, false);
+    assert.deepStrictEqual(context.getMessages(), { foo: 'testError' });
+    assert.strictEqual(context.getMessage('foo'), 'testError');
+    assert.strictEqual(context.isValid(), false);
   });
 
 
@@ -66,9 +53,9 @@ describe('Testing Validation Context', () => {
     });
 
     await context.validate({ foo: 'wrong', bar: 'other' });
-    assert.deepStrictEqual(context.messages, { foo: 'testError', bar: 'notInSchema' });
+    assert.deepStrictEqual(context.getMessages(), { foo: 'testError', bar: 'notInSchema' });
     await context.validate({ foo: 'test' });
-    assert.deepStrictEqual(context.messages, {});
+    assert.deepStrictEqual(context.getMessages(), {});
   });
 
 
@@ -82,12 +69,12 @@ describe('Testing Validation Context', () => {
     });
 
     await context.validate({ bar: true });
-    assert.deepStrictEqual(context.messages, { bar: 'notInSchema' });
-    assert.strictEqual(context.isValid, false);
+    assert.deepStrictEqual(context.getMessages(), { bar: 'notInSchema' });
+    assert.strictEqual(context.isValid(), false);
 
     await context.validate({ foo: 'test' });
-    assert.deepStrictEqual(context.messages, {});
-    assert.strictEqual(context.isValid, true);
+    assert.deepStrictEqual(context.getMessages(), {});
+    assert.strictEqual(context.isValid(), true);
   });
 
 
@@ -101,16 +88,16 @@ describe('Testing Validation Context', () => {
     });
     const message = 'test message';
 
-    assert.ok( context.isValid );
+    assert.ok( context.isValid() );
 
     context.setMessage('foo', message);
 
-    assert.ok( !context.isValid );
-    assert.deepStrictEqual(context.messages, { foo: message });
+    assert.ok( !context.isValid() );
+    assert.deepStrictEqual(context.getMessages(), { foo: message });
 
     context.setMessage('foo');
-    assert.ok( context.isValid );
-    assert.deepStrictEqual(context.messages, {});
+    assert.ok( context.isValid() );
+    assert.deepStrictEqual(context.getMessages(), {});
   });
 
 
@@ -124,16 +111,16 @@ describe('Testing Validation Context', () => {
     });
     const message = 'test message';
 
-    assert.ok( context.isValid );
+    assert.ok( context.isValid() );
 
     context.setMessage('foo', message);
 
-    assert.ok( !context.isValid );
-    assert.deepStrictEqual(context.messages, { foo: message });
+    assert.ok( !context.isValid() );
+    assert.deepStrictEqual(context.getMessages(), { foo: message });
 
     context.reset();
-    assert.ok( context.isValid );
-    assert.deepStrictEqual(context.messages, {});
+    assert.ok( context.isValid() );
+    assert.deepStrictEqual(context.getMessages(), {});
   });
 
 
@@ -169,120 +156,5 @@ describe('Testing Validation Context', () => {
     ].forEach(message => assert.throws(() => context.setMessage('foo', message)) );
   });
 
-
-  it('should set parent message', () => {
-    const parentContext = new ValidationContext({
-      fields: {
-        foo: mockType('test', true)
-      },
-      fieldNames: ['foo'],
-      options: {}
-    });
-    const context = new ValidationContext({
-      fields: {
-        bar: mockType('test', true)
-      },
-      fieldNames: ['bar'],
-      options: {}
-    }, {
-      parentContext,
-      parentField: 'foo'
-    });
-
-    assert.ok( context.isValid );
-    assert.ok( parentContext.isValid );
-
-    context.setMessage('bar', 'test');
-
-    assert.ok( !context.isValid );
-    assert.ok( !parentContext.isValid );
-
-    assert.deepStrictEqual(context.messages, { bar: 'test' });
-    assert.deepStrictEqual(parentContext.messages, { foo: 'invalid' });
-
-    context.setMessage('bar');
-
-    assert.ok( context.isValid );
-    assert.ok( parentContext.isValid );
-
-    assert.deepStrictEqual(context.messages, {});
-    assert.deepStrictEqual(parentContext.messages, {});
-  });
-
-
-  it('should reset parent message', () => {
-    const parentContext = new ValidationContext({
-      fields: {
-        foo: mockType('test', true)
-      },
-      fieldNames: ['foo'],
-      options: {}
-    });
-    const context = new ValidationContext({
-      fields: {
-        bar: mockType('test', true)
-      },
-      fieldNames: ['bar'],
-      options: {}
-    }, {
-      parentContext,
-      parentField: 'foo'
-    });
-
-    assert.ok( context.isValid );
-    assert.ok( parentContext.isValid );
-
-    context.setMessage('bar', 'test');
-
-    assert.ok( !context.isValid );
-    assert.ok( !parentContext.isValid );
-
-    assert.deepStrictEqual(context.messages, { bar: 'test' });
-    assert.deepStrictEqual(parentContext.messages, { foo: 'invalid' });
-
-    context.reset();
-
-    assert.ok( context.isValid );
-    assert.ok( parentContext.isValid );
-
-    assert.deepStrictEqual(context.messages, {});
-    assert.deepStrictEqual(parentContext.messages, {});
-  });
-
-
-  it('should validate asynchronously', async () => {
-    const context = new ValidationContext({
-      fields: {
-        foo: mockTypeAsync('test', true)
-      },
-      fieldNames: ['foo'],
-      options: {}
-    });
-
-    await context.validate({ bar: true });
-    assert.deepStrictEqual(context.messages, { bar: 'notInSchema' });
-    assert.strictEqual(context.isValid, false);
-
-    await context.validate({ foo: 'test' });
-    assert.deepStrictEqual(context.messages, {});
-    assert.strictEqual(context.isValid, true);
-  });
-
-
-  it('should thrown asynchronously', async () => {
-    const context = new ValidationContext({
-      fields: {
-        foo: mockTypeAsyncError('test', 'errorAsync')
-      },
-      fieldNames: ['foo'],
-      options: {}
-    });
-
-    try {
-      await context.validate({ foo: 'test' });
-    } catch (e) {
-      assert.strictEqual( e.message, 'errorAsync' );
-    }
-  });
 
 });

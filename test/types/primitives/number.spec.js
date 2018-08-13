@@ -10,6 +10,18 @@ describe('Testing Number primitive type', () => {
   });
 
 
+  it('should be chainable', () => {
+    const value = 123;
+    const validator = NumberType.validatorFactory(null, null, null, nextValue => {
+      assert.strictEqual( value, nextValue );
+
+      return 'test';
+    });
+
+    assert.strictEqual( validator(value), 'test' );
+  });
+
+
   describe('Testing validation', () => {
 
     const validator = NumberType.validatorFactory();
@@ -41,18 +53,6 @@ describe('Testing Number primitive type', () => {
       ].forEach(value => assert.strictEqual( validator(value), 'invalidType'));
     });
 
-  });
-
-
-  it('should be chainable', () => {
-    const value = 123;
-    const validator = NumberType.validatorFactory(null, null, null, function (nextValue) {
-      assert.strictEqual( value, nextValue );
-
-      return 'test';
-    });
-
-    assert.strictEqual( validator(value), 'test' );
   });
 
 });

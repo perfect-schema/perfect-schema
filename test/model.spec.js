@@ -15,7 +15,6 @@ describe('Testing Models', () => {
     const model = createModel(schema);
 
     assert.deepEqual( model, expected );
-
   });
 
   it('should create from properties', () => {
@@ -31,6 +30,30 @@ describe('Testing Models', () => {
     const model = createModel(schema);
 
     assert.deepEqual( model, expected );
+  });
+
+  it('should create from default data', () => {
+    const schema = {
+      fields: {
+        foo: {},
+        bar: { defaultValue: 'test' }
+      },
+      fieldNames: [ 'foo', 'bar' ]
+    };
+    const modelA = createModel(schema, {
+      foo: 'hello'
+    });
+    const modelB = createModel(schema, {
+      bar: 'world'
+    });
+    const modelC = createModel(schema, {
+      foo: 'hello',
+      bar: 'world'
+    });
+
+    assert.deepEqual( modelA, { foo: 'hello', bar: 'test' } );
+    assert.deepEqual( modelB, { bar: 'world' } );
+    assert.deepEqual( modelC, { foo: 'hello', bar: 'world' } );
   });
 
 });
