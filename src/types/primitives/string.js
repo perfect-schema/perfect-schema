@@ -1,18 +1,18 @@
 
 /**
-Any type
+String type
 
 Usage:
 
    {
-     a: PerfectSchema.Any
+     a: String
    }
 
 See schema.js for more information
 */
 export default Object.freeze({
-  $$type: Symbol('any'),
-  validatorFactory: anyValidator
+  $$type: Symbol('string'),
+  validatorFactory: stringValidator
 });
 
 
@@ -24,8 +24,12 @@ Validation function favtory
 @param schema {PerfectSchema}       the schema instance
 @param wrappedValidator {Function}  (optional) the validator being wrapped
 */
-function anyValidator(fieldName, field, schema, wrappedValidator) {
+function stringValidator(fieldName, field, schema, wrappedValidator) {
   return function validator(value, options, context) {
+    if ((value !== undefined) && (value !== null) && (typeof value !== 'string')) {
+      return 'invalidType';
+    }
+
     return wrappedValidator && wrappedValidator(value, options, context);
   };
 }

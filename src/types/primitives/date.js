@@ -1,18 +1,18 @@
 
 /**
-Any type
+Date type
 
 Usage:
 
    {
-     a: PerfectSchema.Any
+     a: Date
    }
 
 See schema.js for more information
 */
 export default Object.freeze({
-  $$type: Symbol('any'),
-  validatorFactory: anyValidator
+  $$type: Symbol('date'),
+  validatorFactory: dateValidator
 });
 
 
@@ -24,8 +24,14 @@ Validation function favtory
 @param schema {PerfectSchema}       the schema instance
 @param wrappedValidator {Function}  (optional) the validator being wrapped
 */
-function anyValidator(fieldName, field, schema, wrappedValidator) {
+function dateValidator(fieldName, field, schema, wrappedValidator) {
   return function validator(value, options, context) {
+    if ((value !== undefined) && (value !== null) && !(value instanceof Date)) {
+      return 'invalidType';
+    } else if (value && isNaN(value.getTime())) {
+      return 'invalidDate';
+    }
+
     return wrappedValidator && wrappedValidator(value, options, context);
   };
 }

@@ -1,18 +1,18 @@
 
 /**
-Any type
+Array type
 
 Usage:
 
    {
-     a: PerfectSchema.Any
+     a: Array
    }
 
 See schema.js for more information
 */
 export default Object.freeze({
-  $$type: Symbol('any'),
-  validatorFactory: anyValidator
+  $$type: Symbol('array'),
+  validatorFactory: arrayValidator
 });
 
 
@@ -24,8 +24,12 @@ Validation function favtory
 @param schema {PerfectSchema}       the schema instance
 @param wrappedValidator {Function}  (optional) the validator being wrapped
 */
-function anyValidator(fieldName, field, schema, wrappedValidator) {
+function arrayValidator(fieldName, field, schema, wrappedValidator) {
   return function validator(value, options, context) {
+    if ((value !== undefined) && (value !== null) && !Array.isArray(value)) {
+      return 'invalidType';
+    }
+
     return wrappedValidator && wrappedValidator(value, options, context);
   };
 }

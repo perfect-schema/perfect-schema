@@ -1,18 +1,18 @@
 
 /**
-Any type
+Number type
 
 Usage:
 
    {
-     a: PerfectSchema.Any
+     a: Number
    }
 
 See schema.js for more information
 */
 export default Object.freeze({
-  $$type: Symbol('any'),
-  validatorFactory: anyValidator
+  $$type: Symbol('number'),
+  validatorFactory: numberValidator
 });
 
 
@@ -24,8 +24,12 @@ Validation function favtory
 @param schema {PerfectSchema}       the schema instance
 @param wrappedValidator {Function}  (optional) the validator being wrapped
 */
-function anyValidator(fieldName, field, schema, wrappedValidator) {
+function numberValidator(fieldName, field, schema, wrappedValidator) {
   return function validator(value, options, context) {
+    if ((value !== undefined) && (value !== null) && (typeof value !== 'number')) {
+      return 'invalidType';
+    }
+
     return wrappedValidator && wrappedValidator(value, options, context);
   };
 }

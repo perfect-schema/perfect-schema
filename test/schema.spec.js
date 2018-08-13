@@ -1,475 +1,143 @@
+import assert from 'assert';
+import Schema from '../src/schema';
+import ValidationContext from '../src/context';
 
 
 describe('Testing Schema', () => {
-  const assert = require('assert');
 
-  const Schema = require('../src/schema');
-  const types = require('../src/validators/types');
+  it('should create instance', () => {
+    const schema = new Schema({
+      foo: String
+    });
+
+    assert.strictEqual(typeof schema.options, 'object');
+    assert.strictEqual(typeof schema.fields, 'object');
+    assert.ok(Array.isArray(schema.fieldNames));
+    assert.strictEqual(schema.fieldNames.length, Object.keys(schema.fields).length);
+  });
 
 
-  it('should not create without fields', () => {
-    assert.throws(() => { new Schema(); }, TypeError);
+  it('should fail with invalid field name', () => {
+    assert.throws(() => new Schema({ '123': String}));
+  });
 
+
+  it('should fail with no fields', () => {
     [
-      undefined, null, true, false, NaN, {}
-    ].forEach(fields => assert.throws(() => { new Schema(fields); }, TypeError));
+      void 0, null, 0, '', {}
+    ].forEach(fields => assert.throws(() => new Schema(fields)));
   });
 
 
-  it('should construct new instance', () => {
-    const fields = {
-      foo: String
-    };
-    const schema = new Schema(fields);
-
-    assert.deepStrictEqual(schema._fields, fields, 'Fields mismatch');
-    assert.deepStrictEqual(Object.keys(fields), Object.keys(schema._validators), 'Field validator mismatch');
+  it('should fail with invalid fields', () => {
+    [
+      'hello', 1, new Array(), [], /./, new Date()
+    ].forEach(fields => assert.throws(() => new Schema(fields)));
   });
 
 
+  describe('Testing plugins', () => {
 
-  it('should construct new instance with sub-schema', () => {
-    const barFields = {
-      bar: String
-    };
-    const barSchema = new Schema(barFields);
-    const fooFields = {
-      foo: barSchema
-    };
-    const fooSchema = new Schema(fooFields);
+    it('should use plugin', () => {
+      function pluginFactory(SchemaPrototype) {
+        assert.strictEqual(SchemaPrototype, Schema);
 
-    assert.strictEqual(fooSchema._fields['foo'], barSchema, 'Failed to recognize sub-schema short type');
-  });
+        SchemaPrototype._test = 'static1';
 
+        return function plugin(schema) {
+          assert.ok(schema instanceof Schema);
 
-
-  it('should extend schema', () => {
-    const baseFields = {
-      foo: String
-    };
-    const extendedFields = {
-      foo: {
-        required: true,
-        min: 3
-      },
-      bar: Object,
-      buz: { type: Number }
-    };
-
-    const schema = new Schema(baseFields);
-
-    assert.strictEqual(schema._fieldNames.length, 1, 'Mismatch field names');
-
-    schema.extend(extendedFields);
-
-    assert.strictEqual(schema._fieldNames.length, 3, 'Mismatch field names');
-  });
-
-
-  it('should create model', () => {
-    const fields = {
-      foo: String
-    };
-    const schema = new Schema(fields);
-
-    const modelA = schema.createModel();
-    const modelB = schema.createModel();
-
-    assert.ok(modelA && modelB, 'Models are not objects');
-    assert.ok(modelA._id && modelB._id, 'Models have no identifiers');
-    assert.notStrictEqual(modelA._id, modelB._id, 'Models have no unique identifiers');
-  });
-
-
-  describe('Testing validation', () => {
-
-    it('should validate nothing', () => {
-      const fields = {
-        foo: String
-      };
-      const schema = new Schema(fields);
-
-      const validator = schema.validate();
-
-      return validator.then(messages => {
-        assert.deepStrictEqual(messages, [], 'Failed to validate nothing');
-      });
-    });
-
-    it('should validate simple data', () => {
-      const fields = {
-        foo: String
-      };
-      const schema = new Schema(fields);
-
-      const validator = schema.validate({ foo: 'hello' });
-
-      assert.ok(validator.isPending(), 'Failed at pending validator');
-      assert.deepStrictEqual(validator.getMessages(), [], 'Array should be initially empty');
-
-      return validator.then(messages => {
-        assert.ok(validator.isPending(), 'Failed at pending validator');
-
-        assert.deepStrictEqual(messages, [], 'Failed to validate model');
-        assert.deepStrictEqual(validator.getMessages(), messages, 'Failed at returning messages from validator');
-      });
-    });
-
-    it('should invalidate simple data', () => {
-      const fields = {
-        foo: String
-      };
-      const schema = new Schema(fields);
-
-      const validator = schema.validate({ foo: 123 });
-
-      return validator.then(messages => {
-        assert.deepStrictEqual(messages, [ { field: 'foo', message: 'invalidType', value: 123 } ], 'Failed to find error in validation');
-        assert.deepStrictEqual(validator.getMessages(), messages, 'Failed at returning messages from validator');
-      });
-    });
-
-    it('should only allow empty sub-schema if optional', () => {
-      const barFields = {
-        bar: String
-      };
-      const barSchema = new Schema(barFields);
-      const fooFieldsA = {
-        foo: barSchema
-      };
-      const fooSchemaA = new Schema(fooFieldsA);
-      const fooFieldsB = {
-        foo: {
-          type: barSchema,
-          nullable: true
+          schema._test = 'instance1';
         }
       };
-      const fooSchemaB = new Schema(fooFieldsB);
 
-      const validatorA = fooSchemaA.validate({ foo: null });
-      const validatorB = fooSchemaB.validate({ foo: null });
+      Schema.use(pluginFactory);
 
-      return Promise.all([ validatorA, validatorB ]).then(allMessages => {
-        const messagesA = allMessages[0];
-        const messagesB = allMessages[1];
+      const s = new Schema({ foo: String });
 
-        assert.deepStrictEqual(messagesA, [{ field: 'foo', message: 'noValue', value: null }], 'Failed to validate required field');
-        assert.deepStrictEqual(messagesB, [], 'Failed to validate optional field');
-      });
+      assert.strictEqual(Schema._test, 'static1');
+      assert.strictEqual(s._test, 'instance1');
+
+      delete Schema._test;
+      while (Schema._plugins.length) Schema._plugins.pop();
     });
 
-    it('should handle errors in validation', () => {
-      const error = new Error('Test');
-      const fields = {
-        foo: {
-          type: String,
-          custom() { throw error; }
-        }
+
+    it('should use plugin (static only)', () => {
+      function pluginFactory(SchemaPrototype) {
+        assert.strictEqual(SchemaPrototype, Schema);
+
+        SchemaPrototype._test = 'static2';
       };
-      const schema = new Schema(fields);
-      const value = 'hello';
 
-      const validator = schema.validate({ foo: value });
+      Schema.use(pluginFactory);
 
-      return validator.then(messages => {
-        assert.deepStrictEqual(messages, [ { field: 'foo', message: 'error', value: value, error: error } ], 'Failed to set error on field');
-      });
+      const s = new Schema({ foo: String });
+
+      assert.strictEqual(Schema._test, 'static2');
+      assert.strictEqual(s._test, void 0);
+
+      delete Schema._test;
+      while (Schema._plugins.length) Schema._plugins.pop();
     });
 
-    it('should handle asynchronous errors in validation', () => {
-      const error = new Error('Test');
-      const fields = {
-        foo: {
-          type: String,
-          custom() { return Promise.reject(error); }
-        }
-      };
-      const schema = new Schema(fields);
-      const value = 'hello';
 
-      const validator = schema.validate({ foo: value });
-
-      return validator.then(messages => {
-        assert.deepStrictEqual(messages, [ { field: 'foo', message: 'error', value: value, error: error } ], 'Failed to set error on field');
-      });
-    });
-
-    it('should invalidate key not in schema', () => {
-      const fields = {
-        foo: String
-      };
-      const schema = new Schema(fields);
-
-      const validator = schema.validate({ bar: 123 });
-
-      return validator.then(messages => {
-        assert.deepStrictEqual(messages, [ { field: 'bar', message: 'keyNotInSchema', value: 123 } ], 'Failed to find error in validation');
-      });
-    });
-
-  });
-
-
-  describe('Testing custom validation with context', () => {
-
-    it('should fail to validate with invalid parent context', () => {
-      const fields = {
-        foo: String
-      };
-      const schema = new Schema(fields);
-
-      assert.throws(() => schema.validate({ bar: 123 }, {}));
-    });
-
-    it('should fetch other fields', () => {
-      const fields = {
-        foo: {
-          type: String,
-          custom(value, ctx) {
-            assert.strictEqual(value, fooValue, 'Failed to pass value to custom validation');
-            assert.strictEqual(ctx.field('bar').value, barValue, 'Failed to fetch other field');
-          }
-        },
-        bar: Number
-      };
-      const schema = new Schema(fields);
-      const fooValue = 'hello';
-      const barValue = 1234;
-
-      const validator = schema.validate({ foo: fooValue, bar: barValue });
-
-      return validator.then(messages => {
-        assert.deepStrictEqual(messages, [], 'Failed to validate');
-      });
-    });
-
-  });
-
-
-  describe('Testing default values', () => {
-
-    var warn;
-    var warnLogs;
-
-    beforeAll(() => {
-      warn = console.warn;
-      console.warn = function (msg) {
-        warnLogs.push(msg);
-      };
-    });
-
-    beforeEach(() => {
-      warnLogs = [];
-    });
-
-    afterAll(() => {
-      console.warn = warn;
-    })
-
-    it('should set default value from constant', () => {
-      const fields = {
-        foo: {
-          type: String,
-          defaultValue: 'hello'
-        }
-      };
-      const schema = new Schema(fields);
-      const model = schema.createModel();
-
-      assert.deepStrictEqual(model._data, { foo: 'hello' }, 'Failed to set default value');
-    });
-
-    it('should set default value from function', () => {
-      const fields = {
-        foo: {
-          type: String,
-          defaultValue() { return expected = new Date().toString(); }
-        }
-      };
-      const schema = new Schema(fields);
-      const model = schema.createModel();
-      var expected;
-
-      assert.deepStrictEqual(model._data, { foo: expected }, 'Failed to set default value');
-    });
-
-    it('should warn if default value is invalid', () => {
-      var defaultSet = false;
-      const fields = {
-        foo: {
-          type: String,
-          defaultValue() {
-            defaultSet = true;
-            return 123;
-          }
-        }
-      };
-      const schema = new Schema(fields);
-      const model = schema.createModel();
-
-      return new Promise(resolve => {
-        (function next() {
-          if (defaultSet) {
-            resolve();
-          } else {
-            setImmediate(next);
-          }
-        })();
-      }).then(() => {
-        assert.deepStrictEqual(model._data, { foo: 123 }, 'Failed to set default value');
-        assert.deepStrictEqual(warnLogs, ['Warning! Default value did not validate for field : foo, message = invalidType'], 'Failed to log warning');
-      });
-    });
-
-    it('should warn if default value does not validate asynchronously', () => {
-      var validated = false;
-      var error;
-      const fields = {
-        foo: {
-          type: String,
-          defaultValue: 'test',
-          custom(value) {
-            setTimeout(() => validated = true, 200);  // allow some time for Promise to complete
-            return Promise.reject(error = new Error('Test'));
-          }
-        }
-      };
-      const schema = new Schema(fields);
-      const model = schema.createModel();
-
-      return new Promise(resolve => {
-        (function next() {
-          if (validated) {
-            resolve();
-          } else {
-            setImmediate(next);
-          }
-        })();
-      }).then(() => {
-        assert.deepStrictEqual(model._data, { foo: 'test' }, 'Failed to set default value');
-        assert.deepStrictEqual(warnLogs, [ 'Error while validating default value for field : foo', error ], 'Failed to log warning');
-      });
-    });
-  });
-
-
-  describe('Testing default options', () => {
-
-    afterEach(() => {
-      Schema.setDefaults({ ReactiveVar: null });
-    });
-
-    it('should pass default options', () => {
-      Schema.setDefaults({ ReactiveVar: function () {
-        return {
-          get() { return 'test'; },
-          set() { }
-        };
-      }});
-
-      const schema = new Schema({ foo: String });
-      const model = schema.createModel();
-
-      assert.strictEqual(model.isValid(), 'test', 'Failed to set ReactiveVar');
-    });
-
-    it('should ignore fail with invalid options', () => {
+    it('should fail with invalid plugin factory', () => {
       [
-        undefined, null, false, true, NaN,
-        -1, 0, 1, "", "test", () => {}, /./, new Date(), []
-      ].forEach(options => assert.throws(() => Schema.setDefaults(options)) );
+        null, void 0,
+        -1, 0, 1, '', 'a', {}, [], new Date(), /./,
+        () => true
+      ].forEach(pluginFactory => assert.throws(() => Schema.use(pluginFactory)));
     });
 
   });
 
 
+  it('should create model from default values', () => {
+    const schema = new Schema({ foo: { type: String, defaultValue: 'hello' } });
+    const model = schema.createModel();
 
-  describe('Testing schema as type', () => {
-
-    it('should register type alias', () => {
-      const typeName = 'TestType';
-      const fields = {
-        foo: { type: String, min: 3 }
-      };
-      const options = { name: typeName };
-      const schema = new Schema(fields, options);
-
-      const otherFields = {
-        test: typeName,
-      };
-      const otherSchema = new Schema(otherFields);
-
-      return otherSchema.createModel().set('test.foo', '!').then(otherModel => {
-        const messages = otherModel.getMessages();
-
-        assert.ok(messages && messages.length, 'Failed to invalidate');
-        assert.strictEqual(messages[0].message, 'invalid', 'Failed to propagate to parent');
-
-        return otherModel.set('test', '!');
-      }).then(otherModel => {
-        const messages = otherModel.getMessages();
-
-        assert.ok(messages && messages.length, 'Failed to invalidate');
-        assert.strictEqual(messages[0].message, 'invalidType', 'Failed to check valid type');
-
-        // cleanup
-        types.unregisterType(typeName);
-      });
-    });
-
-    it('should not validate if given another type', () => {
-      const typeNameA = 'TestTypeA';
-      const fieldsA = { foo: String };
-      const optionsA = { name: typeNameA };
-      const schemaA = new Schema(fieldsA, optionsA);
-
-      const typeNameB = 'TestTypeB';
-      const fieldsB = { foo: String };
-      const optionsB = { name: typeNameB };
-      const schemaB = new Schema(fieldsB, optionsB);
-
-      const otherFields = { test: typeNameA };
-      const otherSchema = new Schema(otherFields);
-
-      return otherSchema.createModel().set('test', schemaB.createModel()).then(otherModel => {
-        const messages = otherModel.getMessages();
-
-        assert.ok(messages.length, 'Failed to invalidate');
-        assert.strictEqual(messages[0].message, 'invalidType', 'Failed to check valid type');
-
-        // cleanup
-        types.unregisterType(typeNameA);
-        types.unregisterType(typeNameB);
-      });
-    });
-
-    it('should validate schema from object', () => {
-      const subFields = {
-        bar: String
-      }
-      const subSchema = new Schema(subFields);
-      const fields = {
-        foo: subSchema
-      };
-      const schema = new Schema(fields);
-      const invalidData = { foo: { bar: 123 } };
-      const validData = { foo: { bar: 'Hello' } };
-      const undefData = { foo: undefined };
-
-      return schema.validate(invalidData).then(messages => {
-        assert.ok(messages.length, 'Failed to validate sub schema from object');
-        assert.strictEqual(messages[0].message, 'invalid', 'Failed to properly invalidate field');
-
-        return schema.validate(validData);
-      }).then(messages => {
-        assert.ok(!messages.length, 'Failed to properly validate data');
-
-        return schema.validate(undefData);
-      }).then(messages => {
-        assert.ok(!messages.length, 'Failed to properly validate data');
-      });
-    });
-
+    assert.deepStrictEqual( model, { foo: 'hello' } );
   });
+
+
+  it('should create validation context', () => {
+    const schema = new Schema({ foo: String });
+    const context = schema.createContext();
+
+    assert.ok( context instanceof ValidationContext );
+  });
+
+
+  it('should get type validation', () => {
+    const schema = new Schema({ foo: String });
+    const type = schema._type;
+
+    assert.ok( typeof type === 'object' );
+    assert.ok( type.$$type.toString().match('^schema\\d+$') );
+    assert.ok( typeof type.validatorFactory === 'function' );
+
+    const validator = type.validatorFactory();
+    const context = validator.context;
+
+    assert.ok( validator({ foo: 'test' }) === undefined );
+    assert.deepStrictEqual( context.getMessages(), {} );
+
+
+    assert.ok( validator({ foo: false }) === 'invalid' );
+    assert.deepStrictEqual( context.getMessages(), { foo: 'invalidType' } );
+  });
+
+
+  it('should be chainable', () => {
+    const schema = new Schema({ foo: String });
+    const type = schema._type;
+    const validator = type.validatorFactory(null, null, schema, (value, options, context) => {
+      return 'test';
+    });
+
+    assert.ok( validator({ foo: 'test' }) === 'test' );
+  });
+
 
 });

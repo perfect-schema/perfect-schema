@@ -1,212 +1,142 @@
-/*eslint no-unused-vars: "off"*/
-/*eslint no-console: "off"*/
+import ValidationContext from './context';
+import { normalizeFields } from './fields-normalizer';
+import { createModel } from './model';
 
-'use strict';
+import Any from './types/any';
+import ArrayOf from './types/array-of';
+//import OneOf from './types/one-of';
 
-const DEFAULT_OPTIONS = {};
+
+let schemaCount = 0;
+
 
 
 class PerfectSchema {
 
   /**
-  Create a new instance of PerfectSchema
+  Add a plugin to use with new instances of PerfectSchema. Added
+  plugins do not affect currently instanciated instances.
 
-  @param fields {Object}
+  @param plugin {Function} a single function receiving the instance
   */
-  constructor(fields, options) {
-    if (typeof fields !== 'object') { throw new TypeError('Fields must be an object'); }
+  static use(pluginFactory) {
+    const plugin = pluginFactory(PerfectSchema)
 
-    this._fieldNames = Object.keys(fields);
-
-    if (!this._fieldNames.length) { throw new TypeError('No fields specified'); }
-
-    this._options = Object.assign({}, DEFAULT_OPTIONS, options || {});
-    this._fields = fields;
-    this._validators = {};
-
-    // register schema as type before validating anything
-    registerSchemaType(this);
-
-    for (var fieldName of this._fieldNames) {
-      this._validators[fieldName] = validators.build(fieldName, fields[fieldName]);
-    }
-
-    checkDefaultValues(this._fields, this._validators);
-  }
-
-
-  /**
-  Extends the current schema with more fields
-
-  @param fields {Object}
-  */
-  extend(fields) {
-    const fieldNames = Object.keys(fields);
-    var field;
-
-    for (var fieldName of fieldNames) {
-      if (fields[fieldName] === Object) {
-        field = this._fields[fieldName] = Object.assign(this._fields[fieldName] || {}, { type: Object });
-      } else {
-        field = this._fields[fieldName] = Object.assign(this._fields[fieldName] || {}, fields[fieldName]);
+    if (plugin) {
+      if (typeof plugin !== 'function') {
+        throw new TypeError('Plugin factory did return something, but a function was expected : ' + plugin);
       }
 
-      this._validators[fieldName] = validators.build(fieldName, field);
+      PerfectSchema._plugins.push(plugin);
     }
 
-    this._fieldNames = Object.keys(this._fields);
-
-    checkDefaultValues(fields, this._validators);
+    return PerfectSchema;
   }
 
-
   /**
-  Create a new model instance for this schema
+  Create a new instance
 
-  @return {PerfectModel}
+  @param fields {Object} the fields definition (will be sanitized and normalized)
+  @params options {Object} the schema options
   */
-  createModel() {
-    return new PerfectModel(this);
+  constructor(fields, options = {}) {
+    if (!fields || !Object.keys(fields).length) {
+      throw new TypeError('No defined fields');
+    } else if (typeof fields !== 'object') {
+      throw new TypeError('Invalid fields argument');
+    }
+
+    Object.defineProperties(this, {
+      options: {
+        enumerable: true,
+        configurable: false,
+        writable: false,
+        value: options
+      },
+      fields: {
+        enumerable: true,
+        configurable: false,
+        writable: false,
+        value: normalizeFields(fields, this, PerfectSchema)
+      },
+      fieldNames: {
+        enumerable: true,
+        configurable: false,
+        writable: false,
+        value: Object.keys(fields)
+      },
+      _type: {
+        enumerable: false,
+        configurable: false,
+        writable: false,
+        value: createType(this)
+      }
+    });
+
+    PerfectSchema._plugins.forEach(plugin => plugin(this));
+
+    this.fieldNames.forEach(field => Object.freeze(this.fields[field]));
+
+    Object.freeze(this.fields);     // no further mods!
+    Object.freeze(this.fieldNames); //
   }
 
+  /**
+  Create a new empty model from the fields' default values specification
+
+  @return {Object}
+  */
+  createModel(data) {
+    return createModel(this, data);
+  }
 
   /**
-  Validate the given data
-
-  @param data {Object}                            the data to Validate
-  @param context {validationContext}   (optional) the validation context
-  @return {ValidationResult}
+  Create a new validation context based on this schema
   */
-  validate(data, context) {
-    if (context && !validationContext.isValidationContext(context)) {
-      throw new TypeError('Invalid parent validation context');
-    }
-    const ctx = context || validationContext(data);
-    const dataFields = Object.keys(data || {});
-    const fields = this._fields;
-    const validators = this._validators;
-    const messages = [];
-
-    const validationResults = [];
-    // Set initial state
-    var isPending = true;
-
-    function validateField(fieldName, value) {
-      const validator = validators[fieldName];
-
-      try {
-        return Promise.resolve(validator(value, ctx)).then(message => {
-          if (message) {
-            messages.push({ field: fieldName, message: message, value: value });
-          }
-        }, error => {
-          messages.push({ field: fieldName, message: 'error', value: value, error: error });
-        });
-      } catch (error) {
-        messages.push({ field: fieldName, message: 'error', value: value, error: error });
-      }
-    }
-
-    for (var fieldName of dataFields) {
-      if (!(fieldName in fields)) {
-        messages.push({ field: fieldName, message: 'keyNotInSchema', value: data[fieldName] });
-      } else {
-        validationResults.push(validateField(fieldName, data[fieldName]));
-      }
-    }
-
-    const promise = Promise.all(validationResults).then(() => {
-      isPending = false;
-      return messages;
-    });  // note errors are handled inside the validateField function, so there should not be any errors at this point
-
-    promise.isPending = function isPending() { return isPending; };
-    promise.getMessages = function getMessages() { return messages; };
-
-    return promise;
+  createContext() {
+    return new ValidationContext(this);
   }
 
 }
 
 
-function registerSchemaType(schema) {
-  const options = schema._options;
-  const typeName = 'name' in options ? [options.name] : undefined;
+// Bind default standard types
+PerfectSchema.Any = Any;
+PerfectSchema.ArrayOf = ArrayOf;
+//PerfectSchema.OneOf = OneOf;
 
-  function validator(/*field, specs*/) {
-    return function schemaValidator(value, ctx) {
-      if (isModel(value)) {
-        if (value._schema === schema) {
-          return value.validate(null, validationContext(value._data, ctx)).then(() => {
-            if (!value.isValid()) {
-              return 'invalid';
-            }
-          });
+// internal properties
+Object.defineProperties(PerfectSchema, {
+  _plugins: {
+    enumerable: false,
+    configurable: false,
+    writable: false,
+    value: []
+  },
+});
+
+
+function createType(schemaType) {
+  return {
+    $$type: 'schema' + (++schemaCount),
+    validatorFactory: function (fieldName, field, schema, wrappedValidator) {
+      const validatorContext = schemaType.createContext();
+      const validator = (value, options, context) => {
+        validatorContext.validate(value);
+
+        if (!validatorContext.isValid()) {
+          return 'invalid';
         }
-      } else if (Object.prototype.toString.call(value) === '[object Object]') {
-        return schema.validate(value, validationContext(value, ctx)).then(messages => {
-          if (messages.length) {
-            return 'invalid';
-          }
-        });
-      }
-      if (value !== undefined) {
-        return 'invalidType';
-      }
+
+        return wrappedValidator && wrappedValidator(value, options, context);
+      };
+
+      validator.context = validatorContext;
+
+      return validator;
     }
-  }
-
-  types.registerType(schema, validator, typeName);
+  };
 }
 
 
-function checkDefaultValues(fields, validators) {
-  const fieldNames = Object.keys(fields);
-  var defaultValue;
-  var value;
-
-  for (var fieldName of fieldNames) (function (fieldName) {
-    defaultValue = fields[fieldName].defaultValue;
-
-    if (defaultValue) {
-      value = typeof defaultValue === 'function' ? defaultValue(true) : defaultValue;
-
-      Promise.resolve(validators[fieldName](value)).then(message => {
-        if (message) {
-          console.warn('Warning! Default value did not validate for field : ' + fieldName + ', message = ' + message);
-        }
-      }, error => {
-        console.warn("Error while validating default value for field : " + fieldName);
-        console.warn(error);
-      });
-    }
-  })(fieldName);
-}
-
-
-
-function setDefaults(options) {
-  if (options && (Object.prototype.toString.call(options) === '[object Object]')) {
-    Object.assign(DEFAULT_OPTIONS, options);
-  } else {
-    throw new TypeError('Invalid options');
-  }
-}
-
-
-function isSchema(schema) {
-  return schema && (schema instanceof PerfectSchema) || false;
-}
-
-
-PerfectSchema.setDefaults = setDefaults;
-PerfectSchema.isSchema = isSchema;
-
-module.exports = PerfectSchema;
-
-const types = require('./validators/types');
-const validators = require('./validators');
-const validationContext = require('./validation-context');
-const PerfectModel = require('./model');
-
-const isModel = PerfectModel.isModel;
+export default PerfectSchema;
