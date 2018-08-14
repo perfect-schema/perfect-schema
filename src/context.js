@@ -11,30 +11,33 @@ export default class ValidationContext {
         writable: false,
         value: schema
       },
-      _internals: {
+      _messages: {
         enumerable: false,
-        configurable: false,
-        writable: false,
-        value: {
-          valid: true,
-          messages: {}
-        }
+        configurable: true,
+        writable: true,
+        value: {}
+      },
+      _valid: {
+        enumerable: false,
+        configurable: true,
+        writable: true,
+        value: true
       }
     });
   }
 
   isValid() {
-    return this._internals.valid;
+    return this._valid;
   }
 
 
   getMessages() {
-    return Object.assign({}, this._internals.messages);
+    return Object.assign({}, this._messages);
   }
 
 
   getMessage(field) {
-    return this._internals.messages[field];
+    return this._messages[field];
   }
 
 
@@ -46,40 +49,37 @@ export default class ValidationContext {
     } else if (message && (typeof message !== 'string')) {
       throw new TypeError('Invalid message for ' + field);
     } else if (message) {
-      this._internals.messages[field] = message;
+      this._messages[field] = message;
     } else {
-      delete this._internals.messages[field];
+      delete this._messages[field];
     }
 
-    this._internals.valid = !Object.keys(this._internals.messages).length;
+    this._valid = !Object.keys(this._messages).length;
   }
 
 
   reset() {
-    this._internals.messages = {};
-    this._internals.valid = true;
+    this._messages = {};
+    this._valid = true;
   }
 
 
   validate(value, options) {
-    const { schema, _internals } = this;
-    const { messages } = _internals;
-    const { fieldNames, fields } = schema;
-    const asyncValidations = [];
+    const { fieldNames, fields } = this.schema;
 
     options = options || {};
 
     // reset 'notInSchema' errors
-    Object.keys(messages).forEach(fieldName => {
+    Object.keys(this._messages).forEach(fieldName => {
       if (!(fieldName in fields)) {
-        delete messages[fieldName];
+        delete this._messages[fieldName];
       }
     })
 
     // set 'notInSchema' errors
     Object.keys(value).forEach(propValue => {
       if (!(propValue in fields)) {
-        messages[propValue] = 'notInSchema';
+        this._messages[propValue] = 'notInSchema';
       }
     });
 
@@ -88,10 +88,14 @@ export default class ValidationContext {
       const propValue = value[fieldName];
       const result = field.validator(propValue, options, this);
 
-      this.setMessage(fieldName, result);
+      if (result && (typeof result === 'string')) {
+        this._messages[fieldName] = result;
+      } else {
+        delete this._messages[fieldName];
+      }
     });
 
-    return this.isValid();
+    return this._valid = !Object.keys(this._messages).length;
   }
 
 }

@@ -23,7 +23,7 @@ describe('Testing Validation Context', () => {
   });
 
 
-  it('should validate primitive fields', async () => {
+  it('should validate primitive fields', () => {
     const context = new ValidationContext({
       fields: {
         foo: mockType('test')
@@ -32,18 +32,18 @@ describe('Testing Validation Context', () => {
       options: {}
     });
 
-    await context.validate({ foo: 'test' });
+    context.validate({ foo: 'test' });
     assert.deepStrictEqual(context.getMessages(), {});
     assert.strictEqual(context.isValid(), true);
 
-    await context.validate({ foo: 123 });
+    context.validate({ foo: 123 });
     assert.deepStrictEqual(context.getMessages(), { foo: 'testError' });
     assert.strictEqual(context.getMessage('foo'), 'testError');
     assert.strictEqual(context.isValid(), false);
   });
 
 
-  it('should reset not in schema errors', async () => {
+  it('should reset not in schema errors', () => {
     const context = new ValidationContext({
       fields: {
         foo: mockType('test')
@@ -52,14 +52,14 @@ describe('Testing Validation Context', () => {
       options: {}
     });
 
-    await context.validate({ foo: 'wrong', bar: 'other' });
+    context.validate({ foo: 'wrong', bar: 'other' });
     assert.deepStrictEqual(context.getMessages(), { foo: 'testError', bar: 'notInSchema' });
-    await context.validate({ foo: 'test' });
+    context.validate({ foo: 'test' });
     assert.deepStrictEqual(context.getMessages(), {});
   });
 
 
-  it('should invalidate missing fields', async () => {
+  it('should invalidate missing fields', () => {
     const context = new ValidationContext({
       fields: {
         foo: mockType('test', true)
@@ -68,11 +68,11 @@ describe('Testing Validation Context', () => {
       options: {}
     });
 
-    await context.validate({ bar: true });
+    context.validate({ bar: true });
     assert.deepStrictEqual(context.getMessages(), { bar: 'notInSchema' });
     assert.strictEqual(context.isValid(), false);
 
-    await context.validate({ foo: 'test' });
+    context.validate({ foo: 'test' });
     assert.deepStrictEqual(context.getMessages(), {});
     assert.strictEqual(context.isValid(), true);
   });

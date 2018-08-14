@@ -1,14 +1,14 @@
 # Perfect Schema
+[![Build Status](https://travis-ci.org/perfect-schema/perfect-schema.svg?branch=master)](https://travis-ci.org/perfect-schema/perfect-schema)
+[![Coverage Status](https://coveralls.io/repos/github/perfect-schema/perfect-schema/badge.svg?branch=master)](https://coveralls.io/github/perfect-schema/perfect-schema?branch=master)
 
 Model and schema validation done perfectly.
 
-**Note:** this is a module in development! Proper CI and Coverage reports will be mentioned when ready to use.
-
-
 ## Install
 
-More information, soon!
-
+```
+npm i -S @perfect-schema/base
+```
 
 ## Usage
 
@@ -40,9 +40,11 @@ const cartSchema = new PerfectSchema({
   items: PerfectSchema.ArrayOf(cartItemSchema)
 })
 
-const context = itemSchema.createContext();
-const item = itemSchema.createModel({
-  name: 'foo'
+const context = cartSchema.createContext();
+const item = cartSchema.createModel({
+  items: [{
+    name: 'foo'
+  }]
 });
 
 
@@ -54,7 +56,7 @@ if (!context.validate(item)) {
 
 ## Documentation
 
-More information, soon!
+Read the [documentation](https://perfect-schema.github.io) for more information.
 
 
 ## license

@@ -11,6 +11,7 @@ let schemaCount = 0;
 
 
 
+
 class PerfectSchema {
 
   /**
@@ -23,11 +24,13 @@ class PerfectSchema {
     const plugin = pluginFactory(PerfectSchema)
 
     if (plugin) {
-      if (typeof plugin !== 'function') {
-        throw new TypeError('Plugin factory did return something, but a function was expected : ' + plugin);
+      if (typeof plugin === 'function') {
+        PerfectSchema._plugins.push({
+          init: plugin
+        });
+      } else {
+        PerfectSchema._plugins.push(plugin);
       }
-
-      PerfectSchema._plugins.push(plugin);
     }
 
     return PerfectSchema;
@@ -45,6 +48,8 @@ class PerfectSchema {
     } else if (typeof fields !== 'object') {
       throw new TypeError('Invalid fields argument');
     }
+
+    PerfectSchema._plugins.forEach(plugin => plugin.preInit && plugin.preInit(this));
 
     Object.defineProperties(this, {
       options: {
@@ -73,7 +78,7 @@ class PerfectSchema {
       }
     });
 
-    PerfectSchema._plugins.forEach(plugin => plugin(this));
+    PerfectSchema._plugins.forEach(plugin => plugin.init && plugin.init(this));
 
     this.fieldNames.forEach(field => Object.freeze(this.fields[field]));
 
@@ -87,14 +92,22 @@ class PerfectSchema {
   @return {Object}
   */
   createModel(data) {
-    return createModel(this, data);
+    const model = createModel(this, data);
+
+    PerfectSchema._plugins.forEach(plugin => plugin.extendModel && plugin.extendModel(model, this));
+
+    return model;
   }
 
   /**
   Create a new validation context based on this schema
   */
   createContext() {
-    return new ValidationContext(this);
+    const context = new ValidationContext(this);
+
+    PerfectSchema._plugins.forEach(plugin => plugin.extendContext && plugin.extendContext(context, this));
+
+    return context;
   }
 
 }
@@ -122,9 +135,7 @@ function createType(schemaType) {
     validatorFactory: function (fieldName, field, schema, wrappedValidator) {
       const validatorContext = schemaType.createContext();
       const validator = (value, options, context) => {
-        validatorContext.validate(value);
-
-        if (!validatorContext.isValid()) {
+        if (!validatorContext.validate(value)) {
           return 'invalid';
         }
 

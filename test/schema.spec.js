@@ -63,6 +63,31 @@ describe('Testing Schema', () => {
     });
 
 
+    it('should use call preInit and init', () => {
+      function pluginFactory(SchemaPrototype) {
+        return {
+          preInit(schema) {
+            assert.ok(schema instanceof Schema);
+            schema._preInit = true;
+          },
+          init(schema) {
+            assert.ok(schema instanceof Schema);
+            schema._init = true;
+          }
+        };
+      };
+
+      Schema.use(pluginFactory);
+
+      const s = new Schema({ foo: String });
+
+      assert.ok( s._preInit );
+      assert.ok( s._init );
+
+      while (Schema._plugins.length) Schema._plugins.pop();
+    });
+
+
     it('should use plugin (static only)', () => {
       function pluginFactory(SchemaPrototype) {
         assert.strictEqual(SchemaPrototype, Schema);
@@ -85,9 +110,46 @@ describe('Testing Schema', () => {
     it('should fail with invalid plugin factory', () => {
       [
         null, void 0,
-        -1, 0, 1, '', 'a', {}, [], new Date(), /./,
-        () => true
+        -1, 0, 1, '', 'a', {}, [], new Date(), /./
       ].forEach(pluginFactory => assert.throws(() => Schema.use(pluginFactory)));
+    });
+
+
+    it('should invoke all plugin functions', () => {
+      function pluginFactory(SchemaPrototype) {
+        return {
+          preInit(schema) {
+            schema._preInit = true;
+          },
+          init(schema) {
+            schema._init = true;
+          },
+          extendModel(model, schema) {
+            model._extended = true;
+            schema._model = true;
+          },
+          extendContext(context, schema) {
+            context._extended = true;
+            schema._context = true;
+          }
+        };
+      };
+
+      Schema.use(pluginFactory);
+
+      const s = new Schema({ foo: String });
+      const m = s.createModel();
+      const c = s.createContext();
+
+      assert.ok( s._preInit === true );
+      assert.ok( s._init === true );
+      assert.ok( s._model === true );
+      assert.ok( s._context === true );
+      assert.ok( m._extended === true );
+      assert.ok( c._extended === true );
+
+      while (Schema._plugins.length) Schema._plugins.pop();
+
     });
 
   });
@@ -135,6 +197,8 @@ describe('Testing Schema', () => {
     const validator = type.validatorFactory(null, null, schema, (value, options, context) => {
       return 'test';
     });
+
+    console.log( validator({ foo: 'test' }) );
 
     assert.ok( validator({ foo: 'test' }) === 'test' );
   });
