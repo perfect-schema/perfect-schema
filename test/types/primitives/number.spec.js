@@ -47,7 +47,7 @@ describe('Testing Number primitive type', () => {
 
     it('should fail with anything but numbers', () => {
       [
-        "", "123",
+        "", "123", NaN,
         [], () => {}, /./, new Date(),
         {}, Object.create(null), true, false
       ].forEach(value => assert.strictEqual( validator(value), 'invalidType'));

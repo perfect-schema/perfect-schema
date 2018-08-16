@@ -64,10 +64,8 @@ export default class ValidationContext {
   }
 
 
-  validate(value, options) {
+  validate(data, options = {}) {
     const { fieldNames, fields } = this.schema;
-
-    options = options || {};
 
     // reset 'notInSchema' errors
     Object.keys(this._messages).forEach(fieldName => {
@@ -77,7 +75,7 @@ export default class ValidationContext {
     })
 
     // set 'notInSchema' errors
-    Object.keys(value).forEach(propValue => {
+    Object.keys(data).forEach(propValue => {
       if (!(propValue in fields)) {
         this._messages[propValue] = 'notInSchema';
       }
@@ -85,7 +83,7 @@ export default class ValidationContext {
 
     fieldNames.forEach(fieldName => {
       const field = fields[fieldName];
-      const propValue = value[fieldName];
+      const propValue = data[fieldName];
       const result = field.validator(propValue, options, this);
 
       if (result && (typeof result === 'string')) {

@@ -49,7 +49,7 @@ class PerfectSchema {
       throw new TypeError('Invalid fields argument');
     }
 
-    PerfectSchema._plugins.forEach(plugin => plugin.preInit && plugin.preInit(this));
+    PerfectSchema._plugins.forEach(plugin => plugin.preInit && plugin.preInit(this, fields, options));
 
     Object.defineProperties(this, {
       options: {

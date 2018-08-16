@@ -1,5 +1,6 @@
 .git/
 coverage/
+docs/
 test/
 gulpfile.js
 npm-debug.log

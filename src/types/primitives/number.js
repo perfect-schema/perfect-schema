@@ -26,7 +26,7 @@ Validation function favtory
 */
 function numberValidator(fieldName, field, schema, wrappedValidator) {
   return function validator(value, options, context) {
-    if ((value !== undefined) && (value !== null) && (typeof value !== 'number')) {
+    if ((value !== undefined) && (value !== null) && ((typeof value !== 'number') || isNaN(value))) {
       return 'invalidType';
     }
 

@@ -4,6 +4,7 @@
 
 Model and schema validation done perfectly.
 
+
 ## Install
 
 ```
@@ -56,9 +57,12 @@ if (!context.validate(item)) {
 
 ## Documentation
 
-Read the [documentation](https://perfect-schema.github.io) for more information.
+* [API reference](/docs/api.md)
+* [Field types](/docs/types.md)
+* [Plugins and extending PerfectSchema](/docs/plugins.md)
+* [About this project](/docs/about.md)
 
 
 ## license
 
-ISC
+MIT
