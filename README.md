@@ -57,10 +57,10 @@ if (!context.validate(item)) {
 
 ## Documentation
 
-* [API reference](/docs/api.md)
-* [Field types](/docs/types.md)
-* [Plugins and extending PerfectSchema](/docs/plugins.md)
-* [About this project](/docs/about.md)
+* [API reference](https://perfect-schema.github.io/perfect-schema/docs/api.html)
+* [Field types](https://perfect-schema.github.io/perfect-schema/docs/types.html)
+* [Plugins and extending PerfectSchema](https://perfect-schema.github.io/perfect-schema/docs/plugins.html)
+* [About this project](https://perfect-schema.github.io/perfect-schema/docs/about.html)
 
 
 ## license
