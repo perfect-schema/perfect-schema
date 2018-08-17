@@ -68,7 +68,7 @@ Like the `Any` built-in type, but restricts the actual wildcard types.
 
 ```js
 const schema = new PerfectSchema({
-  foo: PerfectSchema.AnyType(String, Number, Date),
+  foo: PerfectSchema.AnyOf(String, Number, Date),
   bar: {
     type: PerfectSchema.ArrayOf(PerfectSchema.AnyOf(String, Number))
   }

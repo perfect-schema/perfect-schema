@@ -176,7 +176,7 @@ describe('Testing Schema', () => {
     const type = schema._type;
 
     assert.ok( typeof type === 'object' );
-    assert.ok( type.$$type.toString().match('^schema\\d+$') );
+    assert.ok( type.$$type.toString().match('schema\\d+') );
     assert.ok( typeof type.validatorFactory === 'function' );
 
     const validator = type.validatorFactory();

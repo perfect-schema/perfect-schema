@@ -9,3 +9,4 @@ package-lock.json
 .eslintrc.json
 .npmignore
 .travis.yml
+_config.yml

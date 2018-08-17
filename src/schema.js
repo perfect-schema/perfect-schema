@@ -131,7 +131,7 @@ Object.defineProperties(PerfectSchema, {
 
 function createType(schemaType) {
   return {
-    $$type: 'schema' + (++schemaCount),
+    $$type: Symbol('schema' + (++schemaCount)),
     validatorFactory: function (fieldName, field, schema, wrappedValidator) {
       const validatorContext = schemaType.createContext();
       const validator = (value, options, context) => {
