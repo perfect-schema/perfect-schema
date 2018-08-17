@@ -20,6 +20,7 @@
     "validation",
     "schema"
   ],
+  "homepage": "https://perfect-schema.github.io/perfect-schema/",
   "repository": {
     "type": "git",
     "url": "git@github.com:perfect-schema/perfect-schema.git"

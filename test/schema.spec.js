@@ -198,10 +198,7 @@ describe('Testing Schema', () => {
       return 'test';
     });
 
-    console.log( validator({ foo: 'test' }) );
-
     assert.ok( validator({ foo: 'test' }) === 'test' );
   });
-
 
 });
