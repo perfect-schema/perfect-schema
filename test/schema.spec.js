@@ -36,6 +36,64 @@ describe('Testing Schema', () => {
   });
 
 
+  describe('Testing field types', () => {
+
+    it('should validate primitives', () => {
+      const schema = new Schema({
+        foo: String
+      });
+
+      assert.ok( schema.fields.foo.type.$$type );
+      assert.ok( typeof schema.fields.foo.validator === 'function' );
+    });
+
+
+    it('should validate sub-schema', () => {
+      const subSchema = new Schema({
+        bar: String
+      });
+      const schema = new Schema({
+        foo: subSchema
+      });
+
+      assert.ok( /schema\d+/.test( schema.fields.foo.type.$$type.toString() ) );
+      assert.ok( typeof schema.fields.foo.validator === 'function' );
+    });
+
+
+    it('should fail with invalid field name', () => {
+      [
+        '123'
+      ].forEach(fieldName => {
+        assert.throws(() => new Schema({ [fieldName]: {} }));
+      });
+    });
+
+
+    it('should fail with invalid field specification', () => {
+      assert.throws(() => new Schema({ foo: null }));
+    });
+
+
+    it('should fail with invalid field type', () => {
+      [
+        undefined, null, NaN,
+        [], [null] [String], [Number], [String, Number],
+        { type: [] }, { type: [null] }, { type: [String] }, { type: [Number] }, { type: [String, Number] },
+        { type: null },
+        { type: {} },
+        { type: { $$type: null }} ,
+        { type: { $$type: null, validatorFactory: null } },
+        { type: { $$type: null, validatorFactory: () => {} } }
+      ].forEach(type => {
+        assert.throws(() => new Schema({ foo: type }));
+      });
+    });
+
+
+  });
+
+
   describe('Testing plugins', () => {
 
     it('should use plugin', () => {

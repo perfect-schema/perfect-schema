@@ -1,14 +1,17 @@
+import varValidator from 'var-validator';
+
 import ValidationContext from './context';
-import { normalizeFields } from './fields-normalizer';
 import { createModel } from './model';
 
-import Any from './types/any';
-import ArrayOf from './types/array-of';
-//import OneOf from './types/one-of';
+import types, { AnyType, AnyOfType, ArrayOfType } from './types/types';
 
 
+// field validator config
+varValidator.enableScope = false;
+varValidator.enableBrackets = false;
+
+// schema id counter
 let schemaCount = 0;
-
 
 
 
@@ -62,7 +65,7 @@ class PerfectSchema {
         enumerable: true,
         configurable: false,
         writable: false,
-        value: normalizeFields(fields, this, PerfectSchema)
+        value: normalizeValidators(fields, this)
       },
       fieldNames: {
         enumerable: true,
@@ -114,9 +117,9 @@ class PerfectSchema {
 
 
 // Bind default standard types
-PerfectSchema.Any = Any;
-PerfectSchema.ArrayOf = ArrayOf;
-//PerfectSchema.OneOf = OneOf;
+PerfectSchema.Any = AnyType;
+PerfectSchema.ArrayOf = ArrayOfType;
+PerfectSchema.AnyOf = AnyOfType;
 
 // internal properties
 Object.defineProperties(PerfectSchema, {
@@ -126,9 +129,21 @@ Object.defineProperties(PerfectSchema, {
     writable: false,
     value: []
   },
+  _normalizeField: {
+    enumerable: false,
+    configurable: false,
+    writable: false,
+    value: normalizeField
+  }
 });
 
 
+/**
+Create a type for the given schema
+
+@param schemaType {PerfectSchema}
+@return {type}
+*/
 function createType(schemaType) {
   return {
     $$type: Symbol('schema' + (++schemaCount)),
@@ -148,6 +163,61 @@ function createType(schemaType) {
     }
   };
 }
+
+
+/**
+Sanitize all fields from the given object, make sure that each
+key is a valid name, and that each type if a recognized validator
+
+@param fields {object}
+@param schema {PerfectSchema}
+@param PerfectSchema {PerfectSchema}
+@return {Object}
+*/
+function normalizeValidators(fields, schema) {
+  const fieldNames = Object.keys(fields);
+
+  for (const fieldName of fieldNames) {
+    if (!varValidator.isValid(fieldName)) {
+      throw new Error('Invalid field name : ' + fieldName);
+    }
+
+    let field = fields[fieldName] = normalizeField(fields[fieldName], PerfectSchema);
+
+    field.validator = field.type.validatorFactory(fieldName, field, schema, field.validator);
+  }
+
+  return fields;
+}
+
+
+/**
+Return an object that is normalized with a valid type property
+
+@param field
+@param PerfectSchema {PerfectSchema}
+@return {Object}
+*/
+function normalizeField(field) {
+  if (!field) {
+    throw new TypeError('Empty field specification for ' + fieldName);
+  } else if (!field.type) {
+    field = { type: field };
+  }
+
+  if (field.type instanceof PerfectSchema) {
+    field.type = field.type._type;
+  } else {
+    field.type = types.getType(field.type);
+
+    if (!field.type) {
+      throw new TypeError('Invalid field specification for ' + fieldName);
+    }
+  }
+
+  return field;
+}
+
 
 
 export default PerfectSchema;
