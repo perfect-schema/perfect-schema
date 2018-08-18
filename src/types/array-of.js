@@ -2,6 +2,9 @@ import ArrayType from './primitives/array';
 import types from './types';
 
 
+const TYPE = Symbol('arrayOf');
+
+
 /**
 Array of type
 
@@ -14,7 +17,7 @@ Usage:
 See schema.js for more information
 */
 export default type => Object.freeze({
-  $$type: Symbol('arrayOf'),
+  $$type: TYPE,
   validatorFactory: validatorFactory(type)
 });
 

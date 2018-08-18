@@ -1,5 +1,4 @@
 import assert from 'assert';
-
 import ArrayOfType from '../../src/types/array-of';
 
 
@@ -10,6 +9,14 @@ describe('Testing ArrayOf type', () => {
 
     assert.strictEqual( typeof CustomType.$$type, 'symbol', 'ArrayOf type does not declare a Symbol' );
     assert.strictEqual( typeof CustomType.validatorFactory, 'function', 'ArrayOf type does not declare a validator factory function');
+  });
+
+
+  it('should have type equality', () => {
+    const a = ArrayOfType(String);
+    const b = ArrayOfType(String);
+
+    assert.strictEqual( a.$$type, b.$$type );
   });
 
 

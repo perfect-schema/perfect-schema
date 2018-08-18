@@ -38,6 +38,11 @@ describe('Testing Schema', () => {
 
   describe('Testing field types', () => {
 
+    it('should validate normalizing', () => {
+      Schema._normalizeField(String);
+    });
+
+
     it('should validate primitives', () => {
       const schema = new Schema({
         foo: String
@@ -87,6 +92,7 @@ describe('Testing Schema', () => {
         { type: { $$type: null, validatorFactory: () => {} } }
       ].forEach(type => {
         assert.throws(() => new Schema({ foo: type }));
+        assert.throws(() => Schema._normalizeField(type));
       });
     });
 

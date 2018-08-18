@@ -3,7 +3,7 @@ import varValidator from 'var-validator';
 import ValidationContext from './context';
 import { createModel } from './model';
 
-import types, { AnyType, AnyOfType, ArrayOfType } from './types/types';
+import types, { AnyType, AnyOfType, ArrayOfType } from './types/types';
 
 
 // field validator config
@@ -147,7 +147,7 @@ Create a type for the given schema
 function createType(schemaType) {
   return {
     $$type: Symbol('schema' + (++schemaCount)),
-    validatorFactory: function (fieldName, field, schema, wrappedValidator) {
+    validatorFactory: (fieldName, field, schema, wrappedValidator) => {
       const validatorContext = schemaType.createContext();
       const validator = (value, options, context) => {
         if (!validatorContext.validate(value)) {
@@ -171,7 +171,6 @@ key is a valid name, and that each type if a recognized validator
 
 @param fields {object}
 @param schema {PerfectSchema}
-@param PerfectSchema {PerfectSchema}
 @return {Object}
 */
 function normalizeValidators(fields, schema) {
@@ -182,7 +181,7 @@ function normalizeValidators(fields, schema) {
       throw new Error('Invalid field name : ' + fieldName);
     }
 
-    let field = fields[fieldName] = normalizeField(fields[fieldName], PerfectSchema);
+    const field = fields[fieldName] = normalizeField(fields[fieldName], PerfectSchema);
 
     field.validator = field.type.validatorFactory(fieldName, field, schema, field.validator);
   }
@@ -195,12 +194,12 @@ function normalizeValidators(fields, schema) {
 Return an object that is normalized with a valid type property
 
 @param field
-@param PerfectSchema {PerfectSchema}
+@param fieldName {String}   (optional) the field name
 @return {Object}
 */
-function normalizeField(field) {
+function normalizeField(field, fieldName) {
   if (!field) {
-    throw new TypeError('Empty field specification for ' + fieldName);
+    throw new TypeError('Empty field specification' + (fieldName ? (' for ' + fieldName) : ''));
   } else if (!field.type) {
     field = { type: field };
   }
@@ -211,7 +210,7 @@ function normalizeField(field) {
     field.type = types.getType(field.type);
 
     if (!field.type) {
-      throw new TypeError('Invalid field specification for ' + fieldName);
+      throw new TypeError('Invalid field specification' + (fieldName ? (' for ' + fieldName) : ''));
     }
   }
 

@@ -12,6 +12,14 @@ describe('Testing Any type', () => {
   });
 
 
+  it('should have type equality', () => {
+    const a = AnyOfType(String);
+    const b = AnyOfType(String);
+
+    assert.strictEqual( a.$$type, b.$$type );
+  });
+
+
   it('should fail with invalid type', () => {
     assert.throws(() => AnyOfType());
 

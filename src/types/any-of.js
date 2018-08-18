@@ -1,6 +1,8 @@
 import types from './types';
 
 
+const TYPE = Symbol('anyOf');
+
 /**
 Array of type
 
@@ -13,7 +15,7 @@ Usage:
 See schema.js for more information
 */
 export default (...allowedTypes) => Object.freeze({
-  $$type: Symbol('anyOf'),
+  $$type: TYPE,
   validatorFactory: validatorFactory(...allowedTypes)
 });
 
@@ -23,7 +25,7 @@ function validatorFactory(...allowedTypes) {
     throw new TypeError('Missing types');
   }
 
-  const _allowedTypes =  allowedTypes.map(type => {
+  const _allowedTypes = allowedTypes.map(type => {
     const _type = types.getType(type) || (type && types.getType(type._type));
 
     if (!_type) {

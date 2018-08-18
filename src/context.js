@@ -99,6 +99,6 @@ export default class ValidationContext {
 }
 
 
-function fieldPart(fieldName, index){
+function fieldPart(fieldName, index) {
   return fieldName.split('.')[index];
 }
