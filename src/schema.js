@@ -181,7 +181,7 @@ function normalizeValidators(fields, schema) {
       throw new Error('Invalid field name : ' + fieldName);
     }
 
-    const field = fields[fieldName] = normalizeField(fields[fieldName], PerfectSchema);
+    const field = fields[fieldName] = normalizeField(fields[fieldName], fieldName);
 
     field.validator = field.type.validatorFactory(fieldName, field, schema, field.validator);
   }
