@@ -106,6 +106,7 @@ describe('Testing ArrayOf type', () => {
     const schema = new PerfectSchema();
 
     const validator = ArrayOfType(schema).validatorFactory('foo', {});
+    const validatorAnonymous = ArrayOfType(schema).validatorFactory(null, {});
 
     it('should validate with custom type', () => {
       const value = ['test'];
@@ -125,6 +126,20 @@ describe('Testing ArrayOf type', () => {
       };
 
       assert.strictEqual( validator(value, null, context), 'invalid' );
+    });
+
+    it('should fail with invalid schema data (anaonymous field', () => {
+      const value = ['some value'];
+      const context = {
+        setMessage(field, msg) {
+          assert.strictEqual(field, 'arr?.0.foo');
+        },
+        validate(validatedValue) {
+          assert.strictEqual(value, validatedValue);
+        }
+      };
+
+      assert.strictEqual( validatorAnonymous(value, null, context), 'invalid' );
     });
 
   });
@@ -154,7 +169,39 @@ describe('Testing ArrayOf type', () => {
       assert.strictEqual( validator([]), undefined );
       assert.strictEqual( validator(['test']), undefined );
     });
-    
+
+
+    it('should timeout', () => {
+      class PerfectSchema {
+        constructor() {
+          this._type = {
+            $$type: 'test',
+            validatorFactory: () => (value) => {
+              if (value && (value.foo === 'ok')) {
+                const expires = Date.now() + 50; // ms
+                while (expires > Date.now());
+              } else {
+                return 'testError';
+              }
+            }
+          };
+        }
+      };
+      const schema = new PerfectSchema();
+      const value = new Array(20).fill({ foo: 'ok' });
+
+      value.push('error');
+
+      const validatorDefault = ArrayOfType(schema).validatorFactory(null, {});  // default 200 ms
+      const validatorUnlimited = ArrayOfType(schema).validatorFactory(null, {
+        timeout: Infinity
+      });
+
+      assert.strictEqual( validatorDefault(value), undefined );
+      assert.strictEqual( validatorUnlimited(value), 'invalid' );
+
+    });
+
   });
 
 });

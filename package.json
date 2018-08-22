@@ -1,6 +1,6 @@
 {
   "name": "@perfect-schema/base",
-  "version": "2.1.8",
+  "version": "2.1.9",
   "description": "Model and schema validation done perfectly.",
   "author": "Yanick Rochon <yanick.rochon@gmail.com>",
   "license": "MIT",

@@ -38,11 +38,16 @@ function validatorFactory(type) {
   @param wrappedValidator {Function}  (optional) the validator being wrapped
   */
   return function arrayOfValidator(fieldName, field, schema, wrappedValidator) {
+    const {
+      timeout = 200,
+    } = field;
     const itemValidator = _type.validatorFactory(fieldName, field, schema);
 
     return ArrayType.validatorFactory(fieldName, field, schema, (value, options, context) => {
       if (value) {
-        for (let i = 0, len = value.length; i < len; ++i) {
+        const expires = Date.now() + timeout;
+
+        for (let i = 0, len = value.length; i < len && expires > Date.now(); ++i) {
           const item = value[i];
           const message = itemValidator(item);
 
@@ -51,12 +56,10 @@ function validatorFactory(type) {
               const itemContext = itemValidator.context;
               const contextMessages = itemContext.getMessages();
 
+              fieldName = fieldName || 'arr?';
+
               Object.keys(contextMessages).forEach(subFieldName => context.setMessage(fieldName + '.' + i + '.' + subFieldName, contextMessages[subFieldName]));
             }
-
-            //if (context) {
-            //  context.setMessage(fieldName + '.' + i, message);
-            //}
 
             return 'invalid';
           }
