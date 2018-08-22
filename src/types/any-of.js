@@ -46,7 +46,7 @@ function validatorFactory(...allowedTypes) {
   return function anyOfValidator(fieldName, field, schema, wrappedValidator) {
     const {
       required = false,
-      nullable = true,
+      nullable = true
     } = field;
     const itemValidators = _allowedTypes.map(_type => _type.validatorFactory(fieldName, field, schema));
 

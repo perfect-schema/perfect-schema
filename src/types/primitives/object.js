@@ -30,7 +30,7 @@ Validation function favtory
 function objectValidator(fieldName, field, schema, wrappedValidator) {
   const {
     required = false,
-    nullable = true,
+    nullable = true
   } = field;
 
   return function validator(value, options, context) {

@@ -29,7 +29,7 @@ function dateValidator(fieldName, field, schema, wrappedValidator) {
     required = false,
     nullable = true,
     minDate = -Infinity,
-    maxDate = Infinity,
+    maxDate = Infinity
   } = field;
 
   return function validator(value, options, context) {

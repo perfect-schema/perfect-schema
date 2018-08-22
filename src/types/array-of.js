@@ -39,7 +39,7 @@ function validatorFactory(type) {
   */
   return function arrayOfValidator(fieldName, field, schema, wrappedValidator) {
     const {
-      timeout = 200,
+      timeout = 200
     } = field;
     const itemValidator = _type.validatorFactory(fieldName, field, schema);
 

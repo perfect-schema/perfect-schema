@@ -150,10 +150,11 @@ function createType(schemaType) {
     validatorFactory: (fieldName, field, schema, wrappedValidator) => {
       const {
         required = false,
-        nullable = true,
+        nullable = true
       } = field;
       const validatorContext = schemaType.createContext();
-      const validator = (value, options, context) => {
+
+      function validator(value, options, context) {
         if ((value === undefined) && required) {
           return 'required';
         } else if ((value === null) && !nullable) {
@@ -163,7 +164,7 @@ function createType(schemaType) {
         }
 
         return wrappedValidator && wrappedValidator(value, options, context);
-      };
+      }
 
       validator.context = validatorContext;
 

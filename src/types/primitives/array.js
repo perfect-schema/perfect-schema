@@ -29,7 +29,7 @@ function arrayValidator(fieldName, field, schema, wrappedValidator) {
     required = false,
     nullable = true,
     minCount = 0,
-    maxCount = Infinity,
+    maxCount = Infinity
   } = field;
 
   return function validator(value, options, context) {

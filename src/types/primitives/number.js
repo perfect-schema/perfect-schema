@@ -29,7 +29,7 @@ function numberValidator(fieldName, field, schema, wrappedValidator) {
     required = false,
     nullable = true,
     minNumber = -Infinity,
-    maxNumber = Infinity,
+    maxNumber = Infinity
   } = field;
 
   return function validator(value, options, context) {

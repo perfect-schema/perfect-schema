@@ -27,7 +27,7 @@ Validation function favtory
 function anyValidator(fieldName, field, schema, wrappedValidator) {
   const {
     required = false,
-    nullable = true,
+    nullable = true
   } = field;
 
   return function validator(value, options, context) {

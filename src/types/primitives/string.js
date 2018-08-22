@@ -29,7 +29,7 @@ function stringValidator(fieldName, field, schema, wrappedValidator) {
     required = false,
     nullable = true,
     minLength = 0,
-    maxLength = Infinity,
+    maxLength = Infinity
   } = field;
 
   return function validator(value, options, context) {
