@@ -12,7 +12,7 @@ describe('Testing Number primitive type', () => {
 
   it('should be chainable', () => {
     const value = 123;
-    const validator = NumberType.validatorFactory(null, null, null, nextValue => {
+    const validator = NumberType.validatorFactory(null, {}, null, nextValue => {
       assert.strictEqual( value, nextValue );
 
       return 'test';
@@ -24,7 +24,7 @@ describe('Testing Number primitive type', () => {
 
   describe('Testing validation', () => {
 
-    const validator = NumberType.validatorFactory();
+    const validator = NumberType.validatorFactory(null, {});
 
     it('should validate undefined', () => {
       assert.strictEqual( validator(undefined), undefined );
@@ -51,6 +51,64 @@ describe('Testing Number primitive type', () => {
         [], () => {}, /./, new Date(),
         {}, Object.create(null), true, false
       ].forEach(value => assert.strictEqual( validator(value), 'invalidType'));
+    });
+
+  });
+
+
+  describe('Testing options', () => {
+
+    it('should be required', () => {
+      const validator = NumberType.validatorFactory(null, {
+        required: true
+      });
+
+      assert.strictEqual( validator(), 'required' );
+      assert.strictEqual( validator(undefined), 'required' );
+      assert.strictEqual( validator(null), undefined );
+      assert.strictEqual( validator(0), undefined );
+      assert.strictEqual( validator(123), undefined );
+    });
+
+
+    it('should not be nullable', () => {
+      const validator = NumberType.validatorFactory(null, {
+        nullable: false
+      });
+
+      assert.strictEqual( validator(null), 'isNull' );
+      assert.strictEqual( validator(0), undefined );
+      assert.strictEqual( validator(123), undefined );
+    });
+
+
+    it('should validate min', () => {
+      const validator = NumberType.validatorFactory(null, {
+        minNumber: 3
+      });
+
+      [
+        3, 4, 5
+      ].forEach(value => assert.strictEqual( validator(value), undefined ));
+
+      [
+        -1, 0, 1, 2
+      ].forEach(value => assert.strictEqual( validator(value), 'minNumber' ));
+    });
+
+
+    it('should validate max', () => {
+      const validator = NumberType.validatorFactory(null, {
+        maxNumber: 3
+      });
+
+      [
+        -1, 0, 1, 2, 3
+      ].forEach(value => assert.strictEqual( validator(value), undefined ));
+
+      [
+        4, 5, 6
+      ].forEach(value => assert.strictEqual( validator(value), 'maxNumber' ));
     });
 
   });

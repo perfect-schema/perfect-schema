@@ -25,7 +25,18 @@ Validation function favtory
 @param wrappedValidator {Function}  (optional) the validator being wrapped
 */
 function anyValidator(fieldName, field, schema, wrappedValidator) {
+  const {
+    required = false,
+    nullable = true,
+  } = field;
+
   return function validator(value, options, context) {
+    if ((value === undefined) && required) {
+      return 'required';
+    } else if ((value === null) && !nullable) {
+      return 'isNull';
+    }
+
     return wrappedValidator && wrappedValidator(value, options, context);
   };
 }

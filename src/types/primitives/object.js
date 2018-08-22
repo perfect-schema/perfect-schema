@@ -28,8 +28,17 @@ Validation function favtory
 @param wrappedValidator {Function}  (optional) the validator being wrapped
 */
 function objectValidator(fieldName, field, schema, wrappedValidator) {
+  const {
+    required = false,
+    nullable = true,
+  } = field;
+
   return function validator(value, options, context) {
-    if ((value !== undefined) && (value !== null) && ((typeof value !== 'object') || (gpo(value) !== proto))) {
+    if ((value === undefined) && required) {
+      return 'required';
+    } else if ((value === null) && !nullable) {
+      return 'isNull';
+    } else if ((value !== undefined) && (value !== null) && ((typeof value !== 'object') || (gpo(value) !== proto))) {
       return 'invalidType';
     }
 

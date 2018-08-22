@@ -32,7 +32,7 @@ describe('Testing ArrayOf type', () => {
 
   it('should be chainable', () => {
     const value = ['hello'];
-    const validator = ArrayOfType(String).validatorFactory(null, null, null, function (nextValue) {
+    const validator = ArrayOfType(String).validatorFactory(null, {}, null, function (nextValue) {
       assert.strictEqual( value, nextValue );
 
       return 'test';
@@ -44,7 +44,7 @@ describe('Testing ArrayOf type', () => {
 
   describe('Testing validation with primitive', () => {
 
-    const validator = ArrayOfType(String).validatorFactory();
+    const validator = ArrayOfType(String).validatorFactory(null, {});
 
     it('should validate undefined', () => {
       assert.strictEqual( validator(undefined), undefined );
@@ -105,7 +105,7 @@ describe('Testing ArrayOf type', () => {
     };
     const schema = new PerfectSchema();
 
-    const validator = ArrayOfType(schema).validatorFactory('foo');
+    const validator = ArrayOfType(schema).validatorFactory('foo', {});
 
     it('should validate with custom type', () => {
       const value = ['test'];
@@ -127,6 +127,34 @@ describe('Testing ArrayOf type', () => {
       assert.strictEqual( validator(value, null, context), 'invalid' );
     });
 
+  });
+
+
+  describe('Testing options', () => {
+
+    it('should be required', () => {
+      const validator = ArrayOfType(String).validatorFactory(null, {
+        required: true
+      });
+
+      assert.strictEqual( validator(), 'required' );
+      assert.strictEqual( validator(undefined), 'required' );
+      assert.strictEqual( validator(null), undefined );
+      assert.strictEqual( validator([]), undefined );
+      assert.strictEqual( validator(['test']), undefined );
+    });
+
+
+    it('should not be nullable', () => {
+      const validator = ArrayOfType(String).validatorFactory(null, {
+        nullable: false
+      });
+
+      assert.strictEqual( validator(null), 'isNull' );
+      assert.strictEqual( validator([]), undefined );
+      assert.strictEqual( validator(['test']), undefined );
+    });
+    
   });
 
 });

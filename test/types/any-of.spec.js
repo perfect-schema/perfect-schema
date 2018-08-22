@@ -32,7 +32,7 @@ describe('Testing Any type', () => {
 
   it('should be chainable', () => {
     const value = 'hello';
-    const validator = AnyOfType(String, Number).validatorFactory(null, null, null, function (nextValue) {
+    const validator = AnyOfType(String, Number).validatorFactory(null, {}, null, function (nextValue) {
       assert.strictEqual( value, nextValue );
 
       return 'test';
@@ -44,7 +44,7 @@ describe('Testing Any type', () => {
 
   describe('Testing validation with primitive', () => {
 
-    const validator = AnyOfType(String, Date).validatorFactory();
+    const validator = AnyOfType(String, Date).validatorFactory(null, {});
 
     it('should validate undefined', () => {
       assert.strictEqual( validator(undefined), undefined );
@@ -96,7 +96,7 @@ describe('Testing Any type', () => {
     };
     const schema = new PerfectSchema();
 
-    const validator = AnyOfType(Number, schema).validatorFactory('foo');
+    const validator = AnyOfType(Number, schema).validatorFactory('foo', {});
 
     it('should validate with custom type', () => {
       assert.strictEqual( validator('test'), undefined );
@@ -108,6 +108,34 @@ describe('Testing Any type', () => {
       // Note: here, the message is 'invalidType' because Number comes first.
       // if the schema had been first, the message would have been 'error'
       assert.strictEqual( validator({}), 'invalidType' );
+    });
+
+  });
+
+
+  describe('Testing options', () => {
+
+    it('should be required', () => {
+      const validator = AnyOfType(String, Number).validatorFactory(null, {
+        required: true
+      });
+
+      assert.strictEqual( validator(), 'required' );
+      assert.strictEqual( validator(undefined), 'required' );
+      assert.strictEqual( validator(null), undefined );
+      assert.strictEqual( validator('test'), undefined );
+      assert.strictEqual( validator(123), undefined );
+    });
+
+
+    it('should not be nullable', () => {
+      const validator = AnyOfType(String, Number).validatorFactory(null, {
+        nullable: false
+      });
+
+      assert.strictEqual( validator(null), 'isNull' );
+      assert.strictEqual( validator('test'), undefined );
+      assert.strictEqual( validator(123), undefined );
     });
 
   });

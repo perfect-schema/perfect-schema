@@ -25,9 +25,26 @@ Validation function favtory
 @param wrappedValidator {Function}  (optional) the validator being wrapped
 */
 function arrayValidator(fieldName, field, schema, wrappedValidator) {
+  const {
+    required = false,
+    nullable = true,
+    minCount = 0,
+    maxCount = Infinity,
+  } = field;
+
   return function validator(value, options, context) {
-    if ((value !== undefined) && (value !== null) && !Array.isArray(value)) {
-      return 'invalidType';
+    if ((value === undefined) && required) {
+      return 'required';
+    } else if ((value === null) && !nullable) {
+      return 'isNull';
+    } else if ((value !== undefined) && (value !== null)) {
+      if (!Array.isArray(value)) {
+        return 'invalidType';
+      } else if (value.length < minCount) {
+        return 'minCount';
+      } else if (value.length > maxCount) {
+        return 'maxCount';
+      }
     }
 
     return wrappedValidator && wrappedValidator(value, options, context);

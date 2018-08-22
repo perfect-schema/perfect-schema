@@ -2,40 +2,77 @@
 
 ## Primitives
 
+Below is a list of general options supported by all primitive and built-in types.
 
-### `Array`
+##### Options
+
+* **required** : `boolean`
+  > The value is required and may not be undefined, though may be `null`. *(Default: `false`)*
+* **nullable** : `boolean`
+  > The value may or may not be null. *(Default: `true`)*
+
+
+### :zap: `Array`
 
 The field should be an array. For an array of specified elements, consider using `PerfectSchema.ArrayOf(type%)`
 
+##### Options
 
-### `Boolean`
+* **minCount** : `Number`
+  > The minimum number of elements allowed in the array *(Default: `0`)*
+* **maxCount** : `Number`
+  > The maximum number of elements allowed in the array *(Default: `Infinity`)*
+
+
+### :zap: `Boolean`
 
 The field should be a strict boolean value of `true` or `false`.
 
 
-### `Date`
+### :zap: `Date`
 
 The field should be an instance of `Date` and be a valid date value.
 
+##### Options
 
-### `Number`
+* **minDate** : `Date|Number`
+  > The earliest date allowed *(Default: `-Infinity`)*
+* **maxDate** : `Date|Number`
+  > The latest date allowed *(Default: `Infinity`)*
+
+
+### :zap: `Number`
 
 The field should be a strict number between, and not `NaN`.
 
+##### Options
 
-### `Object`
+* **minNumber** : `Number`
+  > The smallest value allowed *(Default: `-Infinity`)*
+* **maxNumber** : `Number`
+  > The highest value allowed *(Default: `Infinity`)*
+
+
+### :zap: `Object`
 
 The field should be an instanceo of `Object`.
 
 
-### `String`
+### :zap: `String`
 
 The field should be a string.
+
+##### Options
+
+* **minLength** : `Number`
+  > The smallest string allowed *(Default: `0`)*
+* **maxLength** : `Number`
+  > The largest string allowed *(Default: `Infinity`)*
 
 
 ## Built-in types
 
-### `PerfectSchema.Any`
+### :zap: `PerfectSchema.Any`
 
 A wildcard type whose value can be anything. This is intended to be an unchecked, blackbox type.
 
@@ -48,7 +85,22 @@ const schema = new PerfectSchema({
 });
 ```
 
-### `PerfectSchema.ArrayOf(type%)`
+
+### :zap: `PerfectSchema.AnyOf(type%[, type%[, ...]])`
+
+Like the `Any` built-in type, but restricts the actual wildcard types.
+
+```js
+const schema = new PerfectSchema({
+  foo: PerfectSchema.AnyOf(String, Number, Date),
+  bar: {
+    type: PerfectSchema.ArrayOf(PerfectSchema.AnyOf(String, Number))
+  }
+});
+```
+
+
+### :zap: `PerfectSchema.ArrayOf(type%)`
 
 Like the `Array` type, but specify element type(s).
 
@@ -61,16 +113,12 @@ const schema = new PerfectSchema({
 });
 ```
 
+##### Options
 
-### `PerfectSchema.AnyOf(type%[, type%[, ...]])`
+All options from :zap:`Array` are inherited.
 
-Like the `Any` built-in type, but restricts the actual wildcard types.
-
-```js
-const schema = new PerfectSchema({
-  foo: PerfectSchema.AnyOf(String, Number, Date),
-  bar: {
-    type: PerfectSchema.ArrayOf(PerfectSchema.AnyOf(String, Number))
-  }
-});
-```
+* **timeout** : `Number`
+  > The timeout in milliseconds before array element validation should abort *(Default: `200`)*
+  >
+  > **Warning** : validation will not return until all array elements are either checked or
+  > when the timeout expires.

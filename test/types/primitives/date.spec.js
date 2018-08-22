@@ -12,7 +12,7 @@ describe('Testing Date primitive type', () => {
 
   it('should be chainable', () => {
     const value = new Date();
-    const validator = DateType.validatorFactory(null, null, null, nextValue => {
+    const validator = DateType.validatorFactory(null, {}, null, nextValue => {
       assert.strictEqual( value, nextValue );
 
       return 'test';
@@ -24,7 +24,7 @@ describe('Testing Date primitive type', () => {
 
   describe('Testing validation', () => {
 
-    const validator = DateType.validatorFactory();
+    const validator = DateType.validatorFactory(null, {});
 
     it('should validate undefined', () => {
       assert.strictEqual( validator(undefined), undefined );
@@ -52,6 +52,51 @@ describe('Testing Date primitive type', () => {
         [], () => {}, /./,
         {}, Object.create(null), true, false
       ].forEach(value => assert.strictEqual( validator(value), 'invalidType' ));
+    });
+
+  });
+
+
+  describe('Testing options', () => {
+
+    it('should be required', () => {
+      const validator = DateType.validatorFactory(null, {
+        required: true
+      });
+
+      assert.strictEqual( validator(), 'required' );
+      assert.strictEqual( validator(undefined), 'required' );
+      assert.strictEqual( validator(new Date()), undefined );
+    });
+
+
+    it('should not be nullable', () => {
+      const validator = DateType.validatorFactory(null, {
+        nullable: false
+      });
+
+      assert.strictEqual( validator(null), 'isNull' );
+      assert.strictEqual( validator(new Date()), undefined );
+    });
+
+
+    it('should validate min date', () => {
+      const validator = DateType.validatorFactory(null, {
+        minDate: new Date('2000-01-01')
+      });
+
+      assert.strictEqual( validator(new Date('1999-12-31')), 'minDate' );
+      assert.strictEqual( validator(new Date('2000-01-02')), undefined );
+    });
+
+
+    it('should validate max date', () => {
+      const validator = DateType.validatorFactory(null, {
+        maxDate: new Date('2000-01-01')
+      });
+
+      assert.strictEqual( validator(new Date('1999-12-31')), undefined );
+      assert.strictEqual( validator(new Date('2000-01-02')), 'maxDate' );
     });
 
   });

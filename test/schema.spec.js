@@ -235,34 +235,64 @@ describe('Testing Schema', () => {
   });
 
 
-  it('should get type validation', () => {
-    const schema = new Schema({ foo: String });
-    const type = schema._type;
+  describe('Testing schema type', () => {
 
-    assert.ok( typeof type === 'object' );
-    assert.ok( type.$$type.toString().match('schema\\d+') );
-    assert.ok( typeof type.validatorFactory === 'function' );
+    it('should get type validation', () => {
+      const schema = new Schema({ foo: String });
+      const type = schema._type;
 
-    const validator = type.validatorFactory();
-    const context = validator.context;
+      assert.ok( typeof type === 'object' );
+      assert.ok( type.$$type.toString().match('schema\\d+') );
+      assert.ok( typeof type.validatorFactory === 'function' );
 
-    assert.ok( validator({ foo: 'test' }) === undefined );
-    assert.deepStrictEqual( context.getMessages(), {} );
+      const validator = type.validatorFactory(null, {});
+      const context = validator.context;
 
-
-    assert.ok( validator({ foo: false }) === 'invalid' );
-    assert.deepStrictEqual( context.getMessages(), { foo: 'invalidType' } );
-  });
+      assert.ok( validator({ foo: 'test' }) === undefined );
+      assert.deepStrictEqual( context.getMessages(), {} );
 
 
-  it('should be chainable', () => {
-    const schema = new Schema({ foo: String });
-    const type = schema._type;
-    const validator = type.validatorFactory(null, null, schema, (value, options, context) => {
-      return 'test';
+      assert.ok( validator({ foo: false }) === 'invalid' );
+      assert.deepStrictEqual( context.getMessages(), { foo: 'invalidType' } );
     });
 
-    assert.ok( validator({ foo: 'test' }) === 'test' );
+
+    it('should be chainable', () => {
+      const schema = new Schema({ foo: String });
+      const type = schema._type;
+      const validator = type.validatorFactory(null, {}, schema, (value, options, context) => {
+        return 'test';
+      });
+
+      assert.ok( validator({ foo: 'test' }) === 'test' );
+    });
+
+
+    it('should be required', () => {
+      const schema = new Schema({ foo: String });
+      const type = schema._type;
+      const validator = type.validatorFactory(null, {
+        required: true
+      });
+
+      assert.strictEqual( validator(), 'required' );
+      assert.strictEqual( validator(undefined), 'required' );
+      assert.strictEqual( validator(null), undefined );
+      assert.strictEqual( validator({ foo: '' }), undefined );
+    });
+
+
+    it('should not be nullable', () => {
+      const schema = new Schema({ foo: String });
+      const type = schema._type;
+      const validator = type.validatorFactory(null, {
+        nullable: false
+      });
+
+      assert.strictEqual( validator(null), 'isNull' );
+      assert.strictEqual( validator({ foo: '' }), undefined );
+    });
+
   });
 
 });

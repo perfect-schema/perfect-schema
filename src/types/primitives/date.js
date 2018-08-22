@@ -25,11 +25,28 @@ Validation function favtory
 @param wrappedValidator {Function}  (optional) the validator being wrapped
 */
 function dateValidator(fieldName, field, schema, wrappedValidator) {
+  const {
+    required = false,
+    nullable = true,
+    minDate = -Infinity,
+    maxDate = Infinity,
+  } = field;
+
   return function validator(value, options, context) {
-    if ((value !== undefined) && (value !== null) && !(value instanceof Date)) {
-      return 'invalidType';
-    } else if (value && isNaN(value.getTime())) {
-      return 'invalidDate';
+    if ((value === undefined) && required) {
+      return 'required';
+    } else if ((value === null) && !nullable) {
+      return 'isNull';
+    } else if ((value !== undefined) && (value !== null)) {
+      if (!(value instanceof Date)) {
+        return 'invalidType';
+      } else if (isNaN(value.getTime())) {
+        return 'invalidDate';
+      } else if (value < minDate) {
+        return 'minDate';
+      } else if (value > maxDate) {
+        return 'maxDate';
+      }
     }
 
     return wrappedValidator && wrappedValidator(value, options, context);

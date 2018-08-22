@@ -12,7 +12,7 @@ describe('Testing Array primitive type', () => {
 
   it('should be chainable', () => {
     const value = [];
-    const validator = ArrayType.validatorFactory(null, null, null, nextValue => {
+    const validator = ArrayType.validatorFactory(null, {}, null, nextValue => {
       assert.strictEqual( value, nextValue );
 
       return 'test';
@@ -24,7 +24,7 @@ describe('Testing Array primitive type', () => {
 
   describe('Testing validation', () => {
 
-    const validator = ArrayType.validatorFactory();
+    const validator = ArrayType.validatorFactory(null, {});
 
     it('should validate undefined', () => {
       assert.strictEqual( validator(undefined), undefined );
@@ -48,6 +48,62 @@ describe('Testing Array primitive type', () => {
         () => {}, /./, new Date(),
         {}, Object.create(null), false, true
       ].forEach(value => assert.strictEqual( validator(value), 'invalidType' ));
+    });
+
+  });
+
+
+  describe('Testing options', () => {
+
+    it('should be required', () => {
+      const validator = ArrayType.validatorFactory(null, {
+        required: true
+      });
+
+      assert.strictEqual( validator(), 'required' );
+      assert.strictEqual( validator(undefined), 'required' );
+      assert.strictEqual( validator(null), undefined );
+      assert.strictEqual( validator([]), undefined );
+    });
+
+
+    it('should not be nullable', () => {
+      const validator = ArrayType.validatorFactory(null, {
+        nullable: false
+      });
+
+      assert.strictEqual( validator(null), 'isNull' );
+      assert.strictEqual( validator([]), undefined );
+    });
+
+
+    it('should validate minCount', () => {
+      const validator = ArrayType.validatorFactory(null, {
+        minCount: 3
+      });
+
+      [
+        [1, 2, 3], [1, 2, 3, 4]
+      ].forEach(value => assert.strictEqual( validator(value), undefined ));
+
+      [
+        [], [1], [1, 2]
+      ].forEach(value => assert.strictEqual( validator(value), 'minCount' ));
+    });
+
+
+    it('should validate maxCount', () => {
+      const validator = ArrayType.validatorFactory(null, {
+        maxCount: 3
+      });
+
+      [
+        [], [1], [1, 2], [1, 2, 3]
+      ].forEach(value => assert.strictEqual( validator(value), undefined ));
+
+      [
+        [1, 2, 3, 4], [1, 2, 3, 4, 5]
+      ].forEach(value => assert.strictEqual( validator(value), 'maxCount' ));
     });
 
   });

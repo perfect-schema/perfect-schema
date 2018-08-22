@@ -148,9 +148,17 @@ function createType(schemaType) {
   return {
     $$type: Symbol('schema' + (++schemaCount)),
     validatorFactory: (fieldName, field, schema, wrappedValidator) => {
+      const {
+        required = false,
+        nullable = true,
+      } = field;
       const validatorContext = schemaType.createContext();
       const validator = (value, options, context) => {
-        if (!validatorContext.validate(value)) {
+        if ((value === undefined) && required) {
+          return 'required';
+        } else if ((value === null) && !nullable) {
+          return 'isNull';
+        } else if (value && !validatorContext.validate(value)) {
           return 'invalid';
         }
 

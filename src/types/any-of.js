@@ -44,10 +44,18 @@ function validatorFactory(...allowedTypes) {
   @param wrappedValidator {Function}  (optional) the validator being wrapped
   */
   return function anyOfValidator(fieldName, field, schema, wrappedValidator) {
+    const {
+      required = false,
+      nullable = true,
+    } = field;
     const itemValidators = _allowedTypes.map(_type => _type.validatorFactory(fieldName, field, schema));
 
     return function validator(value, options, context) {
-      if ((value !== undefined) && (value !== null)) {
+      if ((value === undefined) && required) {
+        return 'required';
+      } else if ((value === null) && !nullable) {
+        return 'isNull';
+      } else if ((value !== undefined) && (value !== null)) {
         let message;
         let validFound = false;
 

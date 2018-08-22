@@ -12,7 +12,7 @@ describe('Testing Object primitive type', () => {
 
   it('should be chainable', () => {
     const value = { foo: 'bar' };
-    const validator = ObjectType.validatorFactory(null, null, null, nextValue => {
+    const validator = ObjectType.validatorFactory(null, {}, null, nextValue => {
       assert.strictEqual( value, nextValue );
 
       return 'test';
@@ -24,7 +24,7 @@ describe('Testing Object primitive type', () => {
 
   describe('Testing validation', () => {
 
-    const validator = ObjectType.validatorFactory();
+    const validator = ObjectType.validatorFactory(null, {});
 
     it('should validate undefined', () => {
       assert.strictEqual( validator(undefined), undefined );
@@ -49,6 +49,32 @@ describe('Testing Object primitive type', () => {
         [], () => {}, /./, new Date(),
         Object.create(null), true, false
       ].forEach(value => assert.strictEqual( validator(value), 'invalidType' ));
+    });
+
+  });
+
+
+  describe('Testing options', () => {
+
+    it('should be required', () => {
+      const validator = ObjectType.validatorFactory(null, {
+        required: true
+      });
+
+      assert.strictEqual( validator(), 'required' );
+      assert.strictEqual( validator(undefined), 'required' );
+      assert.strictEqual( validator(null), undefined );
+      assert.strictEqual( validator({}), undefined );
+    });
+
+
+    it('should not be nullable', () => {
+      const validator = ObjectType.validatorFactory(null, {
+        nullable: false
+      });
+
+      assert.strictEqual( validator(null), 'isNull' );
+      assert.strictEqual( validator({}), undefined );
     });
 
   });

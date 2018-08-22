@@ -12,7 +12,7 @@ describe('Testing Any type', () => {
 
   it('should be chainable', () => {
     const value = 'hello';
-    const validator = AnyType.validatorFactory(null, null, null, function (nextValue) {
+    const validator = AnyType.validatorFactory(null, {}, null, function (nextValue) {
       assert.strictEqual( value, nextValue );
 
       return 'test';
@@ -24,7 +24,7 @@ describe('Testing Any type', () => {
 
   describe('Testing validation', () => {
 
-    const validator = AnyType.validatorFactory();
+    const validator = AnyType.validatorFactory(null, {});
 
     it('should validate undefined', () => {
       assert.strictEqual( validator(undefined), undefined );
@@ -43,6 +43,32 @@ describe('Testing Any type', () => {
         [], () => {}, /./, new Date(),
         {}, Object.create(null), true, false
       ].forEach(value => assert.strictEqual( validator(value), undefined ));
+    });
+
+  });
+
+
+  describe('Testing options', () => {
+
+    it('should be required', () => {
+      const validator = AnyType.validatorFactory(null, {
+        required: true
+      });
+
+      assert.strictEqual( validator(), 'required' );
+      assert.strictEqual( validator(undefined), 'required' );
+      assert.strictEqual( validator(null), undefined );
+      assert.strictEqual( validator({}), undefined );
+    });
+
+
+    it('should not be nullable', () => {
+      const validator = AnyType.validatorFactory(null, {
+        nullable: false
+      });
+
+      assert.strictEqual( validator(null), 'isNull' );
+      assert.strictEqual( validator({}), undefined );
     });
 
   });

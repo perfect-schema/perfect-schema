@@ -25,9 +25,26 @@ Validation function favtory
 @param wrappedValidator {Function}  (optional) the validator being wrapped
 */
 function numberValidator(fieldName, field, schema, wrappedValidator) {
+  const {
+    required = false,
+    nullable = true,
+    minNumber = -Infinity,
+    maxNumber = Infinity,
+  } = field;
+
   return function validator(value, options, context) {
-    if ((value !== undefined) && (value !== null) && ((typeof value !== 'number') || isNaN(value))) {
-      return 'invalidType';
+    if ((value === undefined) && required) {
+      return 'required';
+    } else if ((value === null) && !nullable) {
+      return 'isNull';
+    } else if ((value !== undefined) && (value !== null)) {
+      if ((typeof value !== 'number') || isNaN(value)) {
+        return 'invalidType';
+      } else if (value < minNumber) {
+        return 'minNumber';
+      } else if (value > maxNumber) {
+        return 'maxNumber';
+      }
     }
 
     return wrappedValidator && wrappedValidator(value, options, context);
