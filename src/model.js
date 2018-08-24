@@ -6,7 +6,7 @@ Create a new model given the specified fields
 @param schema {PerfectSchema}
 @return {Object}
 */
-export function createModel(schema, data) {
+function createModel(schema, data) {
   const { fields, fieldNames } = schema;
   const model = Object.assign({}, data || {});
 
@@ -20,3 +20,6 @@ export function createModel(schema, data) {
 
   return model;
 }
+
+
+export { createModel };

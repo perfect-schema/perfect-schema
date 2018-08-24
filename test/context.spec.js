@@ -33,13 +33,13 @@ describe('Testing Validation Context', () => {
     });
 
     context.validate({ foo: 'test' });
-    assert.deepStrictEqual(context.getMessages(), {});
     assert.strictEqual(context.isValid(), true);
+    assert.deepStrictEqual(context.getMessages(), {});
 
     context.validate({ foo: 123 });
+    assert.strictEqual(context.isValid(), false);
     assert.deepStrictEqual(context.getMessages(), { foo: 'testError' });
     assert.strictEqual(context.getMessage('foo'), 'testError');
-    assert.strictEqual(context.isValid(), false);
   });
 
 
@@ -156,5 +156,42 @@ describe('Testing Validation Context', () => {
     ].forEach(message => assert.throws(() => context.setMessage('foo', message)) );
   });
 
+
+  it('should validate partial model', () => {
+    const context = new ValidationContext({
+      fields: {
+        foo: mockType('foo'),
+        bar: mockType('bar')
+      },
+      fieldNames: ['foo', 'bar'],
+      options: {}
+    });
+
+    context.validate({ foo: 'foo', invalid: false }, { fields: [ 'foo' ]});
+    assert.strictEqual(context.isValid(), true);
+    assert.deepStrictEqual(context.getMessages(), {});
+
+    // should find notInSchema
+    context.validate({ foo: 'foo', invalid: false });
+    assert.strictEqual(context.isValid(), false);
+    assert.deepStrictEqual(context.getMessages(), { bar: 'testError', invalid: 'notInSchema' });
+
+    // reset notInSchema
+    context.validate({ foo: 'foo', invalid: false }, { fields: [ 'foo' ]});
+    assert.strictEqual(context.isValid(), false);
+    assert.deepStrictEqual(context.getMessages(), { bar: 'testError' });
+
+    context.validate({ bar: 'bar' }, { fields: [ 'bar' ]});
+    assert.strictEqual(context.isValid(), true);
+    assert.deepStrictEqual(context.getMessages(), {});
+
+    context.validate({}, { fields: []});
+    assert.strictEqual(context.isValid(), true);
+    assert.deepStrictEqual(context.getMessages(), {});
+
+    context.validate({});
+    assert.strictEqual(context.isValid(), false);
+    assert.deepStrictEqual(context.getMessages(), { foo: 'testError', bar: 'testError' });
+  });
 
 });

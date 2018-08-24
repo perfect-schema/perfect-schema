@@ -78,6 +78,12 @@ class PerfectSchema {
         configurable: false,
         writable: false,
         value: createType(this)
+      },
+      _namedContexts: {
+        enumerable: false,
+        configurable: false,
+        writable: false,
+        value: {}
       }
     });
 
@@ -104,11 +110,20 @@ class PerfectSchema {
 
   /**
   Create a new validation context based on this schema
-  */
-  createContext() {
-    const context = new ValidationContext(this);
 
-    PerfectSchema._plugins.forEach(plugin => plugin.extendContext && plugin.extendContext(context, this));
+  @param name {String}   (optional) return a shared context identified by name
+  */
+  createContext(name) {
+    const newContext = !name || !this._namedContexts[name];
+    const context = newContext ? new ValidationContext(this) : this._namedContexts[name];
+
+    if (newContext) {
+      PerfectSchema._plugins.forEach(plugin => plugin.extendContext && plugin.extendContext(context, this));
+
+      if (name) {
+        this._namedContexts[name] = context;
+      }
+    }
 
     return context;
   }

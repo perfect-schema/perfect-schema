@@ -1,7 +1,7 @@
 
 
 
-export default class ValidationContext {
+class ValidationContext {
 
   constructor(schema) {
     Object.defineProperties(this, {
@@ -66,30 +66,38 @@ export default class ValidationContext {
 
   validate(data, options = {}) {
     const { fieldNames, fields } = this.schema;
+    const {
+      fields: validateFieldNames,
+      validatorOptions = {}
+    } = options;
 
     // reset 'notInSchema' errors
     Object.keys(this._messages).forEach(fieldName => {
-      if (!(fieldName in fields)) {
+      if (this._messages[fieldName] === 'notInSchema') {
         delete this._messages[fieldName];
-      }
-    })
-
-    // set 'notInSchema' errors
-    Object.keys(data).forEach(propValue => {
-      if (!(propValue in fields)) {
-        this._messages[propValue] = 'notInSchema';
       }
     });
 
-    fieldNames.forEach(fieldName => {
+    // set 'notInSchema' errors
+    (validateFieldNames || Object.keys(data)).forEach(fieldName => {
+      if (!(fieldName in fields)) {
+        this._messages[fieldName] = 'notInSchema';
+      }
+    });
+
+    (validateFieldNames || fieldNames).forEach(fieldName => {
       const field = fields[fieldName];
-      const propValue = data[fieldName];
-      const result = field.validator(propValue, options, this);
+      const value = data[fieldName];
+      const result = field.validator(value, validatorOptions, this);
 
       if (result && (typeof result === 'string')) {
         this._messages[fieldName] = result;
       } else {
-        delete this._messages[fieldName];
+        Object.keys(this._messages).forEach(messageKey => {
+          if (fieldPart(messageKey, 0) === fieldName) {
+            delete this._messages[messageKey];
+          }
+        });
       }
     });
 
@@ -102,3 +110,6 @@ export default class ValidationContext {
 function fieldPart(fieldName, index) {
   return fieldName.split('.')[index];
 }
+
+
+export default ValidationContext;

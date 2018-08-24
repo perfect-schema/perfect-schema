@@ -235,6 +235,20 @@ describe('Testing Schema', () => {
   });
 
 
+  it('should return a named context', () => {
+    const schema = new Schema({ foo: String });
+    const ctx1 = schema.createContext();
+    const ctx2 = schema.createContext();
+    const ctx3 = schema.createContext('test');
+    const ctx4 = schema.createContext('test');
+
+    assert.notStrictEqual( ctx1, ctx2 );
+    assert.notStrictEqual( ctx2, ctx3 );
+    assert.notStrictEqual( ctx1, ctx4 );
+    assert.strictEqual( ctx3, ctx4 );    
+  });
+
+
   describe('Testing schema type', () => {
 
     it('should get type validation', () => {

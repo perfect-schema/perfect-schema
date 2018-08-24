@@ -78,9 +78,14 @@ Create a new schema given the specified fields. Options are used only by plugins
 
 ---
 
-#### :large_orange_diamond: _method_ `createContext()`
+#### :large_orange_diamond: _method_ `createContext(name)`
 
 Create a new validation context based on the given schema.
+
+##### Arguments
+
+* **name** : `String` *(Optional)*
+  > The name of the context to return
 
 ##### Returns
 
@@ -216,7 +221,11 @@ validation.
 * **data** : `mixed`
   > The data to validate.
 * **options** : `Object` *(Optional)*
-  > The options to pass to the validators.
+  > The validation options
+  * **options.fields** : `Array` *(Optional)*
+    > The list of fields to validate. Will validate all fileds from the schema if not specified.
+  * **options.validatorOptions** : `Object` *(Optional)*
+    > An object that will be passed to the validators. Defaults to an empty object.
 
 ##### Example
 

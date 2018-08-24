@@ -110,7 +110,7 @@ const schema = new PerfectSchema({
 
 ### Official plugins
 
-Coming soon...
+* [Extending Schemas](https://perfect-schema.github.io/extends/)
 
 
 ### Community plugins
