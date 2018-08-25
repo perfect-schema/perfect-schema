@@ -142,6 +142,24 @@ describe('Testing Validation Context', () => {
   });
 
 
+  it('should fail with invalid data', () => {
+    const context = new ValidationContext({
+      fields: {
+        foo: mockType('test', true)
+      },
+      fieldNames: ['foo'],
+      options: {}
+    });
+
+    assert.throws(() => context.setMessage('bar', 'test'));
+
+    [
+      undefined, null, NaN,
+      -1, 0, 1, true, false
+    ].forEach(data => assert.throws(() => context.validate(data)) );
+  });
+
+
   it('should fail with invalid message', () => {
     const context = new ValidationContext({
       fields: {

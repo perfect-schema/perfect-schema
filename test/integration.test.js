@@ -66,9 +66,42 @@ describe('Testing integration', () => {
     cartContext.validate(cart);
     assert.ok( cartContext.isValid() );
     assert.deepStrictEqual(cartContext.getMessages(), {});
-
   });
 
+
+  it('should recursively back propagate error messages', () => {
+    const c = new PerfectSchema({ c: String });
+    const b = new PerfectSchema({ b: c });
+    const a = new PerfectSchema({ a: b });
+
+    const ctx = a.createContext();
+
+    ctx.validate({ a: { b: { c: true }}});
+    assert.deepStrictEqual( ctx.getMessages(), {
+      'a': 'invalid',
+      'a.b': 'invalid',
+      'a.b.c': 'invalidType'
+    } );
+    assert.ok( !ctx.isValid() );
+
+    ctx.validate({ a: { b: { c: 'ok' }}});
+    assert.deepStrictEqual( ctx.getMessages(), {} );
+    assert.ok( ctx.isValid() );
+
+    ctx.validate({ a: { b: true }});
+    assert.deepStrictEqual( ctx.getMessages(), {
+      'a': 'invalid',
+      'a.b': 'invalidType',
+    } );
+    assert.ok( !ctx.isValid() );
+
+    ctx.validate({ a: true });
+    assert.deepStrictEqual( ctx.getMessages(), {
+      'a': 'invalidType'
+    } );
+    assert.ok( !ctx.isValid() );
+
+  });
 
 
 });

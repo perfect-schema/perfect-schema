@@ -170,12 +170,25 @@ function createType(schemaType) {
       const validatorContext = schemaType.createContext();
 
       function validator(value, options, context) {
-        if ((value === undefined) && required) {
-          return 'required';
-        } else if ((value === null) && !nullable) {
-          return 'isNull';
-        } else if (value && !validatorContext.validate(value)) {
-          return 'invalid';
+        if (value === undefined) {
+          return required ? 'required' : undefined;
+        } else if (value === null) {
+          return !nullable ? 'isNull' : undefined;
+        } else {
+
+          try {
+            if (!validatorContext.validate(value)) {
+              if (fieldName) {
+                const contextMessages = validatorContext.getMessages();
+
+                Object.keys(contextMessages).forEach(subFieldName => context.setMessage(fieldName + '.' + subFieldName, contextMessages[subFieldName]));
+              }
+
+              return 'invalid';
+            }
+          } catch (e) {
+            return 'invalidType';
+          }
         }
 
         return wrappedValidator && wrappedValidator(value, options, context);

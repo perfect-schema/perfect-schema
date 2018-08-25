@@ -45,7 +45,7 @@ class ValidationContext {
     if (typeof field !== 'string') {
       throw new TypeError('Invalid field value');
     } else if (!(fieldPart(field, 0) in this.schema.fields)) {
-      throw new Error('Unknown field : ' + field);
+      throw new Error('Unknown field : ' + field + ' (' + this.schema.fieldNames.join(', ') + ')');
     } else if (message && (typeof message !== 'string')) {
       throw new TypeError('Invalid message for ' + field);
     } else if (message) {
@@ -71,6 +71,10 @@ class ValidationContext {
       validatorOptions = {}
     } = options;
 
+    if (typeof data !== 'object') {
+      throw new TypeError('Data must be an object');
+    }
+
     // reset 'notInSchema' errors
     Object.keys(this._messages).forEach(fieldName => {
       if (this._messages[fieldName] === 'notInSchema') {
@@ -86,18 +90,18 @@ class ValidationContext {
     });
 
     (validateFieldNames || fieldNames).forEach(fieldName => {
+      Object.keys(this._messages).forEach(messageKey => {
+        if (fieldPart(messageKey, 0) === fieldName) {
+          delete this._messages[messageKey];
+        }
+      });
+
       const field = fields[fieldName];
       const value = data[fieldName];
       const result = field.validator(value, validatorOptions, this);
 
       if (result && (typeof result === 'string')) {
         this._messages[fieldName] = result;
-      } else {
-        Object.keys(this._messages).forEach(messageKey => {
-          if (fieldPart(messageKey, 0) === fieldName) {
-            delete this._messages[messageKey];
-          }
-        });
       }
     });
 

@@ -41,7 +41,7 @@ function validatorFactory(type) {
     const {
       timeout = 200
     } = field;
-    const itemValidator = _type.validatorFactory(fieldName, field, schema);
+    const itemValidator = _type.validatorFactory(null, field, schema);
 
     return ArrayType.validatorFactory(fieldName, field, schema, (value, options, context) => {
       if (value) {
@@ -49,14 +49,13 @@ function validatorFactory(type) {
 
         for (let i = 0, len = value.length; i < len && expires > Date.now(); ++i) {
           const item = value[i];
-          const message = itemValidator(item);
+          const itemContext = itemValidator.context;
+
+          const message = itemValidator(item, options, itemContext);
 
           if (typeof message === 'string') {
-            if (itemValidator.context) {
-              const itemContext = itemValidator.context;
+            if (itemContext && fieldName) {
               const contextMessages = itemContext.getMessages();
-
-              fieldName = fieldName || 'arr?';
 
               Object.keys(contextMessages).forEach(subFieldName => context.setMessage(fieldName + '.' + i + '.' + subFieldName, contextMessages[subFieldName]));
             }

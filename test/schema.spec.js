@@ -60,9 +60,15 @@ describe('Testing Schema', () => {
       const schema = new Schema({
         foo: subSchema
       });
+      const ctx = schema.createContext();
 
       assert.ok( /schema\d+/.test( schema.fields.foo.type.$$type.toString() ) );
       assert.ok( typeof schema.fields.foo.validator === 'function' );
+
+      // allow null / undefined
+      assert.ok( ctx.validate({}) );
+      assert.ok( ctx.validate({ foo: undefined }) );
+      assert.ok( ctx.validate({ foo: null }) );
     });
 
 
@@ -95,8 +101,6 @@ describe('Testing Schema', () => {
         assert.throws(() => Schema._normalizeField(type));
       });
     });
-
-
   });
 
 
@@ -245,7 +249,7 @@ describe('Testing Schema', () => {
     assert.notStrictEqual( ctx1, ctx2 );
     assert.notStrictEqual( ctx2, ctx3 );
     assert.notStrictEqual( ctx1, ctx4 );
-    assert.strictEqual( ctx3, ctx4 );    
+    assert.strictEqual( ctx3, ctx4 );
   });
 
 
@@ -253,6 +257,7 @@ describe('Testing Schema', () => {
 
     it('should get type validation', () => {
       const schema = new Schema({ foo: String });
+      const ctx = schema.createContext();
       const type = schema._type;
 
       assert.ok( typeof type === 'object' );
@@ -262,11 +267,11 @@ describe('Testing Schema', () => {
       const validator = type.validatorFactory(null, {});
       const context = validator.context;
 
-      assert.ok( validator({ foo: 'test' }) === undefined );
+      assert.ok( validator({ foo: 'test' }, {}, ctx) === undefined );
       assert.deepStrictEqual( context.getMessages(), {} );
 
 
-      assert.ok( validator({ foo: false }) === 'invalid' );
+      assert.ok( validator({ foo: false }, {}, ctx) === 'invalid' );
       assert.deepStrictEqual( context.getMessages(), { foo: 'invalidType' } );
     });
 
@@ -277,8 +282,9 @@ describe('Testing Schema', () => {
       const validator = type.validatorFactory(null, {}, schema, (value, options, context) => {
         return 'test';
       });
+      const ctx = schema.createContext();
 
-      assert.ok( validator({ foo: 'test' }) === 'test' );
+      assert.ok( validator({ foo: 'test' }, {}, ctx) === 'test' );
     });
 
 
