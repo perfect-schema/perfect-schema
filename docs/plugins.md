@@ -111,6 +111,7 @@ const schema = new PerfectSchema({
 ### Official plugins
 
 * [Extending Schemas](https://perfect-schema.github.io/extends/)
+* [Meteor enabled Schemas](https://perfect-schema.github.io/tracker/)
 
 
 ### Community plugins
