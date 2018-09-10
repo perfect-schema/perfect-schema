@@ -9,7 +9,7 @@
     "node": ">= 8.2.1"
   },
   "scripts": {
-    "test": "jest --forceExit --detectOpenHandles",
+    "test": "BABEL_ENV=test jest --forceExit --detectOpenHandles",
     "test-cov": "npm run test -- --coverage",
     "lint": "eslint src --fix",
     "prepublishOnly": "gulp"
@@ -33,6 +33,8 @@
   "devDependencies": {
     "@babel/core": "^7.0.0",
     "@babel/preset-env": "^7.0.0",
+    "babel-core": "^7.0.0-bridge.0",
+    "babel-jest": "^23.6.0",
     "eslint": "^5.4.0",
     "eslint-config-standard": "^11.0.0",
     "eslint-plugin-import": "^2.14.0",
@@ -43,6 +45,11 @@
     "gulp-babel": "^8.0.0",
     "jest": "^23.5.0"
   },
+  "babel": {
+    "presets": [
+      "@babel/preset-env"
+    ]
+  },
   "jest": {
     "testMatch": [
       "**/test/**/*.js"
@@ -52,6 +59,22 @@
       "lcov"
     ],
     "bail": true,
-    "testEnvironment": "node"
+    "testEnvironment": "node",
+    "transform": {
+      "^.+\\.js$": "babel-jest"
+    },
+    "globals": {
+      "NODE_ENV": "test"
+    },
+    "moduleFileExtensions": [
+      "js"
+    ],
+    "moduleDirectories": [
+      "node_modules",
+      "src"
+    ],
+    "transformIgnorePatterns": [
+      "node_modules/(?!var-validator)/"
+    ]
   }
 }
