@@ -11,6 +11,13 @@ describe('Testing Validation Context', () => {
     };
   }
 
+  function mockTypeValidator(name, validator) {
+    return {
+      type: { $$type: Symbol(name) },
+      validator: validator
+    };
+  }
+
 
   it('should create instance', () => {
     const context = new ValidationContext({
@@ -210,6 +217,40 @@ describe('Testing Validation Context', () => {
     context.validate({});
     assert.strictEqual(context.isValid(), false);
     assert.deepStrictEqual(context.getMessages(), { foo: 'testError', bar: 'testError' });
+  });
+
+
+  it('should retrieve model data from validator', () => {
+    const context = new ValidationContext({
+      fields: {
+        foo: mockTypeValidator('foo', (value, self, ctx) => {
+          const barField = self.getSibling('bar');
+          const buzField = self.getSibling('buz');
+
+          assert.strictEqual(self.fieldName, 'foo');
+          assert.strictEqual(self.options, true);
+
+          assert.strictEqual(value, 'hello');
+
+          assert.strictEqual(barField.exists, true);
+          assert.strictEqual(barField.value, 'world');
+
+          assert.strictEqual(buzField.exists, false);
+          assert.strictEqual(buzField.value, undefined);
+
+          assert.strictEqual(ctx, context);
+
+          return 'validated';
+        }),
+        bar: mockType('bar')
+      },
+      fieldNames: ['foo', 'bar'],
+      options: {}
+    });
+
+    context.validate({ foo: 'hello', bar: 'world' }, { validatorOptions: true });
+    assert.strictEqual(context.isValid(), false);
+    assert.deepStrictEqual(context.getMessage('foo'), 'validated');
   });
 
 });

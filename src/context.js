@@ -98,7 +98,17 @@ class ValidationContext {
 
       const field = fields[fieldName];
       const value = data[fieldName];
-      const result = field.validator(value, validatorOptions, this);
+      const self = {
+        fieldName,
+        options: validatorOptions,
+        getSibling(fieldName) {
+          return {
+            exists: fieldName in data,
+            value: data[fieldName]
+          };
+        }
+      };
+      const result = field.validator(value, self, this);
 
       if (result && (typeof result === 'string')) {
         this._messages[fieldName] = result;

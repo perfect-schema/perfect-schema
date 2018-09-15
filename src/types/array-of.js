@@ -43,7 +43,7 @@ function validatorFactory(type) {
     } = field;
     const itemValidator = _type.validatorFactory(null, field, schema);
 
-    return ArrayType.validatorFactory(fieldName, field, schema, (value, options, context) => {
+    return ArrayType.validatorFactory(fieldName, field, schema, (value, self, context) => {
       if (value) {
         const expires = Date.now() + timeout;
 
@@ -51,7 +51,7 @@ function validatorFactory(type) {
           const item = value[i];
           const itemContext = itemValidator.context;
 
-          const message = itemValidator(item, options, itemContext);
+          const message = itemValidator(item, self, itemContext);
 
           if (typeof message === 'string') {
             if (itemContext && fieldName) {
@@ -65,7 +65,7 @@ function validatorFactory(type) {
         }
       }
 
-      return wrappedValidator && wrappedValidator(value, options, context);
+      return wrappedValidator && wrappedValidator(value, self, context);
     });
   };
 }

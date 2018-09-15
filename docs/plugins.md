@@ -110,6 +110,7 @@ const schema = new PerfectSchema({
 
 ### Official plugins
 
+* [Standard validators](https://perfect-schema.github.io/standard-validators/)
 * [Extending Schemas](https://perfect-schema.github.io/extends/)
 * [Meteor enabled Schemas](https://perfect-schema.github.io/tracker/)
 

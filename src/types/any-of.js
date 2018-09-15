@@ -50,7 +50,7 @@ function validatorFactory(...allowedTypes) {
     } = field;
     const itemValidators = _allowedTypes.map(_type => _type.validatorFactory(fieldName, field, schema));
 
-    return function validator(value, options, context) {
+    return function validator(value, self, context) {
       if ((value === undefined) && required) {
         return 'required';
       } else if ((value === null) && !nullable) {
@@ -74,7 +74,7 @@ function validatorFactory(...allowedTypes) {
         }
       }
 
-      return wrappedValidator && wrappedValidator(value, options, context);
+      return wrappedValidator && wrappedValidator(value, self, context);
     };
   };
 }

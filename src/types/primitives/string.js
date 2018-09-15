@@ -32,7 +32,7 @@ function stringValidator(fieldName, field, schema, wrappedValidator) {
     maxLength = Infinity
   } = field;
 
-  return function validator(value, options, context) {
+  return function validator(value, self, context) {
     if ((value === undefined) && required) {
       return 'required';
     } else if ((value === null) && !nullable) {
@@ -47,6 +47,6 @@ function stringValidator(fieldName, field, schema, wrappedValidator) {
       }
     }
 
-    return wrappedValidator && wrappedValidator(value, options, context);
+    return wrappedValidator && wrappedValidator(value, self, context);
   };
 }
