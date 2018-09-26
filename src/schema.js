@@ -152,6 +152,16 @@ Object.defineProperties(PerfectSchema, {
   }
 });
 
+Object.defineProperties(PerfectSchema.prototype, {
+  _normalizeField: {
+    enumerable: false,
+    configurable: false,
+    writable: false,
+    value: normalizeField
+  }
+});
+
+
 
 /**
 Create a type for the given schema

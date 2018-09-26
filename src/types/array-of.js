@@ -22,13 +22,12 @@ export default type => Object.freeze({
 });
 
 
-function validatorFactory(type) {
-  const _type = types.getType(type) || (type && types.getType(type._type));
+function validatorFactory(baseType) {
+  const _type = types.getType(baseType) || (baseType && types.getType(baseType.type || baseType._type));
 
   if (!_type) {
-    throw new TypeError('Invalid type ' + type);
+    throw new TypeError('Invalid type ' + baseType);
   }
-
   /**
   Validation function favtory
 
@@ -41,7 +40,8 @@ function validatorFactory(type) {
     const {
       timeout = 200
     } = field;
-    const itemValidator = _type.validatorFactory(null, field, schema);
+    const baseField = schema._normalizeField(baseType, fieldName + '.*');
+    const itemValidator = baseField.type.validatorFactory(null, baseField, schema);
 
     return ArrayType.validatorFactory(fieldName, field, schema, (value, self, context) => {
       if (value) {

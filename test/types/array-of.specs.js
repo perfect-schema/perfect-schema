@@ -1,8 +1,18 @@
 import assert from 'assert';
+import Schema from '../../src/schema';
 import ArrayOfType from '../../src/types/array-of';
 
 
 describe('Testing ArrayOf type', () => {
+
+  const mockPerfectSchema = {
+    _normalizeField: Schema._normalizeField
+  };
+
+  const mockPerfectSchemaCustom = {
+    _normalizeField: (field, fieldName) => field._type ? { type: field._type } : Schema._normalizeField(field, fieldName)
+  };
+
 
   it('should be valid', () => {
     const CustomType = ArrayOfType(String);
@@ -32,7 +42,7 @@ describe('Testing ArrayOf type', () => {
 
   it('should be chainable', () => {
     const value = ['hello'];
-    const validator = ArrayOfType(String).validatorFactory(null, {}, null, function (nextValue) {
+    const validator = ArrayOfType(String).validatorFactory(null, {}, mockPerfectSchema, function (nextValue) {
       assert.strictEqual( value, nextValue );
 
       return 'test';
@@ -44,7 +54,7 @@ describe('Testing ArrayOf type', () => {
 
   describe('Testing validation with primitive', () => {
 
-    const validator = ArrayOfType(String).validatorFactory(null, {});
+    const validator = ArrayOfType(String).validatorFactory(null, {}, mockPerfectSchema);
 
     it('should validate undefined', () => {
       assert.strictEqual( validator(undefined), undefined );
@@ -82,6 +92,21 @@ describe('Testing ArrayOf type', () => {
   });
 
 
+  describe('Testing validation with extended type', () => {
+
+    it('should validate extended type', () => {
+      const validator = ArrayOfType({
+        type: String,
+        min: 3
+      }).validatorFactory(null, {}, mockPerfectSchema);
+
+
+
+    });
+
+  });
+
+
   describe('Testing validation with custom types', () => {
     class PerfectSchema {
       constructor() {
@@ -105,8 +130,8 @@ describe('Testing ArrayOf type', () => {
     };
     const schema = new PerfectSchema();
 
-    const validator = ArrayOfType(schema).validatorFactory('foo', {});
-    const validatorAnonymous = ArrayOfType(schema).validatorFactory(null, {});
+    const validator = ArrayOfType(schema).validatorFactory('foo', {}, mockPerfectSchemaCustom);
+    const validatorAnonymous = ArrayOfType(schema).validatorFactory(null, {}, mockPerfectSchemaCustom);
 
     it('should validate with custom type', () => {
       const value = ['test'];
@@ -150,7 +175,7 @@ describe('Testing ArrayOf type', () => {
     it('should be required', () => {
       const validator = ArrayOfType(String).validatorFactory(null, {
         required: true
-      });
+      }, mockPerfectSchema);
 
       assert.strictEqual( validator(), 'required' );
       assert.strictEqual( validator(undefined), 'required' );
@@ -163,7 +188,7 @@ describe('Testing ArrayOf type', () => {
     it('should not be nullable', () => {
       const validator = ArrayOfType(String).validatorFactory(null, {
         nullable: false
-      });
+      }, mockPerfectSchema);
 
       assert.strictEqual( validator(null), 'isNull' );
       assert.strictEqual( validator([]), undefined );
@@ -192,10 +217,10 @@ describe('Testing ArrayOf type', () => {
 
       value.push('error');
 
-      const validatorDefault = ArrayOfType(schema).validatorFactory(null, {});  // default 200 ms
+      const validatorDefault = ArrayOfType(schema).validatorFactory(null, {}, mockPerfectSchemaCustom);  // default 200 ms
       const validatorUnlimited = ArrayOfType(schema).validatorFactory(null, {
         timeout: Infinity
-      });
+      }, mockPerfectSchemaCustom);
 
       assert.strictEqual( validatorDefault(value), undefined );
       assert.strictEqual( validatorUnlimited(value), 'invalid' );

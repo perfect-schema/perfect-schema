@@ -1,8 +1,18 @@
 import assert from 'assert';
+import Schema from '../../src/schema';
 import AnyOfType from '../../src/types/any-of';
 
 
 describe('Testing Any type', () => {
+
+  const mockPerfectSchema = {
+    _normalizeField: Schema._normalizeField
+  };
+
+  const mockPerfectSchemaCustom = {
+    _normalizeField: (field, fieldName) => field._type ? { type: field._type } : Schema._normalizeField(field, fieldName)
+  };
+
 
   it('should be valid', () => {
     const CustomType = AnyOfType(String);
@@ -32,7 +42,7 @@ describe('Testing Any type', () => {
 
   it('should be chainable', () => {
     const value = 'hello';
-    const validator = AnyOfType(String, Number).validatorFactory(null, {}, null, function (nextValue) {
+    const validator = AnyOfType(String, Number).validatorFactory(null, {}, mockPerfectSchema, function (nextValue) {
       assert.strictEqual( value, nextValue );
 
       return 'test';
@@ -44,7 +54,7 @@ describe('Testing Any type', () => {
 
   describe('Testing validation with primitive', () => {
 
-    const validator = AnyOfType(String, Date).validatorFactory(null, {});
+    const validator = AnyOfType(String, Date).validatorFactory(null, {}, mockPerfectSchema);
 
     it('should validate undefined', () => {
       assert.strictEqual( validator(undefined), undefined );
@@ -96,7 +106,7 @@ describe('Testing Any type', () => {
     };
     const schema = new PerfectSchema();
 
-    const validator = AnyOfType(Number, schema).validatorFactory('foo', {});
+    const validator = AnyOfType(Number, schema).validatorFactory('foo', {}, mockPerfectSchemaCustom);
 
     it('should validate with custom type', () => {
       assert.strictEqual( validator('test'), undefined );
@@ -118,7 +128,7 @@ describe('Testing Any type', () => {
     it('should be required', () => {
       const validator = AnyOfType(String, Number).validatorFactory(null, {
         required: true
-      });
+      }, mockPerfectSchema);
 
       assert.strictEqual( validator(), 'required' );
       assert.strictEqual( validator(undefined), 'required' );
@@ -131,7 +141,7 @@ describe('Testing Any type', () => {
     it('should not be nullable', () => {
       const validator = AnyOfType(String, Number).validatorFactory(null, {
         nullable: false
-      });
+      }, mockPerfectSchema);
 
       assert.strictEqual( validator(null), 'isNull' );
       assert.strictEqual( validator('test'), undefined );

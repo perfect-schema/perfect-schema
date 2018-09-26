@@ -25,14 +25,12 @@ function validatorFactory(...allowedTypes) {
     throw new TypeError('Missing types');
   }
 
-  const _allowedTypes = allowedTypes.map(type => {
-    const _type = types.getType(type) || (type && types.getType(type._type));
+  allowedTypes.forEach(type => {
+    const _type = types.getType(type) || (type && types.getType(type.type || type._type));
 
     if (!_type) {
       throw new TypeError('Invalid type ' + type);
     }
-
-    return _type;
   });
 
   /**
@@ -48,7 +46,8 @@ function validatorFactory(...allowedTypes) {
       required = false,
       nullable = true
     } = field;
-    const itemValidators = _allowedTypes.map(_type => _type.validatorFactory(fieldName, field, schema));
+    const baseFields = allowedTypes.map(baseType => schema._normalizeField(baseType, fieldName));
+    const itemValidators = baseFields.map(baseField => baseField.type.validatorFactory(fieldName, field, schema));
 
     return function validator(value, self, context) {
       if ((value === undefined) && required) {
