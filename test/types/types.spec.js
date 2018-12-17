@@ -45,7 +45,7 @@ describe('Testing type registry map', () => {
       validatorFactory: () => {}
     };
 
-    assert.ok( types.isUserType(type) );
+    assert.ok( types.isType(type) );
     assert.ok( types.getType(type) === type );
   });
 
@@ -57,7 +57,25 @@ describe('Testing type registry map', () => {
       { $$type: 'test' },
       { validatorFactory: () => {} }
     ].forEach(type => assert.ok( types.getType(type) === undefined ));
-
   });
+
+
+  it('should warn about deprecation (2.4.2)', () => {
+    const type = {
+      $$type: 'test',
+      validatorFactory: () => {}
+    };
+    const warn = console.warn;
+    let warned = false;
+
+    console.warn = () => warned = true;
+
+    assert.strictEqual( types.isUserType(type), true );
+    assert.strictEqual( types.isUserType(null), false );
+    assert.ok( warned );
+
+    console.warn = warn;
+  });
+
 
 });

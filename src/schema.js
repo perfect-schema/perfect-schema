@@ -253,12 +253,12 @@ function normalizeField(field, fieldName) {
 
   if (field.type instanceof PerfectSchema) {
     field.type = field.type._type;
-  } else {
+  } else if (!types.isType(field.type)) {
     field.type = types.getType(field.type);
+  }
 
-    if (!field.type) {
-      throw new TypeError('Invalid field specification' + (fieldName ? (' for ' + fieldName) : ''));
-    }
+  if (!field.type) {
+    throw new TypeError('Invalid field specification' + (fieldName ? (' for ' + fieldName) : ''));
   }
 
   return field;

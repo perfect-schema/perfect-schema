@@ -31,7 +31,7 @@ export default Object.freeze({
   getType(type) {
     if (this.isPrimitive(type)) {
       return primitiveTypes[type];
-    } else if (this.isUserType(type)) {
+    } else if (this.isType(type)) {
       return type;
     } else {
       return undefined;
@@ -54,8 +54,13 @@ export default Object.freeze({
   @param type {mixed}
   @return {Boolean}
   */
+  isType(type) {
+    return type && type.$$type && (typeof type.validatorFactory === 'function') && !Array.isArray(type.$$type) || false;
+  },
+
   isUserType(type) {
-    return type && type.$$type && (typeof type.validatorFactory === 'function') && !Array.isArray(type.$$type);
+    console.warn("Deprecated! Use isType() instead!");
+    return this.isType(type);
   }
 
 });
