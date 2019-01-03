@@ -43,7 +43,7 @@ The field should be an instance of `Date` and be a valid date value.
 
 ### :zap: `Number`
 
-The field should be a strict number between, and not `NaN`.
+The field should be a strict number, and not `NaN`.
 
 ##### Options
 
@@ -122,3 +122,21 @@ All options from :zap:`Array` are inherited.
   >
   > **Warning** : validation will not return until all array elements are either checked or
   > when the timeout expires.
+
+
+### :zap: `PerfectSchema.Integer`
+
+The field should be a strict integer between, and not be `Infinity` or `NaN`.
+
+```js
+const schema = new PerfectSchema({
+  foo: PerfectSchema.Any,
+  bar: {
+    type: PerfectSchema.Integer
+  }
+});
+```
+
+##### Options
+
+All options from :zap:`Number` are inherited.

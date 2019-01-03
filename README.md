@@ -21,10 +21,11 @@ const itemSchema = new PerfectSchema({
   name: {
     type: String,
     required: true,
-    min: 3
+    minLength: 3
   },
   qty: {
-    type: Number,
+    type: PerfectSchema.Integer,
+    minInteger: 0,
     defaultValue: 0
   },
   price: Number

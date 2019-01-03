@@ -4,6 +4,13 @@ import PerfectSchema from '../src/schema';
 
 describe('Testing integration', () => {
 
+  it('should expose built-in types', () => {
+    assert.ok( PerfectSchema.Any );
+    assert.ok( PerfectSchema.AnyOf );
+    assert.ok( PerfectSchema.ArrayOf );
+    assert.ok( PerfectSchema.Integer );
+  });
+
 
   it('should create and validate simple schema', () => {
 

@@ -3,7 +3,7 @@ import varValidator from 'var-validator';
 import ValidationContext from './context';
 import { createModel } from './model';
 
-import types, { AnyType, AnyOfType, ArrayOfType } from './types/types';
+import types, { AnyType, AnyOfType, ArrayOfType, IntegerType } from './types/types';
 
 
 // field validator config
@@ -135,6 +135,7 @@ class PerfectSchema {
 PerfectSchema.Any = AnyType;
 PerfectSchema.ArrayOf = ArrayOfType;
 PerfectSchema.AnyOf = AnyOfType;
+PerfectSchema.Integer = IntegerType;
 
 // internal properties
 Object.defineProperties(PerfectSchema, {

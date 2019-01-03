@@ -8,6 +8,7 @@ import StringType from './primitives/string';
 import AnyType from './any';
 import AnyOfType from './any-of';
 import ArrayOfType from './array-of';
+import IntegerType from './integer';
 
 
 const primitiveTypes = {
@@ -66,4 +67,4 @@ export default Object.freeze({
 });
 
 
-export { AnyType, AnyOfType, ArrayOfType };
+export { AnyType, AnyOfType, ArrayOfType, IntegerType };
