@@ -65,6 +65,14 @@ The `array` consisting of the list of specified field names.
 
 ---
 
+#### :small_orange_diamond: _property_ `options`
+
+The options passed to the constructor, or an empty object if no option was provided.
+Modifying the options after the instance has been created may yield unpredictible
+results.
+
+---
+
 #### :new: __constructor__ `PerfectSchema(fields, options)`
 
 Create a new schema given the specified fields. Options are used only by plugins.
@@ -93,7 +101,7 @@ Create a new validation context based on the given schema.
 
 ---
 
-#### :large_orange_diamond: _method_ `reateModel(data)`
+#### :large_orange_diamond: _method_ `createModel(data)`
 
 Create a new model based on the schema's specifications. The returned model
 is a POJO object containing the required fields, or fields with defined default values.

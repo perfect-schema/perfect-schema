@@ -67,7 +67,10 @@ const customValidator = PerfectSchema => ({
       const field = schema.fields[fieldName];
 
       if (typeof field.custom === 'function') {
-        field.validator = applyCustomValidator(field, field.validator);
+        const custom = field.custom.bind(schema);
+        const validator = field.validator;
+
+        field.validator = (value, self, context) => validator(value, self, context) || custom(value, self, context);
       }
     });
   },
