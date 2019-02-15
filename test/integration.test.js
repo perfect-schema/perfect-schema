@@ -111,4 +111,27 @@ describe('Testing integration', () => {
   });
 
 
+  describe('Testing inline subtypes', () => {
+
+    it('should create anyOf with objects or schema', () => {
+      const a = new PerfectSchema({
+        field: PerfectSchema.AnyOf(
+          String,
+          { objField: String },
+          new PerfectSchema({
+            schemaField: String
+          })
+        )
+      });
+
+      const b = new PerfectSchema({
+        a: PerfectSchema.ArrayOf(String),
+        b: PerfectSchema.ArrayOf({ subB: String }),
+        c: PerfectSchema.ArrayOf(new PerfectSchema({ subC: String })),
+      });
+    });
+
+  });
+
+
 });

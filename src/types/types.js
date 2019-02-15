@@ -5,10 +5,10 @@ import NumberType from './primitives/number';
 import ObjectType from './primitives/object';
 import StringType from './primitives/string';
 
-import AnyType from './any';
-import AnyOfType from './any-of';
-import ArrayOfType from './array-of';
-import IntegerType from './integer';
+import anyType from './any';
+import anyOfType from './any-of';
+import arrayOfType from './array-of';
+import integerType from './integer';
 
 
 const primitiveTypes = {
@@ -67,4 +67,4 @@ export default Object.freeze({
 });
 
 
-export { AnyType, AnyOfType, ArrayOfType, IntegerType };
+export { anyType, anyOfType, arrayOfType, integerType };

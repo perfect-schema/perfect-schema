@@ -28,7 +28,7 @@ Validation function favtory
 function integerValidator(fieldName, field, schema, wrappedValidator) {
   return NumberType.validatorFactory(fieldName, field, schema, (value, self, context) => {
     if (value) {
-      if (((value|0) !== value) || (value === -Infinity) || (value === Infinity)) {
+      if (((value | 0) !== value) || (value === -Infinity) || (value === Infinity)) {
         return 'invalidType';
       }
     }
