@@ -224,8 +224,10 @@ describe('Testing Validation Context', () => {
     const context = new ValidationContext({
       fields: {
         foo: mockTypeValidator('foo', (value, self, ctx) => {
-          const barField = self.getSibling('bar');
-          const buzField = self.getSibling('buz');
+          const barField = self.getField('bar');
+          const buzField = self.getField('buz');
+          const deepField = self.getField('path.to.field');
+          const missingField = self.getField('path.to.missing.field');
 
           assert.strictEqual(self.fieldName, 'foo');
           assert.strictEqual(self.options, true);
@@ -238,6 +240,17 @@ describe('Testing Validation Context', () => {
           assert.strictEqual(buzField.exists, false);
           assert.strictEqual(buzField.value, undefined);
 
+          assert.strictEqual(deepField.exists, true);
+          assert.strictEqual(deepField.value, 'ok');
+
+          assert.strictEqual(missingField.exists, false);
+          assert.strictEqual(missingField.value, undefined);
+
+          // @deprecated
+          assert.deepStrictEqual(self.getSibling('bar'), self.getField('bar'));
+
+          assert.throws(() => self.getField());
+
           assert.strictEqual(ctx, context);
 
           return 'validated';
@@ -248,7 +261,7 @@ describe('Testing Validation Context', () => {
       options: {}
     });
 
-    context.validate({ foo: 'hello', bar: 'world' }, { validatorOptions: true });
+    context.validate({ foo: 'hello', bar: 'world', path: { to: { field: 'ok' } } }, { validatorOptions: true });
     assert.strictEqual(context.isValid(), false);
     assert.deepStrictEqual(context.getMessage('foo'), 'validated');
   });

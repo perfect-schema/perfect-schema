@@ -44,7 +44,7 @@ class ValidationContext {
   setMessage(field, message) {
     if (typeof field !== 'string') {
       throw new TypeError('Invalid field value');
-    } else if (!(fieldPart(field, 0) in this.schema.fields)) {
+    } else if (!(field.split('.')[0] in this.schema.fields)) {
       throw new Error('Unknown field : ' + field + ' (' + this.schema.fieldNames.join(', ') + ')');
     } else if (message && (typeof message !== 'string')) {
       throw new TypeError('Invalid message for ' + field);
@@ -91,7 +91,7 @@ class ValidationContext {
 
     (validateFieldNames || fieldNames).forEach(fieldName => {
       Object.keys(this._messages).forEach(messageKey => {
-        if (fieldPart(messageKey, 0) === fieldName) {
+        if (messageKey.split('.')[0] === fieldName) {
           delete this._messages[messageKey];
         }
       });
@@ -101,11 +101,29 @@ class ValidationContext {
       const self = {
         fieldName,
         options: validatorOptions,
+        getField(fieldName) {
+          const path = typeof fieldName === 'string' ? fieldName.split('.') : undefined;
+          let value = data;
+          let exists = true;
+
+          if (!path) {
+            throw new TypeError('Invalid fieldName');
+          }
+
+          for (let index = 0, len = path.length; index < len; ++index) {
+            if (value && (typeof value === 'object') && (path[index] in value)) {
+              value = value[path[index]];
+            } else {
+              value = undefined;
+              exists = false;
+            }
+          }
+
+          return { exists, value };
+        },
         getSibling(fieldName) {
-          return {
-            exists: fieldName in data,
-            value: data[fieldName]
-          };
+          console.warn("Deprecated, use getField instead");
+          return this.getField(fieldName);
         }
       };
       const result = field.validator(value, self, this);
@@ -118,11 +136,6 @@ class ValidationContext {
     return this._valid = !Object.keys(this._messages).length;
   }
 
-}
-
-
-function fieldPart(fieldName, index) {
-  return fieldName.split('.')[index];
 }
 
 
